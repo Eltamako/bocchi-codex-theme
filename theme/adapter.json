@@ -1,0 +1,43 @@
+{
+  "schema": "bocchi-codex-adapter/1",
+  "themeVersion": "2.3.0",
+  "appVersion": "26.1007.71326",
+  "packageVersion": "26.1007.9446.0",
+  "activePage": "[data-app-shell-active-page=\"true\"]",
+  "surface": "[data-app-shell-main-surface]",
+  "composer": "[data-composer-markdown][contenteditable=\"true\"]",
+  "composerBody": "[data-composer-body]",
+  "chatReader": "[data-chatgpt-conversation-selection-target=\"true\"][data-thread-find-target=\"conversation\"]",
+  "localWorkComposer": "[data-codex-composer=\"true\"]",
+  "chatLabels": [
+    "询问 ChatGPT",
+    "Ask ChatGPT",
+    "Message ChatGPT"
+  ],
+  "status": "live-verified-scoped",
+  "validationScope": "2026-10-17: four wallpapers Chat/Work; 3 mode cycles; picker keyboard; drafts; pause/resume; desktop restart; see acceptance-v23 for limitations",
+  "visualDesign": "four-wallpapers-R4-soft-floor-compact-picker",
+  "assetPolicy": "native PNG originals retained; separate outpainted artwork and character-free background plates; fixed four-ID local catalog",
+  "layoutTargets": {
+    "main1119": {
+      "left": 100.7,
+      "width": 621
+    },
+    "main986": {
+      "left": 56,
+      "width": 560
+    },
+    "rightPanel": {
+      "left": 44,
+      "width": "available minus 88"
+    }
+  },
+  "cleanupPolicy": "owned elements and recorded attributes/styles only; full teardown on unsupported markers or expired lease",
+  "upstream": "https://github.com/CCDawn/Codex-Dynamic-Skin/tree/5a0e74043b63ed9518ab37cdcf6865340a57006c",
+  "requestCard": "[data-codex-composer-request-navigation=\"true\"]",
+  "workComposerRoot": "[data-codex-composer-root][data-composer-placement=\"thread\"]",
+  "workThreadScroll": ".thread-scroll-container[data-pip-anchor-host=\"codex-main-thread\"]",
+  "workReader": "[data-thread-user-message-navigation-content=\"true\"][data-mcp-app-portal-target=\"true\"]",
+  "inputStateRevision": "native-request-shell-20261016",
+  "visualApproval": "approved-2026-10-17"
+}

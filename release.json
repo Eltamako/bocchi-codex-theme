@@ -1,0 +1,11 @@
+{
+  "schema": "bocchi-public-release/1",
+  "releaseVersion": "2.3.0-public.1",
+  "themeVersion": "2.3.0",
+  "launcherVersion": "1.0.3",
+  "appVersion": "26.1007.71326",
+  "packageVersion": "26.1007.9446.0",
+  "port": 9347,
+  "nodeVersion": "v24.19.0",
+  "nodeSha256": "3602F2BB1A10F2CBAB4C36886218A33C1AB3DB87290E73B033C46C77147D0237"
+}

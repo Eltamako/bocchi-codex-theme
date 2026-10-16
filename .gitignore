@@ -1,0 +1,15 @@
+# Local profiles, preferences, logs and generated machine paths
+.local/
+installation.json
+installation.json.tmp-*
+*.log
+*.tmp-*
+*.lnk
+# Runtime binary lives in Release assets, not source history
+engine/node.exe
+# Local test/build outputs
+.test-output/
+dist/
+*.zip
+Thumbs.db
+.DS_Store

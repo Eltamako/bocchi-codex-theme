@@ -1,0 +1,4 @@
+# Preserve the exact distributed bytes so CHECKSUMS.sha256 survives a Git checkout.
+* -text
+*.png binary
+*.exe binary

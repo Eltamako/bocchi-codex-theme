@@ -1,0 +1,108 @@
+/* Ending Band 2.2.0 preview. Original approved PNGs are unchanged. All layers are local and reversible. */
+html[data-bocchi-active="true"]{--bocchi-ink:#17171e;--bocchi-pink:#f3a5c5;--color-text-primary:#eee8e5}
+html[data-bocchi-active="true"] [data-bocchi-surface]{background:#17171e!important}
+.bocchi-backdrop{position:fixed;z-index:-1;overflow:hidden;contain:layout paint;isolation:isolate;background:#17171e}
+.bocchi-ambience{position:absolute;inset:0;background-image:var(--bocchi-wallpaper);background-size:213% var(--bocchi-ambient-height);background-position:left var(--bocchi-ambient-top);background-repeat:no-repeat;opacity:.46}
+.bocchi-art{position:absolute;left:var(--bocchi-art-left);top:var(--bocchi-art-top);width:var(--bocchi-art-width)!important;height:var(--bocchi-art-height)!important;max-width:none!important;max-height:none!important;opacity:.86;object-fit:contain;mask-image:linear-gradient(90deg,transparent,#000 24%),linear-gradient(transparent,#000 7%,#000 93%,transparent);mask-composite:intersect}
+.bocchi-reading-veil{position:absolute;inset:0;background:linear-gradient(90deg,rgba(23,23,30,.28) 0,rgba(23,23,30,.28) var(--bocchi-read-solid),rgba(23,23,30,0) var(--bocchi-read-clear))}
+html[data-bocchi-mode="work"] .bocchi-art{opacity:.76}
+html[data-bocchi-mode="work"] .bocchi-reading-veil{background:linear-gradient(90deg,rgba(23,23,30,.42) 0,rgba(23,23,30,.42) var(--bocchi-read-solid),rgba(23,23,30,0) var(--bocchi-read-clear))}
+.bocchi-backdrop[data-panel="true"] .bocchi-art{opacity:.14}
+html[data-bocchi-active="true"] [data-bocchi-reader]{background:transparent!important;box-shadow:none!important;border-radius:0}
+html[data-bocchi-active="true"] [data-bocchi-native-fill]{background-color:transparent!important}
+html[data-bocchi-active="true"] [data-bocchi-native-fade="top"]{background-image:linear-gradient(#17171e,rgba(23,23,30,.65) 25%,rgba(23,23,30,0))!important}
+html[data-bocchi-active="true"] [data-bocchi-native-fade="bottom"]{background-image:linear-gradient(to top,#17171e,rgba(23,23,30,0))!important;mask-image:linear-gradient(90deg,transparent,#000 16px,#000 calc(100% - 16px),transparent)!important}
+html[data-bocchi-active="true"] [data-bocchi-native-fade="bottom-home"]{background-image:none!important}
+html[data-bocchi-active="true"] [data-app-shell-active-page="true"] [data-app-shell-titlebar]{background:rgba(23,23,30,.9)!important}
+html[data-bocchi-active="true"] [data-bocchi-column="left"]{
+  box-sizing:border-box!important;width:var(--bocchi-column-width)!important;max-width:var(--bocchi-column-width)!important;
+  min-width:0!important;margin-left:var(--bocchi-column-offset,0px)!important;margin-right:auto!important;
+}
+html[data-bocchi-active="true"] [data-bocchi-home-mode]{translate:var(--bocchi-home-shift,0px) 0!important}
+html[data-bocchi-active="true"] [data-app-shell-active-page="true"] [data-composer-body],
+html[data-bocchi-active="true"] [data-bocchi-composer]{background-color:#29242e!important;border-color:#66505e!important;border-radius:24px}
+html[data-bocchi-active="true"] [data-app-shell-active-page="true"] [data-user-message-bubble="true"]{background-color:#3a2e3b!important;color:#f4eeec!important}
+html[data-bocchi-active="true"] [data-app-shell-active-page="true"] :is(pre,[data-code-block]){background-color:#1b1b23!important}
+html[data-bocchi-active="true"] [data-app-shell-active-page="true"] :is(th,td){border-color:#45404c!important}
+/* Keep the native scrollable table inside the reading column, including DIL full-bleed tables. */
+html[data-bocchi-active="true"] [data-bocchi-reader] [data-d-component="table"]{
+  box-sizing:border-box!important;width:100%!important;max-width:100%!important;
+  margin-inline:0!important;padding-inline:0!important;overflow-x:auto!important;
+}
+html[data-bocchi-active="true"] [data-app-shell-active-page="true"] :is([data-markdown-text-style="assistant-message"] a,[data-markdown-text-style="assistant-message"] strong){color:#efc4d6}
+html[data-bocchi-active="true"] [data-app-shell-active-page="true"] button[aria-label="发送"]{background-color:#f3a5c5!important;color:#271e29!important}
+html[data-bocchi-active="true"] :is([role="menu"],[role="dialog"],[role="alertdialog"],[data-radix-popper-content-wrapper]>*){background-color:#24222c!important}
+html[data-bocchi-active="true"] [data-bocchi-sidebar]{background-color:#19181f!important}
+html[data-bocchi-active="true"] [data-app-shell-active-page="true"] [data-app-navigation-rail]{background-color:#121218!important}
+
+/* Every decorative node is inert, inaccessible, and individually owned by the adapter. */
+[data-bocchi-owned="2"],[data-bocchi-owned="2"] *{box-sizing:border-box;pointer-events:none!important;user-select:none!important;-webkit-user-select:none!important}
+.bocchi-stage-decor{position:fixed;z-index:1;overflow:hidden;contain:layout paint;isolation:isolate}
+.bocchi-stage-decor [hidden]{display:none!important}
+.bocchi-sign{position:absolute;right:20px;top:20px;width:156px;padding:11px 12px;border:1px solid #a5847560;background:#241d22e3;border-radius:3px;transform:rotate(1deg);color:#e4cbb9;text-align:center;box-shadow:0 0 22px #e0a07009}
+.bocchi-sign b{display:block;font-size:19px;font-weight:600;letter-spacing:.16em;line-height:1.3;white-space:nowrap}
+.bocchi-sign small{display:block;font-size:5px;letter-spacing:.08em;margin-top:4px;color:#a99590}
+.bocchi-empty-sticker{position:absolute;object-fit:contain;transform:rotate(-3deg);max-width:none!important;max-height:none!important}
+.bocchi-sidebar-sticker{position:fixed;z-index:1;object-fit:contain;transform:rotate(-3deg);max-width:none!important;max-height:none!important;opacity:.9}
+.bocchi-input-details{position:absolute;inset:0;overflow:hidden;border-radius:inherit;z-index:11}
+html[data-bocchi-active="true"] [data-bocchi-composer]{box-shadow:inset 1px 0 #f3a5c53d,inset 0 1px #dcc07819,inset -1px 0 #8da9c72b,inset 0 -1px #cc737e24}
+@media(prefers-reduced-motion:reduce){html[data-bocchi-active="true"] [data-bocchi-surface],[data-bocchi-owned="2"]{transition:none!important;animation:none!important}}
+
+/* Collision boxes include the paper edges; do not rotate the bounding box. */
+.bocchi-sign{right:auto;top:auto;padding:10px 8px;transform:none}
+.bocchi-empty-sticker,.bocchi-sidebar-sticker{transform:none}
+.bocchi-input-details{overflow:visible}
+
+/* 2.2 visual preview; only assistant Markdown tables lose their heavy panel. */
+html[data-bocchi-active="true"] [data-bocchi-home-raised]{translate:0 var(--bocchi-home-rise,0px)!important}
+.bocchi-band-sticker{position:absolute;object-fit:contain;max-width:none!important;max-height:none!important}
+.bocchi-composer-emblem{position:absolute;left:18px;top:-18px;width:44px;height:36px;filter:drop-shadow(0 1px 1px #17171e66)}
+.bocchi-composer-emblem svg{display:block;width:100%;height:100%;overflow:visible}
+html[data-bocchi-active="true"] [data-bocchi-reader] :is([data-d-component="table"],table,thead,tbody,tr,th,td){background:transparent!important;box-shadow:none!important;outline:none!important;border-radius:0!important}
+html[data-bocchi-active="true"] [data-bocchi-reader] :is([data-d-component="table"],table){border:0!important}
+html[data-bocchi-active="true"] [data-bocchi-reader] :is(th,td){border:0!important;border-bottom:1px solid #d8c6d224!important}
+html[data-bocchi-active="true"] [data-bocchi-reader] th{color:#f0d2df}
+
+/* 2.3: independent full-viewport plates, preserved-ratio artwork, one reading veil. */
+.bocchi-wallpaper-layer{position:absolute;inset:0;transition:opacity 180ms ease;opacity:1}
+.bocchi-ambience{background-size:cover;background-position:center;background-repeat:no-repeat}
+.bocchi-art{mask-image:linear-gradient(90deg,transparent,#000 var(--bocchi-feather-left)),linear-gradient(transparent,#000 var(--bocchi-feather-top),#000 var(--bocchi-feather-bottom),transparent);mask-composite:intersect}
+.bocchi-reading-veil{background:linear-gradient(90deg,#17171ebd 0,#17171ebd var(--bocchi-read-solid),#17171e00 var(--bocchi-read-clear))}
+html[data-bocchi-mode="work"] .bocchi-reading-veil{background:linear-gradient(90deg,#17171ed6 0,#17171ed6 var(--bocchi-read-solid),#17171e00 var(--bocchi-read-clear))}
+[data-bocchi-owned="control"]{box-sizing:border-box}
+.bocchi-picker-root{position:fixed;inset:0;pointer-events:none;z-index:30;font-family:inherit;font-size:14px;color:#eee8e5}
+.bocchi-picker-root [hidden],.bocchi-picker-root[hidden]{display:none!important}
+.bocchi-picker-trigger,.bocchi-picker-menu{app-region:no-drag;-webkit-app-region:no-drag}
+.bocchi-picker-trigger{position:fixed;cursor:pointer;pointer-events:auto;appearance:none;min-width:0;line-height:1.3;font-family:inherit;transition:border-color 140ms,box-shadow 140ms}
+.bocchi-picker-trigger:hover,.bocchi-picker-trigger:focus-visible,.bocchi-picker-trigger[aria-expanded="true"]{border-color:#f3a5c5a0;box-shadow:0 0 0 2px #f3a5c51b;color:#f4dce4;outline:none}
+.bocchi-picker-trigger[data-small="true"]{padding:7px 5px}
+.bocchi-picker-trigger[data-small="true"] b{font-size:13px;letter-spacing:.1em}
+.bocchi-picker-trigger[data-small="true"] small{display:none}
+.bocchi-picker-menu{position:fixed;pointer-events:auto;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;overflow-y:auto;background:#241f29fa!important;border:1px solid #795669;border-radius:14px;box-shadow:0 14px 40px #0008;overscroll-behavior:contain}
+.bocchi-picker-menu[data-single="true"]{grid-template-columns:1fr}
+.bocchi-wallpaper-choice{display:flex;flex-direction:column;align-items:stretch;gap:5px;min-width:0;cursor:pointer;text-align:left;background:#1b1921;color:#e9dee5;border:1px solid #594250;border-radius:9px;padding:6px;font:inherit}
+.bocchi-wallpaper-choice:hover,.bocchi-wallpaper-choice:focus-visible{outline:2px solid #f3a5c5;outline-offset:1px;background:#332936}
+.bocchi-wallpaper-choice[aria-checked="true"]{border-color:#f3a5c5;background:#372938}
+.bocchi-choice-thumb{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:5px;background:#17171e}
+.bocchi-choice-name{font-size:12px;line-height:1.6;padding:1px 3px}
+.bocchi-choice-state{font-size:10px;line-height:1.5;min-height:15px;padding:0 3px;color:#f3a5c5}
+.bocchi-picker-notice{position:fixed;max-width:320px;padding:10px 14px;background:#29212bf5;border:1px solid #785267;border-radius:9px;font-size:12px;box-shadow:0 8px 24px #0006;pointer-events:none}
+@media(prefers-reduced-motion:reduce){.bocchi-wallpaper-layer,.bocchi-picker-trigger{transition:none!important}}
+
+/* R2: same-art ambient plane and aligned wall/floor, current installed night-stage unchanged. */
+.bocchi-reading-veil,html[data-bocchi-mode="work"] .bocchi-reading-veil{background:linear-gradient(90deg,rgba(23,23,30,var(--bocchi-veil-alpha)) 0,rgba(23,23,30,var(--bocchi-veil-alpha)) var(--bocchi-read-solid),rgba(23,23,30,0) var(--bocchi-read-clear))}
+.bocchi-picker-menu{padding:9px;gap:8px;border-radius:12px}
+.bocchi-wallpaper-choice{padding:5px;gap:3px;border-radius:7px}
+.bocchi-choice-name{font-size:11px;line-height:1.5;padding:1px 2px}
+.bocchi-choice-state{font-size:9px;min-height:13px;padding:0 2px}
+
+/* R3: backstage floor registered to main artwork, one opacity group. */
+.bocchi-registered-scene{position:absolute;opacity:.86;mask-image:linear-gradient(90deg,transparent,#000 var(--bocchi-feather-left)),linear-gradient(transparent,#000 var(--bocchi-scene-top-feather),#000 88%,transparent 100%);mask-composite:intersect}
+.bocchi-registered-scene>.bocchi-art{left:0;top:0;opacity:1!important;mask-image:linear-gradient(#000 var(--bocchi-main-bottom-feather),transparent var(--bocchi-main-bottom));mask-composite:add}
+.bocchi-registered-scene>.bocchi-floor-extension{inset:0;opacity:1!important;mask-image:linear-gradient(transparent var(--bocchi-scene-floor-start),#000 var(--bocchi-scene-floor-clear))}
+html[data-bocchi-mode="work"] .bocchi-registered-scene{opacity:.76}
+.bocchi-backdrop[data-panel="true"] .bocchi-registered-scene{opacity:.14}
+
+/* R4: soften only the lower floor into the existing #17171e canvas. */
+.bocchi-registered-scene{mask-image:linear-gradient(90deg,transparent,#000 var(--bocchi-feather-left)),linear-gradient(transparent,#000 var(--bocchi-scene-top-feather),#000 var(--bocchi-floor-dim-start),rgba(0,0,0,.66) var(--bocchi-floor-dim-mid),rgba(0,0,0,.24) var(--bocchi-floor-dim-low),rgba(0,0,0,.04) var(--bocchi-floor-dim-end),transparent 100%);mask-composite:intersect}
+.bocchi-picker-trigger[data-micro="true"]{padding:5px 3px}.bocchi-picker-trigger[data-micro="true"] b{font-size:10px;letter-spacing:.06em}.bocchi-picker-trigger[data-micro="true"] small{display:none}

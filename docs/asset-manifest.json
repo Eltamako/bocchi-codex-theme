@@ -1,0 +1,81 @@
+{
+  "schema": "bocchi-assets/1",
+  "nativeUpscaleClaim": false,
+  "assets": [
+    {
+      "path": "theme/band-sticker.png",
+      "bytes": 1859880,
+      "sha256": "9247ed387de042f64ba9c244593c8ccfb58e5c19271e53974977a9a56602c728",
+      "width": 793,
+      "height": 1983
+    },
+    {
+      "path": "theme/composer-emblem.svg",
+      "bytes": 600,
+      "sha256": "664b70ed0664f93dfc802858d9dc2eb7491161740644353bea296a49f29f677b"
+    },
+    {
+      "path": "theme/sticker.png",
+      "bytes": 1781282,
+      "sha256": "416db6e536c6f4f8a6c8228db5d29f976fc40c12febd3e7feccd78e2486e125b",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "path": "theme/wallpapers/backstage/background.png",
+      "bytes": 2202157,
+      "sha256": "6ffd15f981dffc2419ec4bfa2e61f308640de57dd41b3201a95d2a08470ca9f7",
+      "width": 1366,
+      "height": 1152
+    },
+    {
+      "path": "theme/wallpapers/backstage/main.png",
+      "bytes": 2033829,
+      "sha256": "db171406cfdcd2b4904d119d05a85ac90188acb41191fd112102387b65658ea0",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "path": "theme/wallpapers/color-portraits/background.png",
+      "bytes": 1871668,
+      "sha256": "b34496f792ebfe8b3f358b7c3cb365bcb75d307b77da0730d7623e6bec7fede3",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "path": "theme/wallpapers/color-portraits/main.png",
+      "bytes": 2245610,
+      "sha256": "7396670b358f319179fb4bbeb62d75f1df4d218c3ff38f42ea70e75391069ac4",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "path": "theme/wallpapers/floating-bocchi/background.png",
+      "bytes": 1775862,
+      "sha256": "6cb1e6d1eb66c078cf00c1c07426eda08e00c1ecb903e0a7ef5aa45ceac8a1df",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "path": "theme/wallpapers/floating-bocchi/main.png",
+      "bytes": 2327395,
+      "sha256": "8f066698c28fafe790656f0d0f5d5a55198fb4d30557a5c24b70a76db6d9e8ad",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "path": "theme/wallpapers/night-stage/background.png",
+      "bytes": 2015167,
+      "sha256": "a7637c080f9dc32251f2432d08765a25462a65866ff78046ce6bdb0f073ae366",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "path": "theme/wallpapers/night-stage/main.png",
+      "bytes": 2015167,
+      "sha256": "a7637c080f9dc32251f2432d08765a25462a65866ff78046ce6bdb0f073ae366",
+      "width": 1672,
+      "height": 941
+    }
+  ]
+}

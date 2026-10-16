@@ -1,0 +1,126 @@
+{
+  "schema": "bocchi-wallpapers/1",
+  "defaultId": "night-stage",
+  "wallpapers": [
+    {
+      "id": "night-stage",
+      "name": "下北泽夜场",
+      "image": "wallpapers/night-stage/main.png",
+      "background": "wallpapers/night-stage/background.png",
+      "layout": {
+        "widthFraction": 0.83,
+        "heightFraction": 0.98,
+        "anchorY": 0.54,
+        "featherLeft": 0.24,
+        "featherTop": 0.07,
+        "featherBottom": 0.07,
+        "ambientOpacity": 0.46,
+        "protectedRegion": [
+          0.54,
+          0.08,
+          0.99,
+          0.91
+        ],
+        "ambientSource": "same-art-safe-crop",
+        "ambientCrop": 0.47,
+        "floorAnchor": 0.79,
+        "legacyCurrent": true
+      },
+      "nativeSize": {
+        "width": 1672,
+        "height": 941
+      }
+    },
+    {
+      "id": "color-portraits",
+      "name": "四色肖像 · 夜场切片",
+      "image": "wallpapers/color-portraits/main.png",
+      "background": "wallpapers/color-portraits/background.png",
+      "layout": {
+        "widthFraction": 1,
+        "heightFraction": 0.98,
+        "anchorY": 0.52,
+        "featherLeft": 0.34,
+        "featherTop": 0.1,
+        "featherBottom": 0.12,
+        "ambientOpacity": 0.46,
+        "protectedRegion": [
+          0.56,
+          0.14,
+          0.995,
+          0.86
+        ],
+        "ambientSource": "matched-quiet-floor-plane",
+        "ambientCrop": 1,
+        "floorAnchor": 0.84,
+        "ambientFloorAnchor": 0.78
+      },
+      "nativeSize": {
+        "width": 1672,
+        "height": 941
+      }
+    },
+    {
+      "id": "backstage",
+      "name": "演出散场 · 后台合影",
+      "image": "wallpapers/backstage/main.png",
+      "background": "wallpapers/backstage/background.png",
+      "layout": {
+        "widthFraction": 1,
+        "heightFraction": 0.98,
+        "anchorY": 0.52,
+        "featherLeft": 0.34,
+        "featherTop": 0.06,
+        "featherBottom": 0.07,
+        "ambientOpacity": 0.46,
+        "protectedRegion": [
+          0.6,
+          0.1,
+          0.99,
+          0.92
+        ],
+        "ambientSource": "registered-floor-extension",
+        "ambientCrop": 1,
+        "floorAnchor": 0.75,
+        "ambientFloorAnchor": 0.78
+      },
+      "nativeSize": {
+        "width": 1672,
+        "height": 941
+      },
+      "backgroundNativeSize": {
+        "width": 1366,
+        "height": 1152
+      }
+    },
+    {
+      "id": "floating-bocchi",
+      "name": "波奇失重 · 乐器宇宙",
+      "image": "wallpapers/floating-bocchi/main.png",
+      "background": "wallpapers/floating-bocchi/background.png",
+      "layout": {
+        "widthFraction": 1,
+        "heightFraction": 0.98,
+        "anchorY": 0.52,
+        "featherLeft": 0.34,
+        "featherTop": 0.04,
+        "featherBottom": 0.12,
+        "ambientOpacity": 0.46,
+        "protectedRegion": [
+          0.55,
+          0.08,
+          0.998,
+          0.85
+        ],
+        "ambientSource": "matched-quiet-floor-plane",
+        "ambientCrop": 1,
+        "floorAnchor": 0.75,
+        "ambientFloorAnchor": 0.78
+      },
+      "nativeSize": {
+        "width": 1672,
+        "height": 941
+      }
+    }
+  ]
+}
