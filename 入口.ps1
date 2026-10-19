@@ -1,4 +1,4 @@
-﻿param([ValidateSet('Start','Pause','Resume','Restore')][string]$Action='Start')
+﻿param([ValidateSet('Start','Pause','Resume','Restore')][string]$Action='Start',[ValidateSet('auto','zh-CN','en')][string]$Language)
 $ErrorActionPreference='Stop'
 $entryRunId=[Guid]::NewGuid().ToString('N')
 $entryStarted=[DateTime]::UtcNow.ToString('o')
@@ -12,17 +12,26 @@ function Write-EntryResult([string]$Result,[string]$Message=''){
 }
 try {
   . ([IO.Path]::Combine($PSScriptRoot,'engine','bootstrap-shell.ps1'))
-  if(-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'installation.json'))){throw '请先双击 01-安装.cmd，完成本机配置。'}
+  . ([IO.Path]::Combine($PSScriptRoot,'engine','i18n.ps1'))
+  Initialize-BocchiLanguage -Root $PSScriptRoot -Language $Language
+  if(-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'installation.json'))){Throw-BocchiError 'entry.setupFirst'}
   $entryInstall=Get-Content -LiteralPath ([IO.Path]::Combine($PSScriptRoot,'installation.json')) -Raw -Encoding utf8|ConvertFrom-Json
   $entryResultPath=[IO.Path]::Combine($entryInstall.stateRoot,'last-entry-result.json')
   Write-EntryResult 'started'
-  & ([IO.Path]::Combine($PSScriptRoot,'管理主题.ps1')) -Action $Action
+  $options=@{Action=$Action};if($Language){$options.Language=$Language}
+  & ([IO.Path]::Combine($PSScriptRoot,'管理主题.ps1')) @options
   if($LASTEXITCODE -and $LASTEXITCODE -ne 0){throw ('Theme operation returned exit code '+$LASTEXITCODE)}
   Write-EntryResult 'succeeded'
 } catch {
   try{Write-EntryResult 'failed' $_.Exception.Message}catch{}
-  $message="这次主题操作没有完成。`n`n" + $_.Exception.Message + "`n`n可以先看看 docs 中的《常见问题》和《恢复与回退》。"
+  if(Get-Command Get-BocchiText -ErrorAction SilentlyContinue){
+    $message=(Get-BocchiText 'entry.failed')+"`n`n"+(Get-BocchiErrorText $_)+"`n`n"+(Get-BocchiText 'entry.help')+"`n`n"+(Get-BocchiText 'entry.details')+': '+$_.Exception.Message
+    $title=Get-BocchiText 'app.title'
+  }else{
+    $message="主题启动环境尚未准备好，请保留下面的诊断信息。`nThe theme could not prepare its startup environment. Please keep the diagnostic details below.`n`n"+$_.Exception.Message
+    $title='Bocchi Codex Theme'
+  }
   $popup=New-Object -ComObject WScript.Shell
-  $null=$popup.Popup($message,0,'孤独摇滚 · Codex 主题',16)
+  $null=$popup.Popup($message,0,$title,16)
   exit 1
 }

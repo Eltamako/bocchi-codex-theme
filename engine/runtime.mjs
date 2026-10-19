@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import {readLanguagePreference} from './language.mjs';
 import {createHash,randomBytes} from 'node:crypto';
 import {WallpaperCatalog,SelectionCoordinator,atomicSelection,readSelection,authorizedSelectionEvent,BINDING,validatePng} from './wallpaper-store.mjs';
 const args=process.argv.slice(2),action=args[0],statePath=args[1];
@@ -29,14 +30,15 @@ async function evaluate(c,expression,contextId){const r=await c.call('Runtime.ev
 async function atomicJson(file,value){const tmp=file+'.tmp-'+process.pid;try{await fs.writeFile(tmp,JSON.stringify(value,null,2));await fs.rename(tmp,file);}finally{await fs.unlink(tmp).catch(()=>{});}}
 async function status(value){return atomicJson(statusPath,{...value,generation:state.generation,browserId:state.browserId,daemonPid:process.pid,requestId,runtimeHash,wallpaperStoreHash,selectionWarning,lastSwitchError});}
 async function payload(){
- const dir=path.join(root,'theme'),names=['adapter.json','theme.css','renderer.js','sticker.png','band-sticker.png'];
+ const dir=path.join(root,'theme'),names=['adapter.json','theme.css','renderer.js','messages.json','sticker.png','band-sticker.png'];
  const metadata=await Promise.all(names.map(async name=>{const s=await fs.stat(path.join(dir,name),{bigint:true});return name+':'+[s.ino,s.size,s.mtimeNs,s.ctimeNs].join(':');}));
  const loaded=await catalogReader.load();const signature=metadata.join('|');
  if(assetCache?.signature===signature&&assetCache.catalog===loaded.catalog)return{...assetCache,warning:loaded.warning};
  const adapter=JSON.parse(await fs.readFile(path.join(dir,'adapter.json'),'utf8'));if(adapter.appVersion!==state.appVersion||adapter.packageVersion!==state.packageVersion)throw Error('Adapter version mismatch');
  const [css,source,sticker,bandSticker]=await Promise.all([fs.readFile(path.join(dir,'theme.css'),'utf8'),fs.readFile(path.join(dir,'renderer.js'),'utf8'),fs.readFile(path.join(dir,'sticker.png')),fs.readFile(path.join(dir,'band-sticker.png'))]);
  if(css.length>128000||source.length>128000)throw Error('Unexpected theme asset');validatePng(sticker);validatePng(bandSticker);
- const data={adapter,appVersion:state.appVersion,css,wallpaperCatalog:loaded.catalog,sticker:'data:image/png;base64,'+sticker.toString('base64'),bandSticker:'data:image/png;base64,'+bandSticker.toString('base64')};
+ const messages=JSON.parse(await fs.readFile(path.join(dir,'messages.json'),'utf8'));
+ const data={messages,adapter,appVersion:state.appVersion,css,wallpaperCatalog:loaded.catalog,sticker:'data:image/png;base64,'+sticker.toString('base64'),bandSticker:'data:image/png;base64,'+bandSticker.toString('base64')};
  const hash=createHash('sha256').update(source+JSON.stringify(data)).digest('hex');assetCache={signature,catalog:loaded.catalog,data,source,hash};return{...assetCache,warning:loaded.warning};
 }
 const sessions=new Map();
@@ -65,7 +67,7 @@ async function install(s,p){
  const selection=await readSelection(selectionPath);selectionWarning=selection.warning;const token=randomBytes(16).toString('hex');
  await s.c.call('Runtime.removeBinding',{name:BINDING}).catch(()=>{});await s.c.call('Runtime.addBinding',{name:BINDING,executionContextId:contextId});
  if(s.epoch!==epoch||s.disposed)throw Error('Main context changed before installation');
- const expression=p.source+'\ninstallBocchiTheme('+JSON.stringify({...p.data,initialWallpaperId:selection.id,selectionBridge:{binding:BINDING,token},leaseUntil:Date.now()+12000})+')';
+ const expression=p.source+'\ninstallBocchiTheme('+JSON.stringify({...p.data,...await readLanguagePreference(path.dirname(statePath)),initialWallpaperId:selection.id,selectionBridge:{binding:BINDING,token},leaseUntil:Date.now()+12000})+')';
  const result=await evaluate(s.c,expression,contextId);if(s.epoch!==epoch||s.disposed)throw Error('Main context changed during installation');
  s.contextId=contextId;s.token=token;
  const evalCurrent=expression=>{if(s.disposed||s.epoch!==epoch||s.contextId!==contextId)throw Error('Stale wallpaper session');return evaluate(s.c,expression,contextId);};
@@ -96,10 +98,10 @@ if(action==='restore'){
    if(control.stop){try{await removeAll();}catch{}await status({state:'stopped',at:new Date().toISOString()});break;}
    if(control.paused){if(lastPaused!==true)await removeAll();lastPaused=true;await status({state:'paused',at:new Date().toISOString()});}
    else{
-    lastPaused=false;const p=await payload(),list=await getTargets();if(list.length!==1)throw Error('Exactly one verified main renderer required');
+    lastPaused=false;const p=await payload(),locale=await readLanguagePreference(path.dirname(statePath)),list=await getTargets();if(list.length!==1)throw Error('Exactly one verified main renderer required');
     for(const[id,s]of sessions)if(!list.some(t=>t.id===id)||lastHash!==p.hash){try{await cleanSession(s);}catch{}sessions.delete(id);}
     const result=[];
-    for(const target of list){let s=sessions.get(target.id);if(!s){s=await makeSession(target);sessions.set(target.id,s);result.push(await install(s,p));}else{const contextId=await mainContext(s);if(s.contextId!==contextId){invalidate(s);result.push(await install(s,p));}else{if(s.coordinator&&!s.coordinator.active)throw Error('Wallpaper selection persistence blocked: '+lastSwitchError);const present=await evaluate(s.c,'!!window.__BOCCHI_THEME__',contextId);result.push(present?await evaluate(s.c,'(window.__BOCCHI_THEME__.heartbeat('+(Date.now()+12000)+'),window.__BOCCHI_THEME__.refresh(),window.__BOCCHI_THEME__?.state ?? {installed:false,reason:"inactive-page"})',contextId):await install(s,p));}}}
+    for(const target of list){let s=sessions.get(target.id);if(!s){s=await makeSession(target);sessions.set(target.id,s);result.push(await install(s,p));}else{const contextId=await mainContext(s);if(s.contextId!==contextId){invalidate(s);result.push(await install(s,p));}else{if(s.coordinator&&!s.coordinator.active)throw Error('Wallpaper selection persistence blocked: '+lastSwitchError);const present=await evaluate(s.c,'!!window.__BOCCHI_THEME__',contextId);result.push(present?await evaluate(s.c,'(window.__BOCCHI_THEME__.setLanguage('+JSON.stringify(locale.language)+','+JSON.stringify(locale.systemLanguage)+'),window.__BOCCHI_THEME__.heartbeat('+(Date.now()+12000)+'),window.__BOCCHI_THEME__.refresh(),window.__BOCCHI_THEME__?.state ?? {installed:false,reason:"inactive-page"})',contextId):await install(s,p));}}}
     lastHash=p.hash;await status({state:result.length&&result.every(x=>x?.installed===true)?'running':'suspended',at:new Date().toISOString(),appVersion:state.appVersion,themeHash:p.hash,catalogWarning:p.warning,wallpaperId:result[0]?.wallpaperId??null,renderers:result});
    }
    failureCount=0;

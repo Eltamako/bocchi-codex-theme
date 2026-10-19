@@ -19,3 +19,14 @@ function Test-BocchiReadyStatus([object]$Status,[object]$State,[string]$RequestI
   $renderers=@($Status.renderers)
   return ($renderers.Count -eq 1 -and $renderers[0].installed -eq $true -and $renderers[0].version -ceq $ThemeVersion)
 }
+
+# Only attribute a blocked renderer to this exact request and managed session.
+function Get-BocchiBlockedReason([object]$Status,[object]$State,[string]$RequestId){
+  if(-not $Status -or -not $State -or -not $RequestId){return $null}
+  if($Status.state -cne 'suspended' -or $Status.requestId -cne $RequestId -or
+    $Status.generation -cne $State.generation -or $Status.browserId -cne $State.browserId -or
+    [int]$Status.daemonPid -ne [int]$State.daemonPid -or $Status.runtimeHash -cne $State.runtimeHash){return $null}
+  $renderers=@($Status.renderers)
+  if($renderers.Count -eq 1 -and $renderers[0].installed -eq $false -and $renderers[0].reason -ceq 'automatic-dark-appearance-failed'){return 'automatic-dark-appearance-failed'}
+  return $null
+}

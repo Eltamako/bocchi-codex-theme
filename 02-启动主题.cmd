@@ -1,8 +1,8 @@
 @echo off
 chcp 65001 >nul
 setlocal
-"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File "%~dp0入口.ps1" -Action Start
+"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File "%~dp0入口.ps1" -Action Start %*
 set "themeExit=%ERRORLEVEL%"
-if not "%themeExit%"=="0" echo Please see README.md and docs for help.
+if not "%themeExit%"=="0" echo README.md / README.en.md
 pause
 exit /b %themeExit%

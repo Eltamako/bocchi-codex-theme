@@ -204,3 +204,7 @@ html[data-bocchi-mode="work"] .bocchi-environment-scene{opacity:.76}
 
 /* R15: one continuous reading plane, with a smooth same-palette shoulder. */
 .bocchi-reading-veil,html[data-bocchi-mode="work"] .bocchi-reading-veil{background:var(--bocchi-reading-paint,none)}
+
+/* Allow complete translated wallpaper names without affecting the artwork. */
+.bocchi-choice-name{white-space:normal;overflow-wrap:anywhere;min-width:0}
+html[data-bocchi-active]{color-scheme:dark}

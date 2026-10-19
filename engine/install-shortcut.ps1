@@ -1,4 +1,4 @@
-﻿function Install-BocchiShortcut([string]$Root,[string]$StateRoot,[string]$Desktop){
+﻿function Install-BocchiShortcut([string]$Root,[string]$StateRoot,[string]$Desktop,[string]$Description='Bocchi the Rock! · Six wallpapers and the STARRY picker'){
   $shortcutPath=Join-Path $Desktop 'Bocchi Codex Theme.lnk'
   $shell=New-Object -ComObject WScript.Shell
   if(Test-Path -LiteralPath $shortcutPath){
@@ -13,6 +13,6 @@
   $shortcut.TargetPath=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
   $shortcut.Arguments='-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "'+(Join-Path $Root '入口.ps1')+'" -Action Start'
   $shortcut.WorkingDirectory=$Root
-  $shortcut.Description='孤独摇滚 · 四款壁纸与 STARRY 切换'
+  $shortcut.Description=$Description
   $shortcut.Save()
 }

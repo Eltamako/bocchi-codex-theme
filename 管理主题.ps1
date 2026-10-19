@@ -1,5 +1,5 @@
 ﻿[CmdletBinding()]
-param([ValidateSet('Start','Pause','Resume','Restore','Status')][string]$Action='Start')
+param([ValidateSet('Start','Pause','Resume','Restore','Status')][string]$Action='Start',[ValidateSet('auto','zh-CN','en')][string]$Language)
 $ErrorActionPreference='Stop'
 . ([IO.Path]::Combine($PSScriptRoot,'engine','bootstrap-shell.ps1'))
 $root=$PSScriptRoot
@@ -7,6 +7,8 @@ $engine=Join-Path $root 'engine'
 . (Join-Path $engine 'common-windows.ps1')
 $install=Get-Content -LiteralPath (Join-Path $root 'installation.json') -Raw -Encoding utf8 | ConvertFrom-Json
 $stateRoot=[IO.Path]::GetFullPath($install.stateRoot)
+. (Join-Path $engine 'i18n.ps1')
+Initialize-BocchiLanguage -Root $root -StateRoot $stateRoot -Language $Language
 $profile=[IO.Path]::GetFullPath((Join-Path $stateRoot 'managed-profile'))
 $statePath=Join-Path $stateRoot 'runtime-state.json'
 $controlPath=Join-Path $stateRoot 'control.json'
@@ -85,10 +87,10 @@ function Assert-BocchiNoParallelDesktop {
   $others=@(Get-BocchiOtherDesktopClients -Codex $Codex -AllowedOwnerPid $allowed)
   if($others.Count -eq 0){return}
   if($Own){
-    Write-Warning '主题会继续使用当前窗口。另一个 Codex 窗口也在运行；手机出现占用提示时，请确认连接的是当前窗口。'
+    Write-Warning (Get-BocchiText 'manager.parallelWarning')
     return
   }
-  throw 'Codex 已经打开了。请先保存草稿并结束正在进行的工作，退出原窗口后再从主题入口打开，这样手机与桌面就会使用同一个会话。'
+  Throw-BocchiError -Key 'manager.parallel' -Diagnostic 'Codex 已经打开了。Parallel desktop session detected.'
 }
 function Stop-OwnDaemon([object]$State){
   if(-not (Test-OwnDaemon $State)){return}
@@ -111,13 +113,20 @@ function Stop-OwnDaemon([object]$State){
   }
   if(Test-OwnDaemon $State){throw 'Previous loader did not exit; refusing a duplicate loader'}
 }
+function Throw-BocchiNotReady {
+  $key=if($script:BocchiReadinessReason -eq 'automatic-dark-appearance-failed'){'manager.dark'}else{'manager.waiting'}
+  Throw-BocchiError -Key $key -Diagnostic ('Current theme renderer did not confirm this request; inspect local status. '+$script:BocchiReadinessReason)
+}
 function Wait-ThemeReady([object]$State,[string]$RequestId){
+  $script:BocchiReadinessReason=$null
   $deadline=(Get-Date).AddSeconds(15)
   do {
     Start-Sleep -Milliseconds 400
     if(-not (Test-OwnDaemon $State)){return $false}
     try {
       $ready=Get-Content -LiteralPath $statusPath -Raw -Encoding utf8|ConvertFrom-Json
+      $reason=Get-BocchiBlockedReason -Status $ready -State $State -RequestId $RequestId
+      if($reason){$script:BocchiReadinessReason=$reason;return $false}
       if(Test-BocchiReadyStatus -Status $ready -State $State -RequestId $RequestId -ThemeVersion $install.themeVersion){
         $current=Get-OwnIdentity $codex
         if(Test-BocchiSessionMatch -Saved $State -Own $current -Profile $profile -AppVersion $appVersion -PackageVersion $codex.Version -PackageRoot $codex.PackageRoot -RuntimeHash $runtimeHash){return $true}
@@ -140,9 +149,10 @@ try{
     Write-LocalJson $controlPath @{paused=$true;stop=$true}
     throw 'Client version changed. Theme stopped; a new adapter is required.'
   }
+  if($Language){Save-BocchiLanguage -StateRoot $stateRoot -Language $Language}
   $saved=if(Test-Path -LiteralPath $statePath){Get-Content -LiteralPath $statePath -Raw -Encoding utf8|ConvertFrom-Json}else{$null}
   if($Action -eq 'Status'){if(Test-Path -LiteralPath $statusPath){Get-Content -LiteralPath $statusPath -Raw -Encoding utf8};exit 0}
-  if($Action -eq 'Pause'){Write-LocalJson $controlPath @{paused=$true;stop=$false};Write-Output 'Theme paused';exit 0}
+  if($Action -eq 'Pause'){Write-LocalJson $controlPath @{paused=$true;stop=$false};Write-Output (Get-BocchiText 'manager.paused');exit 0}
   if($Action -eq 'Restore'){
     if($saved){
       $registered=@(Get-DreamSkinRegisteredCodexInstalls|Where-Object{(Test-DreamSkinPathEqual -Left $_.PackageRoot -Right $saved.packageRoot) -and $_.Version -ceq $saved.packageVersion})
@@ -184,7 +194,7 @@ try{
     }
     Write-LocalJson $statusPath @{state='restored';at=(Get-Date).ToUniversalTime().ToString('o');configChanged=$false}
     $null=Start-DreamSkinCodex -Codex $codex
-    Write-Output 'Original appearance restored; original profile and settings preserved';exit 0
+    Write-Output (Get-BocchiText 'manager.restored');exit 0
   }
   $own=Get-OwnIdentity $codex
   Assert-BocchiNoParallelDesktop -Codex $codex -Own $own
@@ -216,13 +226,14 @@ try{
     $sameSession=Test-BocchiSessionMatch -Saved $saved -Own $own -Profile $profile -AppVersion $appVersion -PackageVersion $codex.Version -PackageRoot $codex.PackageRoot -RuntimeHash $runtimeHash
     if($sameSession){
       Write-LocalJson $controlPath @{paused=$false;stop=$false;requestId=$requestId}
-      if(Wait-ThemeReady -State $saved -RequestId $requestId){Write-Output 'Theme resumed and current renderer confirmed';exit 0}
+      if(Wait-ThemeReady -State $saved -RequestId $requestId){Write-Output (Get-BocchiText 'manager.resumed');exit 0}
+      if($script:BocchiReadinessReason){Throw-BocchiNotReady}
     }
     Stop-OwnDaemon $saved
     $own=Get-OwnIdentity $codex
     if(-not $own){throw 'Managed client identity unavailable after loader recovery'}
   }
-  $state=[ordered]@{schema='bocchi-runtime/1';generation=[Guid]::NewGuid().ToString('N');port=$port;browserId=$own.identity.BrowserId;ownerPid=$own.pid;ownerCreated=$own.created;profile=$profile;appVersion=$appVersion;packageVersion=$codex.Version;packageRoot=$codex.PackageRoot;runtimeHash=$runtimeHash;launcherVersion='1.0.3';created=(Get-Date).ToUniversalTime().ToString('o')}
+  $state=[ordered]@{schema='bocchi-runtime/1';generation=[Guid]::NewGuid().ToString('N');port=$port;browserId=$own.identity.BrowserId;ownerPid=$own.pid;ownerCreated=$own.created;profile=$profile;appVersion=$appVersion;packageVersion=$codex.Version;packageRoot=$codex.PackageRoot;runtimeHash=$runtimeHash;launcherVersion='1.1.0';created=(Get-Date).ToUniversalTime().ToString('o')}
   Write-LocalJson $statePath $state
   Write-LocalJson $controlPath @{paused=$false;stop=$false;requestId=$requestId}
   Write-LocalJson $statusPath @{state='starting';generation=$state.generation;browserId=$state.browserId}
@@ -230,8 +241,8 @@ try{
   $daemon=Start-Process -FilePath $node -ArgumentList $arguments -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $stateRoot 'runtime.log') -RedirectStandardError (Join-Path $stateRoot 'runtime-error.log')
   $created=(Get-CimInstance Win32_Process -Filter "ProcessId = $($daemon.Id)").CreationDate.ToUniversalTime().ToString('o')
   $state.daemonPid=$daemon.Id;$state.daemonCreated=$created;Write-LocalJson $statePath $state
-  if(-not (Wait-ThemeReady -State $state -RequestId $requestId)){throw 'Current theme renderer did not confirm this request; inspect local status'}
-  Write-Output 'Theme running in its dedicated client profile'
+  if(-not (Wait-ThemeReady -State $state -RequestId $requestId)){Throw-BocchiNotReady}
+  Write-Output (Get-BocchiText 'manager.running')
 }catch{
   Write-LocalJson (Join-Path $stateRoot 'last-operation-error.json') @{action=$Action;message=$_.Exception.Message;at=(Get-Date).ToUniversalTime().ToString('o')}
   throw

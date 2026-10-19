@@ -1,5 +1,7 @@
-$ErrorActionPreference='Stop'
+﻿$ErrorActionPreference='Stop'
 $stage=Split-Path $PSScriptRoot -Parent
+. (Join-Path $stage 'engine/i18n.ps1')
+Initialize-BocchiLanguage -Root $stage -Language 'zh-CN'
 $results=[Collections.Generic.List[object]]::new()
 function Check([string]$Name,[bool]$Pass){
   $results.Add([pscustomobject]@{name=$Name;passed=$Pass})

@@ -1,6 +1,6 @@
-async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpaperId, selectionBridge, sticker, bandSticker, appVersion, leaseUntil, previewTopMode = "A+++"}) {
+async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpaperId, selectionBridge, sticker, bandSticker, appVersion, leaseUntil, previewTopMode = "A+++", messages, language = "auto", systemLanguage = "en"}) {
   // This adapter is deliberately tied to the inspected desktop build.
-  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.4.0' || appVersion !== adapter.appVersion)
+  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.5.0' || appVersion !== adapter.appVersion)
     return {installed:false, reason:'version-mismatch'};
   if (!Number.isFinite(leaseUntil) || leaseUntil <= Date.now()) return {installed:false, reason:'expired-loader-lease'};
   if (typeof css !== 'string' || /@import\b|url\s*\(/i.test(css)) return {installed:false, reason:'nonlocal-stylesheet'};
@@ -14,6 +14,47 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
   const environmentAnchors=new Map();
   let environmentAnchorKind='content';
   const root = document.documentElement;
+  // This client ships both native palettes under [data-theme]. Borrow dark
+  // presentation for this renderer only; never write the persisted app setting.
+  let appearanceObserver=null,requestedAppearance=null;
+  function rememberAppearance(){if(['light','dark'].includes(root.dataset.theme))requestedAppearance=root.dataset.theme;}
+  function applyDarkAppearance(){
+    if(root.dataset.theme==='dark')return;
+    if(root.dataset.theme!=='light')throw new Error('unknown-appearance');
+    rememberAppearance();appearanceObserver?.disconnect();root.dataset.theme='dark';
+    appearanceObserver?.observe(root,{attributes:true,attributeFilter:['data-theme']});
+    if(root.dataset.theme!=='dark')throw new Error('automatic-dark-appearance-failed');
+  }
+  function acquireAppearance(){
+    rememberAppearance();
+    appearanceObserver=new MutationObserver(()=>{
+      if(stopped)return;
+      rememberAppearance();
+      try{inspect(true);applyDarkAppearance();}catch(error){remove(error?.message||'appearance-unavailable');}
+    });
+    appearanceObserver.observe(root,{attributes:true,attributeFilter:['data-theme']});
+    applyDarkAppearance();
+  }
+  function releaseAppearance(){
+    if(!appearanceObserver)return;
+    if(appearanceObserver.takeRecords().length)rememberAppearance();
+    appearanceObserver.disconnect();appearanceObserver=null;
+    if(root.dataset.theme==='dark'&&requestedAppearance)root.dataset.theme=requestedAppearance;
+    requestedAppearance=null;
+  }
+  if(messages?.schema!=='bocchi-messages/1'||!messages.en||!messages['zh-CN'])return {installed:false,reason:'missing-language-catalog'};
+  let languagePreference=['auto','zh-CN','en'].includes(language)?language:'auto',uiLanguage=null;
+  function resolveLanguage(){
+    if(languagePreference!=='auto')return languagePreference;
+    const value=(root.lang||systemLanguage||'en').toLowerCase();return /^zh(?:-|$)/.test(value)?'zh-CN':'en';
+  }
+  function t(key,...values){const text=messages[uiLanguage||resolveLanguage()]?.[key]??messages.en[key]??key;return text.replace(/\{(\d+)\}/g,(_,i)=>String(values[Number(i)]??''));}
+  const wallpaperName=id=>t('wallpaper.'+id);
+  function setLanguage(preference=languagePreference,fallback=systemLanguage){
+    languagePreference=['auto','zh-CN','en'].includes(preference)?preference:'auto';systemLanguage=fallback;
+    const next=resolveLanguage();if(next===uiLanguage)return;uiLanguage=next;state.language=next;
+    if(control){signButton.setAttribute('aria-label','STARRY · '+t('picker.label'));picker.setAttribute('aria-label',t('picker.label'));updateChoices();if(notice)notice.hidden=true;}
+  }
   // R16: bounded raster work, atomically committed. No user-facing API changes.
   const rasterJobs=new Set(),rasterRecords=new WeakMap(),rasterURLs=new Set();
   let fastFrame=null,clipFrame=null;
@@ -220,6 +261,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     for(const layer of [...sceneLayers])clearSceneLayer(layer);
     for(const asset of readyAssets.values())for(const key of ["main","ambient","environmentAsset"])asset[key]?.bitmap?.close();
     cleanupPicker();clearTimeout(timer); clearInterval(leaseTimer); observer?.disconnect(); resize?.disconnect();
+    releaseAppearance();
     window.removeEventListener('resize',scheduleFast); document.removeEventListener('scroll',onThemeScroll,true);
     window.visualViewport?.removeEventListener('resize',scheduleFast);
     window.visualViewport?.removeEventListener('scroll',onThemeScroll);
@@ -293,7 +335,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
         if(environmentAsset&&(environmentAsset.width!==entry.environment.nativeSize.width||environmentAsset.height!==entry.environment.nativeSize.height))throw Error('environment-size-mismatch');
         let continuation=null;
         if(id==='headphone-evening'){continuation={url:headphoneContinuation()};decoded.push(continuation);const probe=new Image();probe.src=continuation.url;try{await probe.decode();if(stopped)throw Error('theme-removed');}finally{probe.removeAttribute('src');}}
-        const value={...entry,main,ambient,environmentAsset,continuation};value.tone=id==="floating-bocchi"?{rgb:[28,29,35],css:"rgb(28, 29, 35)",source:"R17.2-muted-black-blue"}:["backstage","headphone-evening","color-portraits"].includes(id)?{rgb:[24,24,24],css:"rgb(24, 24, 24)",source:"R16-neutral-charcoal"}:r15SampleTone(value);readyAssets.set(id,value);state.decodedWallpapers=readyAssets.size;return value;
+        const value={...entry,main,ambient,environmentAsset,continuation};value.tone=id==="floating-bocchi"?{rgb:[23,23,30],css:"rgb(23, 23, 30)",source:"R17.3-classic-2.3-palette"}:["backstage","headphone-evening","color-portraits"].includes(id)?{rgb:[24,24,24],css:"rgb(24, 24, 24)",source:"R16-neutral-charcoal"}:r15SampleTone(value);readyAssets.set(id,value);state.decodedWallpapers=readyAssets.size;return value;
       }catch(error){for(const asset of decoded){URL.revokeObjectURL(asset.url);blobs.delete(asset.url);}throw error;}
     })().catch(error=>{assetCache.delete(id);throw error;}));
     return assetCache.get(id);
@@ -307,7 +349,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
   function message(text){if(!notice)return;notice.textContent=text;notice.hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>{if(notice)notice.hidden=true;},4500);}
   function rejectWallpaper(requestId,text){
     if(stopped||state.selectionRequestId!==requestId)return{ok:false,reason:'stale-request'};
-    clearTimeout(requestTimer);state.selectionPending=false;state.lastSelectionError=String(text||'壁纸切换未完成，已保留原壁纸。').slice(0,160);message(/[\u4e00-\u9fff]/.test(state.lastSelectionError)?state.lastSelectionError:'壁纸切换未完成，已保留原壁纸。');updateChoices();return{ok:true};
+    clearTimeout(requestTimer);state.selectionPending=false;state.lastSelectionError=String(text||'wallpaper-selection-failed').slice(0,160);message(t('picker.failed'));updateChoices();return{ok:true};
   }
   function commitWallpaper(id,requestId){
     if(!validRequest(id,requestId)||!readyAssets.has(id))return{ok:false,id,requestId,reason:'stale-or-unprepared-request'};
@@ -315,14 +357,14 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     Object.assign(state,{wallpaperId:id,imageWidth:currentAssets.main.width,imageHeight:currentAssets.main.height,selectionPending:false,lastSelectionError:null});
     if(backdrop)showWallpaperLayer(currentAssets,true);updateChoices();refresh();
     if(!state.installed)return{ok:false,id,requestId,reason:state.reason};
-    message('已切换：'+currentAssets.name);return{ok:true,id,requestId};
+    message(t('picker.changed',wallpaperName(state.wallpaperId)));return{ok:true,id,requestId};
   }
   function chooseWallpaper(id){
     if(stopped||!catalog.has(id))return;
     const requestId=instanceId+'-'+(++requestSerial);Object.assign(state,{selectionRequestId:requestId,requestedWallpaperId:id,selectionPending:true});updateChoices();
-    clearTimeout(requestTimer);requestTimer=setTimeout(()=>rejectWallpaper(requestId,'切换未完成，已保留原壁纸。'),12000);
+    clearTimeout(requestTimer);requestTimer=setTimeout(()=>rejectWallpaper(requestId,'wallpaper-selection-timeout'),12000);
     try{const binding=window[selectionBridge.binding];if(typeof binding!=='function')throw Error('bridge-unavailable');binding(JSON.stringify({token:selectionBridge.token,id,requestId}));}
-    catch{rejectWallpaper(requestId,'壁纸加载器暂未连接，已保留原壁纸。');}
+    catch{rejectWallpaper(requestId,'wallpaper-bridge-unavailable');}
   }
   function createWallpaperLayer(asset){
     const layer=owned('div','bocchi-wallpaper-layer');layer.dataset.wallpaperId=asset.id;
@@ -384,6 +426,11 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
       top=Math.max(adjustmentMargin-height*r[1],Math.min(centerY+a.y-height*cy,region.height-adjustmentMargin-height*r[3]));
       const adjustment={requested:a,applied:{scale:width/baseWidth,x:left+width*cx-centerX,y:top+height*cy-centerY},facePadding:adjustmentMargin,panLimited:Math.abs(left+width*cx-centerX-a.x)>.01,scaleLimited:width<baseWidth*a.scale-.01,baseline:{left:baseLeft,top:baseTop,width:baseWidth,height:baseWidth/ratio}};
       framing={adjustment,mode:f.mode,referenceWidth,requestedWidth,scaleToR1:width/referenceWidth,requestedShift,effectiveShift:left-(region.width-width),requestedDownShift:f.downShift||0,effectiveDownShift:top-(region.height-height)*f.referenceAnchorY,reducedForFaces:width<requestedWidth-.01,faceBounds:{left:left+width*r[0],top:top+height*r[1],right:left+width*r[2],bottom:top+height*r[3]}};
+    }
+    // Keep the artwork, registered environment and floor on the same layout origin.
+    if(asset.id==='floating-bocchi'){
+      const shift=Math.min(12,Math.max(0,region.height-4-top-height*l.protectedRegion[3]));
+      top+=shift;framing={mode:'fixed-vertical-nudge',requestedDownShift:12,effectiveDownShift:shift};
     }
     const values={'--bocchi-art-left':left+'px','--bocchi-art-top':top+'px','--bocchi-art-width':width+'px','--bocchi-art-height':height+'px','--bocchi-feather-left':(l.featherLeft*100)+'%','--bocchi-feather-top':(l.featherTop*100)+'%','--bocchi-feather-bottom':((1-l.featherBottom)*100)+'%'};
     const floor=top+height*l.floorAnchor;
@@ -461,14 +508,14 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     }else{layer.style.transition='none';layer.style.opacity='1';discard(previous);}
   }
   function updateChoices(){
-    for(const item of picker?.querySelectorAll('[data-wallpaper-choice]')||[]){const id=item.dataset.wallpaperChoice;item.setAttribute('aria-checked',String(id===state.wallpaperId));item.dataset.pending=String(!!state.selectionPending&&id===state.requestedWallpaperId);item.querySelector('.bocchi-choice-state').textContent=id===state.wallpaperId?'使用中':state.selectionPending&&id===state.requestedWallpaperId?'加载中…':'';}
+    for(const item of picker?.querySelectorAll('[data-wallpaper-choice]')||[]){const id=item.dataset.wallpaperChoice;item.setAttribute('aria-checked',String(id===state.wallpaperId));item.dataset.pending=String(!!state.selectionPending&&id===state.requestedWallpaperId);item.querySelector('.bocchi-choice-name').textContent=wallpaperName(id);item.querySelector('.bocchi-choice-state').textContent=id===state.wallpaperId?t('picker.active'):state.selectionPending&&id===state.requestedWallpaperId?t('picker.loading'):item.dataset.unavailable?t('picker.unavailable'):'';}
   }
   function closePicker(restoreFocus=true){if(!picker||picker.hidden)return;picker.hidden=true;signButton.setAttribute('aria-expanded','false');state.pickerOpen=false;if(restoreFocus&&!control.hidden)signButton.focus({preventScroll:true});}
   async function openPicker(){
     if(!control||control.hidden)return;
     picker.hidden=false;signButton.setAttribute('aria-expanded','true');state.pickerOpen=true;positionPicker();
     const items=[...picker.querySelectorAll('[data-wallpaper-choice]')];(items.find(x=>x.dataset.wallpaperChoice===state.wallpaperId)||items[0]).focus({preventScroll:true});
-    await Promise.allSettled(items.map(async item=>{try{const asset=await loadWallpaper(item.dataset.wallpaperChoice);if(!stopped)item.querySelector('img').src=asset.main.url;}catch{if(!stopped)item.querySelector('.bocchi-choice-state').textContent='图片暂不可用';}}));
+    await Promise.allSettled(items.map(async item=>{try{const asset=await loadWallpaper(item.dataset.wallpaperChoice);if(!stopped)item.querySelector('img').src=asset.main.url;}catch{if(!stopped){item.dataset.unavailable='true';item.querySelector('.bocchi-choice-state').textContent=t('picker.unavailable');}}}));
   }
   function positionPicker(){
     if(!picker||picker.hidden||!lastContext)return;const area=lastContext.area,b=box(signButton),single=area.width<740;
@@ -477,13 +524,13 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
   }
   function buildPicker(){
     if(control)return;
-    control=interactive('div','bocchi-picker-root');signButton=interactive('button','bocchi-sign bocchi-picker-trigger');signButton.type='button';signButton.setAttribute('aria-label','STARRY · 选择壁纸');signButton.setAttribute('aria-haspopup','menu');signButton.setAttribute('aria-expanded','false');
+    control=interactive('div','bocchi-picker-root');signButton=interactive('button','bocchi-sign bocchi-picker-trigger');signButton.type='button';signButton.setAttribute('aria-label','STARRY · '+t('picker.label'));signButton.setAttribute('aria-haspopup','menu');signButton.setAttribute('aria-expanded','false');
     signButton.append(interactive('b','','✦ STARRY'),interactive('small','','SHIMOKITAZAWA · BACKSTAGE'));
-    picker=interactive('div','bocchi-picker-menu');picker.id='bocchi-wallpaper-menu';picker.setAttribute('role','menu');picker.setAttribute('aria-label','选择壁纸');picker.hidden=true;signButton.setAttribute('aria-controls',picker.id);
+    picker=interactive('div','bocchi-picker-menu');picker.id='bocchi-wallpaper-menu';picker.setAttribute('role','menu');picker.setAttribute('aria-label',t('picker.label'));picker.hidden=true;signButton.setAttribute('aria-controls',picker.id);
     for(const entry of catalog.values()){
       const button=interactive('button','bocchi-wallpaper-choice');button.type='button';button.dataset.wallpaperChoice=entry.id;button.setAttribute('role','menuitemradio');button.tabIndex=-1;
       const thumb=interactive('img','bocchi-choice-thumb');thumb.alt='';if(readyAssets.has(entry.id))thumb.src=readyAssets.get(entry.id).main.url;
-      button.append(thumb,interactive('span','bocchi-choice-name',entry.name),interactive('span','bocchi-choice-state'));picker.append(button);listen(button,'click',()=>chooseWallpaper(entry.id));
+      button.append(thumb,interactive('span','bocchi-choice-name',wallpaperName(entry.id)),interactive('span','bocchi-choice-state'));picker.append(button);listen(button,'click',()=>chooseWallpaper(entry.id));
     }
     notice=interactive('div','bocchi-picker-notice');notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');notice.hidden=true;control.append(signButton,picker,notice);document.body.append(control);
     listen(signButton,'click',()=>picker.hidden?openPicker():closePicker());
@@ -890,9 +937,9 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     }
     return null;
   }
-  function inspect() {
+  function inspect(allowLight=false) {
     const pages=[...document.querySelectorAll(adapter.activePage)];
-    if(pages.length!==1||root.dataset.theme!=='dark'||root.dir==='rtl')throw new Error('unknown-active-page-or-layout');
+    if(pages.length!==1||!(root.dataset.theme==='dark'||allowLight&&root.dataset.theme==='light')||root.dir==='rtl')throw new Error('unknown-active-page-or-layout');
     const page=pages[0],surfaces=[...page.querySelectorAll(adapter.surface)].filter(visible);
     if(surfaces.length!==1)throw new Error('required-surface-missing');
     const main=surfaces[0];
@@ -1007,7 +1054,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     backdrop.style.setProperty('--bocchi-veil-alpha',String(alpha));
     backdrop.style.setProperty('--bocchi-reading-paint',r15ReadingPaint(currentAssets.tone.rgb,alpha,Math.max(0,left+width-48),Math.min(region.width,left+width+96)));
     backdrop.dataset.readerDither=String(hasReader);
-    state.palette=currentAssets.tone;state.visualRevision='R17.2';
+    state.palette=currentAssets.tone;state.visualRevision='R17.4';
     property(main,'isolation','isolate');
     // Recolor only observed background fades. Native text/scroll masks remain intact.
     for(const el of main.querySelectorAll('[class*="_MainContentTopFade_"]'))if(visible(el))mark(el,'data-bocchi-native-fade','top');
@@ -1124,8 +1171,10 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
   }
   function refresh() {
     if(stopped)return state;
+    setLanguage();
     try {
       if(Date.now()>expiresAt)throw new Error('expired-loader-lease');
+      if(appearanceObserver&&root.dataset.theme==='light'){inspect(true);applyDarkAppearance();}
       const ctx=inspect(),{page,main,area,mainRect,columns,mode,reader,panels}=ctx;
       wantedAttrs=new Map();wantedProps=new Map();
       const hasPanel=panels.length>0,compact=area.width<1050;
@@ -1189,8 +1238,9 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     wallpaperUrl=wallpaper.url;stickerUrl=small.url;bandStickerUrl=band.url;sticker=bandSticker=null;state.wallpaperId=initialWallpaperId;state.selectionPending=false;
     Object.assign(state,{imageLoaded:true,stickerLoaded:true,imageWidth:wallpaper.width,imageHeight:wallpaper.height,stickerWidth:small.width,stickerHeight:small.height,bandStickerLoaded:true,bandStickerWidth:band.width,bandStickerHeight:band.height});
     // Reject unsupported pages before replacing an existing, valid installation.
-    inspect();if(Date.now()>expiresAt)throw new Error('expired-loader-lease');
+    inspect(true);if(Date.now()>expiresAt)throw new Error('expired-loader-lease');
     window.__BOCCHI_THEME__?.remove();
+    acquireAppearance();inspect();
     // Migrate only the obsolete three-stop pixel mask written by this theme.
     // Older builds compared an unnormalized value and could leave it behind.
     for(const reader of document.querySelectorAll('[data-thread-user-message-navigation-content],[data-chatgpt-conversation-selection-target]')){
@@ -1199,7 +1249,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
       if(match&&((Number(match[2])-Number(match[1])>=19.8&&Number(match[2])-Number(match[1])<=20.2)||Number(match[2])<=20))reader.style.removeProperty('mask-image');
     }
     sheet=document.createElement('style');sheet.id='bocchi-theme-style-v2';sheet.textContent=css;document.head.append(sheet);
-    api={state,refresh,prepareWallpaper,commitWallpaper,rejectWallpaper,heartbeat(until){if(Number.isFinite(until)&&until>Date.now())expiresAt=until;},remove};
+    api={state,refresh,setLanguage,prepareWallpaper,commitWallpaper,rejectWallpaper,heartbeat(until){if(Number.isFinite(until)&&until>Date.now())expiresAt=until;},remove};
     window.__BOCCHI_THEME__=api;
     observer=new MutationObserver(records=>{
       if(records.some(record=>!record.target?.closest?.('[data-bocchi-owned]')&&
@@ -1219,7 +1269,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
       }
     });
     observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['data-app-shell-active-page','aria-label','aria-busy','aria-readonly','data-composer-input-layout','data-composer-input-variant','data-composer-surface-variant','data-codex-composer','data-state','hidden','aria-hidden','contenteditable','inert','data-codex-composer-request-navigation','data-codex-composer-root','data-composer-placement','data-pip-anchor-host']});
-    observer.observe(root,{attributes:true,attributeFilter:['data-theme','dir']});
+    observer.observe(root,{attributes:true,attributeFilter:['data-theme','dir','lang']});
     resize=new ResizeObserver(()=>{scheduleClip();scheduleFast();});window.addEventListener('resize',scheduleFast);document.addEventListener('scroll',onThemeScroll,true);
     window.visualViewport?.addEventListener('resize',scheduleFast);window.visualViewport?.addEventListener('scroll',onThemeScroll);
     leaseTimer=setInterval(()=>{if(Date.now()>expiresAt)remove('expired-loader-lease');},1000);

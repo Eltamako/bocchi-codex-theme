@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
 const root=path.resolve(import.meta.dirname,'..');
-const rootFiles=['README.md','LICENSE','THIRD_PARTY_NOTICES.md','ASSETS.md','CHANGELOG.md','release.json','.gitignore','.gitattributes','安装.ps1','管理主题.ps1','入口.ps1','01-安装.cmd','02-启动主题.cmd','03-暂停主题.cmd','04-恢复主题.cmd','05-恢复原界面.cmd'];
+const rootFiles=['README.md','README.en.md','Install.cmd','Start.cmd','Pause.cmd','Resume.cmd','Restore.cmd','Language.cmd','06-语言设置.cmd','Language.ps1','LICENSE','THIRD_PARTY_NOTICES.md','ASSETS.md','CHANGELOG.md','release.json','.gitignore','.gitattributes','安装.ps1','管理主题.ps1','入口.ps1','01-安装.cmd','02-启动主题.cmd','03-暂停主题.cmd','04-恢复主题.cmd','05-恢复原界面.cmd'];
 const files=[...rootFiles];
 async function visit(relative){
   for(const item of await fs.readdir(path.join(root,relative),{withFileTypes:true})){

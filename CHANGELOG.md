@@ -1,5 +1,20 @@
 # 更新记录
 
+## 2.5.0 — 2026-10-20
+
+- 中英文首页、安装教程、恢复说明及共用安装入口；菜单与提示可自动或手动选择语言。
+- 波奇单人款恢复暗灰紫底色并小幅下移，环境与主图保持对齐。
+- 主题窗口自动使用深色显示，暂停后恢复原外观；首次登录未完成时的提示更清楚。
+- 保留原有客户端版本检查、选择记忆、输入框防漏与侧栏切换保护。
+
+### English
+
+- Full Chinese and English guides, shared launcher entries, and automatic or manual language selection for theme text.
+- Bocchi in Orbit returns to its dark gray-purple base and sits slightly lower with aligned environment layers.
+- Automatic dark appearance while active, restoration when paused, and clearer first-sign-in readiness messages.
+- Existing compatibility checks, wallpaper memory, composer clipping and sidebar-transition protections are retained.
+
+
 ## 2.4.0 · 2026-10-19
 
 - 新增冬装「暖灯店门合照」和耳机「四色合拍」，共六款固定壁纸；选择继续保存到本机。
@@ -23,4 +38,3 @@
 - 补充使用、恢复、旧版本回退、素材来源、第三方许可和构建说明。
 
 本次新增的是分发与配置流程；主题协议仍为 2.3.0，加载器版本仍为 1.0.3。应用兼容范围没有扩大。
-

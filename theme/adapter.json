@@ -1,6 +1,6 @@
 {
   "schema": "bocchi-codex-adapter/1",
-  "themeVersion": "2.4.0",
+  "themeVersion": "2.5.0",
   "appVersion": "26.1013.40934",
   "packageVersion": "26.1013.4894.0",
   "activePage": "[data-app-shell-active-page=\"true\"]",
@@ -14,8 +14,8 @@
     "Ask ChatGPT",
     "Message ChatGPT"
   ],
-  "status": "locally-installed-simulation-validated",
-  "validationScope": "Release 2.4.0: final installed renderer, isolated release checks; current native screenshot/status verified locally. Actual sends, scrolling and side-chat acceptance remain user-run; see docs/验证记录.md.",
+  "status": "isolated-simulation-validated",
+  "validationScope": "See docs/验证记录.md and docs/en/validation.md for release checks and limits.",
   "visualDesign": "six-wallpapers-matched-scenes-and-poster-r1",
   "assetPolicy": "Approved native main images preserved; registered winter floor and quiet poster plate; uniform framing and CSS masks",
   "layoutTargets": {
@@ -40,5 +40,5 @@
   "workReader": "[data-thread-user-message-navigation-content=\"true\"][data-mcp-app-portal-target=\"true\"]",
   "workSubmittingInput": "[data-composer-input] > [role=\"textbox\"][aria-busy=\"true\"][aria-readonly=\"true\"][data-composer-input-layout=\"multiline\"][data-composer-input-variant=\"default\"]",
   "inputStateRevision": "native-request-and-submitting-shell-20261019",
-  "validatedOn": "2026-10-19"
+  "validatedOn": "2026-10-20"
 }
