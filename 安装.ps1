@@ -13,7 +13,7 @@ if($LASTEXITCODE -ne 0){throw '素材检查没有通过，请重新解压完整�
 $codex=Get-DreamSkinCodexInstall
 $appVersion=Get-BundleVersion $codex.PackageRoot
 if($appVersion -cne $release.appVersion -or $codex.Version -cne $release.packageVersion){throw ('当前客户端为 '+$appVersion+' / '+$codex.Version+'；这一版主题对应 '+$release.appVersion+' / '+$release.packageVersion+'。暂时保留原界面，等匹配的适配版即可。')}
-if($CheckOnly){Write-Output '版本、运行环境和四款素材检查通过；未创建配置或快捷方式。';exit 0}
+if($CheckOnly){Write-Output '版本、运行环境和六款素材检查通过；未创建配置或快捷方式。';exit 0}
 $config=Join-Path $PSScriptRoot 'installation.json'
 $stateRoot=Join-Path $PSScriptRoot '.local'
 if(Test-Path -LiteralPath $config){

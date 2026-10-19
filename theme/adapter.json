@@ -1,8 +1,8 @@
 {
   "schema": "bocchi-codex-adapter/1",
-  "themeVersion": "2.3.0",
-  "appVersion": "26.1007.71326",
-  "packageVersion": "26.1007.9446.0",
+  "themeVersion": "2.4.0",
+  "appVersion": "26.1013.40934",
+  "packageVersion": "26.1013.4894.0",
   "activePage": "[data-app-shell-active-page=\"true\"]",
   "surface": "[data-app-shell-main-surface]",
   "composer": "[data-composer-markdown][contenteditable=\"true\"]",
@@ -14,10 +14,10 @@
     "Ask ChatGPT",
     "Message ChatGPT"
   ],
-  "status": "live-verified-scoped",
-  "validationScope": "2026-10-17: four wallpapers Chat/Work; 3 mode cycles; picker keyboard; drafts; pause/resume; desktop restart; see acceptance-v23 for limitations",
-  "visualDesign": "four-wallpapers-R4-soft-floor-compact-picker",
-  "assetPolicy": "native PNG originals retained; separate outpainted artwork and character-free background plates; fixed four-ID local catalog",
+  "status": "locally-installed-simulation-validated",
+  "validationScope": "Release 2.4.0: final installed renderer, isolated release checks; current native screenshot/status verified locally. Actual sends, scrolling and side-chat acceptance remain user-run; see docs/验证记录.md.",
+  "visualDesign": "six-wallpapers-matched-scenes-and-poster-r1",
+  "assetPolicy": "Approved native main images preserved; registered winter floor and quiet poster plate; uniform framing and CSS masks",
   "layoutTargets": {
     "main1119": {
       "left": 100.7,
@@ -38,6 +38,7 @@
   "workComposerRoot": "[data-codex-composer-root][data-composer-placement=\"thread\"]",
   "workThreadScroll": ".thread-scroll-container[data-pip-anchor-host=\"codex-main-thread\"]",
   "workReader": "[data-thread-user-message-navigation-content=\"true\"][data-mcp-app-portal-target=\"true\"]",
-  "inputStateRevision": "native-request-shell-20261016",
-  "visualApproval": "approved-2026-10-17"
+  "workSubmittingInput": "[data-composer-input] > [role=\"textbox\"][aria-busy=\"true\"][aria-readonly=\"true\"][data-composer-input-layout=\"multiline\"][data-composer-input-variant=\"default\"]",
+  "inputStateRevision": "native-request-and-submitting-shell-20261019",
+  "validatedOn": "2026-10-19"
 }

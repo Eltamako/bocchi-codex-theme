@@ -59,6 +59,37 @@ function Test-OwnDaemon([object]$State){
   return ((Test-DreamSkinPathEqual -Left $p.ExecutablePath -Right $node) -and $p.CommandLine.Contains($runtime) -and $p.CommandLine.Contains($statePath) -and $p.CreationDate.ToUniversalTime().ToString('o') -ceq (ConvertTo-UtcStamp $State.daemonCreated))
 }
 . (Join-Path $engine 'session-guard.ps1')
+function Get-BocchiOtherDesktopClients {
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory=$true)][object]$Codex,
+    [int]$AllowedOwnerPid=0,
+    [object[]]$Processes
+  )
+  # A dedicated Electron profile still shares the native task store. Its renderer
+  # helpers are harmless here; a second browser/main process can own another writer.
+  if(-not $PSBoundParameters.ContainsKey('Processes')){
+    $Processes=@(Get-CimInstance Win32_Process -Filter "Name = 'ChatGPT.exe' OR Name = 'Codex.exe'" -ErrorAction Stop)
+  }
+  @($Processes|Where-Object {
+    $_.ProcessId -ne $AllowedOwnerPid -and
+    $_.ExecutablePath -and
+    (Test-DreamSkinPathEqual -Left $_.ExecutablePath -Right $Codex.Executable) -and
+    ([string]$_.CommandLine -notmatch '(?:^|\s)"?--type(?:=|\s)')
+  }|Select-Object ProcessId,CreationDate,ExecutablePath)
+}
+function Assert-BocchiNoParallelDesktop {
+  [CmdletBinding()]
+  param([Parameter(Mandatory=$true)][object]$Codex,[object]$Own)
+  $allowed=if($Own){[int]$Own.pid}else{0}
+  $others=@(Get-BocchiOtherDesktopClients -Codex $Codex -AllowedOwnerPid $allowed)
+  if($others.Count -eq 0){return}
+  if($Own){
+    Write-Warning '主题会继续使用当前窗口。另一个 Codex 窗口也在运行；手机出现占用提示时，请确认连接的是当前窗口。'
+    return
+  }
+  throw 'Codex 已经打开了。请先保存草稿并结束正在进行的工作，退出原窗口后再从主题入口打开，这样手机与桌面就会使用同一个会话。'
+}
 function Stop-OwnDaemon([object]$State){
   if(-not (Test-OwnDaemon $State)){return}
   Write-LocalJson $controlPath @{paused=$true;stop=$true;requestId=[Guid]::NewGuid().ToString('N')}
@@ -156,6 +187,7 @@ try{
     Write-Output 'Original appearance restored; original profile and settings preserved';exit 0
   }
   $own=Get-OwnIdentity $codex
+  Assert-BocchiNoParallelDesktop -Codex $codex -Own $own
   $reusingOwn=[bool]$own
   if(-not $own){
     if(-not (Test-DreamSkinPortAvailable -Port $port)){throw 'Theme port is occupied by an unverified process'}

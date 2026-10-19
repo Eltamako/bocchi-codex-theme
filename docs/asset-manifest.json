@@ -29,6 +29,13 @@
       "height": 1152
     },
     {
+      "path": "theme/wallpapers/backstage/environment.png",
+      "bytes": 1960036,
+      "sha256": "740285e5a33d3084bf8f14c84f039cac8e0f9279c7b5196fa7db0494bb672810",
+      "width": 1448,
+      "height": 1086
+    },
+    {
       "path": "theme/wallpapers/backstage/main.png",
       "bytes": 2033829,
       "sha256": "db171406cfdcd2b4904d119d05a85ac90188acb41191fd112102387b65658ea0",
@@ -57,9 +64,37 @@
       "height": 941
     },
     {
+      "path": "theme/wallpapers/floating-bocchi/environment.png",
+      "bytes": 2144167,
+      "sha256": "4d1d069a2b1ef736bd7a6acd7cc0d28a3e4ddaa5ce2246dce2168e251bafe4ce",
+      "width": 1448,
+      "height": 1086
+    },
+    {
       "path": "theme/wallpapers/floating-bocchi/main.png",
       "bytes": 2327395,
       "sha256": "8f066698c28fafe790656f0d0f5d5a55198fb4d30557a5c24b70a76db6d9e8ad",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "path": "theme/wallpapers/headphone-evening/background.png",
+      "bytes": 1932766,
+      "sha256": "00072d20ddce8bdbafc2d5f259991701b766ecc2bbc673d1acea6d065d19056f",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "path": "theme/wallpapers/headphone-evening/environment.png",
+      "bytes": 2935450,
+      "sha256": "20595f4d1fcfbd96e5b93ba6835347cecdf63884f6d913aef62440b7974ecc56",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "path": "theme/wallpapers/headphone-evening/main.png",
+      "bytes": 2220921,
+      "sha256": "7211aea1cb437a03af6111c3c0bde983b471fb72ef567123e2b5ca033048b9dc",
       "width": 1672,
       "height": 941
     },
@@ -71,9 +106,37 @@
       "height": 941
     },
     {
+      "path": "theme/wallpapers/night-stage/environment.png",
+      "bytes": 1953238,
+      "sha256": "9a83df99d7a4426edde7fd3efc6913ecdc609bd522c4f61ab629c461d8bd34d3",
+      "width": 1448,
+      "height": 1086
+    },
+    {
       "path": "theme/wallpapers/night-stage/main.png",
       "bytes": 2015167,
       "sha256": "a7637c080f9dc32251f2432d08765a25462a65866ff78046ce6bdb0f073ae366",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "path": "theme/wallpapers/winter-night/background.png",
+      "bytes": 2028460,
+      "sha256": "b559e63c23ae5cde60dc615f21dbf9d6c3bb8e57624128b9b0317871ac5d6cbe",
+      "width": 1152,
+      "height": 1366
+    },
+    {
+      "path": "theme/wallpapers/winter-night/environment.png",
+      "bytes": 1982415,
+      "sha256": "0fcf2dfdff4114a929b6c0def990ae0dad87607c4471ad004fe9d4f9e8640fca",
+      "width": 1448,
+      "height": 1086
+    },
+    {
+      "path": "theme/wallpapers/winter-night/main.png",
+      "bytes": 2057760,
+      "sha256": "91306c8c7fb76d1348b7409331b52d60ba98459967372e54f58f22ca704d641b",
       "width": 1672,
       "height": 941
     }

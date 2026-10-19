@@ -29,6 +29,20 @@
       "nativeSize": {
         "width": 1672,
         "height": 941
+      },
+      "environment": {
+        "image": "wallpapers/night-stage/environment.png",
+        "nativeSize": {
+          "width": 1448,
+          "height": 1086
+        },
+        "mainRect": [
+          0,
+          294,
+          1448,
+          814.933014354067
+        ],
+        "edges": "top"
       }
     },
     {
@@ -91,6 +105,20 @@
       "backgroundNativeSize": {
         "width": 1366,
         "height": 1152
+      },
+      "environment": {
+        "image": "wallpapers/backstage/environment.png",
+        "nativeSize": {
+          "width": 1448,
+          "height": 1086
+        },
+        "mainRect": [
+          0,
+          242,
+          1448,
+          814.933014354067
+        ],
+        "edges": "top"
       }
     },
     {
@@ -120,6 +148,156 @@
       "nativeSize": {
         "width": 1672,
         "height": 941
+      },
+      "environment": {
+        "image": "wallpapers/floating-bocchi/environment.png",
+        "nativeSize": {
+          "width": 1448,
+          "height": 1086
+        },
+        "mainRect": [
+          0,
+          274,
+          1448,
+          814.933014354067
+        ],
+        "edges": "top"
+      }
+    },
+    {
+      "id": "winter-night",
+      "name": "冬日候场 · 暖灯店门合照",
+      "image": "wallpapers/winter-night/main.png",
+      "background": "wallpapers/winter-night/background.png",
+      "nativeSize": {
+        "width": 1672,
+        "height": 941
+      },
+      "layout": {
+        "widthFraction": 1,
+        "heightFraction": 0.98,
+        "anchorY": 0.52,
+        "featherLeft": 0.34,
+        "featherTop": 0.08,
+        "featherBottom": 0.07,
+        "ambientOpacity": 0.46,
+        "protectedRegion": [
+          0.47,
+          0.07,
+          0.99,
+          0.9
+        ],
+        "ambientSource": "registered-floor-extension",
+        "ambientCrop": 1,
+        "floorAnchor": 0.75,
+        "ambientFloorAnchor": 0.78,
+        "framing": {
+          "mode": "r1-relative",
+          "scale": 0.98,
+          "referenceProtectedLeft": 0.61,
+          "referenceReadingGap": 36,
+          "referenceWidthFraction": 1,
+          "referenceHeightFraction": 0.98,
+          "referenceAnchorY": 0.52,
+          "rightShiftFraction": 0.065,
+          "rightShiftMin": 48,
+          "rightShiftMax": 96,
+          "faceRegion": [
+            0.53,
+            0.08,
+            0.9,
+            0.38
+          ],
+          "downShift": 36,
+          "adjustment": {
+            "scale": 1.04,
+            "x": 16,
+            "y": 0
+          }
+        }
+      },
+      "backgroundNativeSize": {
+        "width": 1152,
+        "height": 1366
+      },
+      "environment": {
+        "image": "wallpapers/winter-night/environment.png",
+        "nativeSize": {
+          "width": 1448,
+          "height": 1086
+        },
+        "mainRect": [
+          0,
+          273,
+          1448,
+          814.933014354067
+        ],
+        "edges": "top"
+      }
+    },
+    {
+      "id": "headphone-evening",
+      "name": "随身节拍 · 四色合拍",
+      "image": "wallpapers/headphone-evening/main.png",
+      "background": "wallpapers/headphone-evening/background.png",
+      "nativeSize": {
+        "width": 1672,
+        "height": 941
+      },
+      "layout": {
+        "widthFraction": 1,
+        "heightFraction": 0.98,
+        "anchorY": 0.52,
+        "featherLeft": 0.34,
+        "featherTop": 0.035,
+        "featherBottom": 0.12,
+        "ambientOpacity": 0.2,
+        "protectedRegion": [
+          0.415,
+          0.045,
+          0.995,
+          0.98
+        ],
+        "ambientSource": "matched-quiet-floor-plane",
+        "ambientCrop": 1,
+        "floorAnchor": 0.78,
+        "ambientFloorAnchor": 0.78,
+        "framing": {
+          "mode": "r1-relative",
+          "scale": 0.9,
+          "referenceProtectedLeft": 0.57,
+          "referenceReadingGap": 36,
+          "referenceWidthFraction": 1,
+          "referenceHeightFraction": 0.98,
+          "referenceAnchorY": 0.52,
+          "rightShiftFraction": 0.03,
+          "rightShiftMin": 24,
+          "rightShiftMax": 64,
+          "faceRegion": [
+            0.53,
+            0.05,
+            0.94,
+            0.74
+          ]
+        }
+      },
+      "backgroundNativeSize": {
+        "width": 1672,
+        "height": 941
+      },
+      "environment": {
+        "image": "wallpapers/headphone-evening/environment.png",
+        "nativeSize": {
+          "width": 1254,
+          "height": 1254
+        },
+        "mainRect": [
+          0,
+          225,
+          1254,
+          705.75
+        ],
+        "edges": "top-bottom"
       }
     }
   ]

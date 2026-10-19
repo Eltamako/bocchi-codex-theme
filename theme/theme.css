@@ -1,25 +1,26 @@
 /* Ending Band 2.2.0 preview. Original approved PNGs are unchanged. All layers are local and reversible. */
 html[data-bocchi-active="true"]{--bocchi-ink:#17171e;--bocchi-pink:#f3a5c5;--color-text-primary:#eee8e5}
-html[data-bocchi-active="true"] [data-bocchi-surface]{background:#17171e!important}
-.bocchi-backdrop{position:fixed;z-index:-1;overflow:hidden;contain:layout paint;isolation:isolate;background:#17171e}
+html[data-bocchi-active="true"] [data-bocchi-surface]{background:var(--bocchi-scene-base,#17171e)!important}
+.bocchi-backdrop{position:fixed;z-index:-1;overflow:hidden;contain:layout paint;isolation:isolate;background:var(--bocchi-scene-base,#17171e)}
 .bocchi-ambience{position:absolute;inset:0;background-image:var(--bocchi-wallpaper);background-size:213% var(--bocchi-ambient-height);background-position:left var(--bocchi-ambient-top);background-repeat:no-repeat;opacity:.46}
 .bocchi-art{position:absolute;left:var(--bocchi-art-left);top:var(--bocchi-art-top);width:var(--bocchi-art-width)!important;height:var(--bocchi-art-height)!important;max-width:none!important;max-height:none!important;opacity:.86;object-fit:contain;mask-image:linear-gradient(90deg,transparent,#000 24%),linear-gradient(transparent,#000 7%,#000 93%,transparent);mask-composite:intersect}
 .bocchi-reading-veil{position:absolute;inset:0;background:linear-gradient(90deg,rgba(23,23,30,.28) 0,rgba(23,23,30,.28) var(--bocchi-read-solid),rgba(23,23,30,0) var(--bocchi-read-clear))}
 html[data-bocchi-mode="work"] .bocchi-art{opacity:.76}
 html[data-bocchi-mode="work"] .bocchi-reading-veil{background:linear-gradient(90deg,rgba(23,23,30,.42) 0,rgba(23,23,30,.42) var(--bocchi-read-solid),rgba(23,23,30,0) var(--bocchi-read-clear))}
-.bocchi-backdrop[data-panel="true"] .bocchi-art{opacity:.14}
+.bocchi-backdrop[data-panel="true"] .bocchi-art{opacity:.58}
 html[data-bocchi-active="true"] [data-bocchi-reader]{background:transparent!important;box-shadow:none!important;border-radius:0}
 html[data-bocchi-active="true"] [data-bocchi-native-fill]{background-color:transparent!important}
-html[data-bocchi-active="true"] [data-bocchi-native-fade="top"]{background-image:linear-gradient(#17171e,rgba(23,23,30,.65) 25%,rgba(23,23,30,0))!important}
-html[data-bocchi-active="true"] [data-bocchi-native-fade="bottom"]{background-image:linear-gradient(to top,#17171e,rgba(23,23,30,0))!important;mask-image:linear-gradient(90deg,transparent,#000 16px,#000 calc(100% - 16px),transparent)!important}
+html[data-bocchi-active="true"] [data-bocchi-native-fade="top"]{background-image:none!important;background-color:transparent!important;box-shadow:none!important}
+/* R15: remove the separate footer fade; keep the native composer geometry. */
+html[data-bocchi-active="true"] [data-bocchi-native-fade="bottom"]{background:transparent!important;mask-image:none!important;box-shadow:none!important;filter:none!important;backdrop-filter:none!important}
 html[data-bocchi-active="true"] [data-bocchi-native-fade="bottom-home"]{background-image:none!important}
-html[data-bocchi-active="true"] [data-app-shell-active-page="true"] [data-app-shell-titlebar]{background:rgba(23,23,30,.9)!important}
+html[data-bocchi-active="true"] [data-app-shell-active-page="true"] [data-app-shell-titlebar]{background:var(--bocchi-scene-base,#17171e)!important}
 html[data-bocchi-active="true"] [data-bocchi-column="left"]{
   box-sizing:border-box!important;width:var(--bocchi-column-width)!important;max-width:var(--bocchi-column-width)!important;
   min-width:0!important;margin-left:var(--bocchi-column-offset,0px)!important;margin-right:auto!important;
 }
 html[data-bocchi-active="true"] [data-bocchi-home-mode]{translate:var(--bocchi-home-shift,0px) 0!important}
-html[data-bocchi-active="true"] [data-app-shell-active-page="true"] [data-composer-body],
+html[data-bocchi-active="true"] [data-bocchi-input-body],
 html[data-bocchi-active="true"] [data-bocchi-composer]{background-color:#29242e!important;border-color:#66505e!important;border-radius:24px}
 html[data-bocchi-active="true"] [data-app-shell-active-page="true"] [data-user-message-bubble="true"]{background-color:#3a2e3b!important;color:#f4eeec!important}
 html[data-bocchi-active="true"] [data-app-shell-active-page="true"] :is(pre,[data-code-block]){background-color:#1b1b23!important}
@@ -66,6 +67,8 @@ html[data-bocchi-active="true"] [data-bocchi-reader] th{color:#f0d2df}
 /* 2.3: independent full-viewport plates, preserved-ratio artwork, one reading veil. */
 .bocchi-wallpaper-layer{position:absolute;inset:0;transition:opacity 180ms ease;opacity:1}
 .bocchi-ambience{background-size:cover;background-position:center;background-repeat:no-repeat}
+.bocchi-single-pass-scene>.bocchi-ambience{filter:blur(9px);transform:scale(1.025);transform-origin:left center}
+.bocchi-single-pass-scene::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(to bottom,transparent 72%,rgba(23,23,30,.12) 85%,rgba(23,23,30,.55) 100%)}
 .bocchi-art{mask-image:linear-gradient(90deg,transparent,#000 var(--bocchi-feather-left)),linear-gradient(transparent,#000 var(--bocchi-feather-top),#000 var(--bocchi-feather-bottom),transparent);mask-composite:intersect}
 .bocchi-reading-veil{background:linear-gradient(90deg,#17171ebd 0,#17171ebd var(--bocchi-read-solid),#17171e00 var(--bocchi-read-clear))}
 html[data-bocchi-mode="work"] .bocchi-reading-veil{background:linear-gradient(90deg,#17171ed6 0,#17171ed6 var(--bocchi-read-solid),#17171e00 var(--bocchi-read-clear))}
@@ -91,18 +94,113 @@ html[data-bocchi-mode="work"] .bocchi-reading-veil{background:linear-gradient(90
 
 /* R2: same-art ambient plane and aligned wall/floor, current installed night-stage unchanged. */
 .bocchi-reading-veil,html[data-bocchi-mode="work"] .bocchi-reading-veil{background:linear-gradient(90deg,rgba(23,23,30,var(--bocchi-veil-alpha)) 0,rgba(23,23,30,var(--bocchi-veil-alpha)) var(--bocchi-read-solid),rgba(23,23,30,0) var(--bocchi-read-clear))}
-.bocchi-picker-menu{padding:9px;gap:8px;border-radius:12px}
-.bocchi-wallpaper-choice{padding:5px;gap:3px;border-radius:7px}
+.bocchi-picker-menu{padding:7px;gap:6px;border-radius:10px;box-sizing:border-box}
+.bocchi-wallpaper-choice{position:relative;padding:4px;gap:3px;border-radius:7px}
 .bocchi-choice-name{font-size:11px;line-height:1.5;padding:1px 2px}
-.bocchi-choice-state{font-size:9px;min-height:13px;padding:0 2px}
+.bocchi-choice-state{position:absolute;top:7px;right:7px;font-size:9px;line-height:1.4;min-height:0;padding:2px 4px;border-radius:4px;background:#241d22e8;color:#ffd6e6}
+.bocchi-choice-state:empty{display:none}
 
 /* R3: backstage floor registered to main artwork, one opacity group. */
 .bocchi-registered-scene{position:absolute;opacity:.86;mask-image:linear-gradient(90deg,transparent,#000 var(--bocchi-feather-left)),linear-gradient(transparent,#000 var(--bocchi-scene-top-feather),#000 88%,transparent 100%);mask-composite:intersect}
 .bocchi-registered-scene>.bocchi-art{left:0;top:0;opacity:1!important;mask-image:linear-gradient(#000 var(--bocchi-main-bottom-feather),transparent var(--bocchi-main-bottom));mask-composite:add}
 .bocchi-registered-scene>.bocchi-floor-extension{inset:0;opacity:1!important;mask-image:linear-gradient(transparent var(--bocchi-scene-floor-start),#000 var(--bocchi-scene-floor-clear))}
 html[data-bocchi-mode="work"] .bocchi-registered-scene{opacity:.76}
-.bocchi-backdrop[data-panel="true"] .bocchi-registered-scene{opacity:.14}
+.bocchi-backdrop[data-panel="true"] .bocchi-registered-scene{opacity:.58}
 
 /* R4: soften only the lower floor into the existing #17171e canvas. */
 .bocchi-registered-scene{mask-image:linear-gradient(90deg,transparent,#000 var(--bocchi-feather-left)),linear-gradient(transparent,#000 var(--bocchi-scene-top-feather),#000 var(--bocchi-floor-dim-start),rgba(0,0,0,.66) var(--bocchi-floor-dim-mid),rgba(0,0,0,.24) var(--bocchi-floor-dim-low),rgba(0,0,0,.04) var(--bocchi-floor-dim-end),transparent 100%);mask-composite:intersect}
 .bocchi-picker-trigger[data-micro="true"]{padding:5px 3px}.bocchi-picker-trigger[data-micro="true"] b{font-size:10px;letter-spacing:.06em}.bocchi-picker-trigger[data-micro="true"] small{display:none}
+
+/* 2.3.1: blend the whole scene into the titlebar, not just the main artwork.
+   This paint-only layer is behind content and never dims controls or text. */
+.bocchi-backdrop::after{
+  content:"";position:absolute;inset:0 0 auto;height:calc(var(--bocchi-header-inset,0px) + var(--bocchi-top-blend));
+  --bocchi-top-blend:clamp(72px,calc(40vw - 452px),min(20vh,210px));
+  pointer-events:none;
+  background:linear-gradient(to bottom,
+    #17171e 0px,#17171e var(--bocchi-header-inset,0px),
+    rgba(23,23,30,.989) calc(var(--bocchi-header-inset,0px) + var(--bocchi-top-blend)*.0625),
+    rgba(23,23,30,.957) calc(var(--bocchi-header-inset,0px) + var(--bocchi-top-blend)*.125),
+    rgba(23,23,30,.908) calc(var(--bocchi-header-inset,0px) + var(--bocchi-top-blend)*.1875),
+    rgba(23,23,30,.844) calc(var(--bocchi-header-inset,0px) + var(--bocchi-top-blend)*.25),
+    rgba(23,23,30,.768) calc(var(--bocchi-header-inset,0px) + var(--bocchi-top-blend)*.3125),
+    rgba(23,23,30,.684) calc(var(--bocchi-header-inset,0px) + var(--bocchi-top-blend)*.375),
+    rgba(23,23,30,.593) calc(var(--bocchi-header-inset,0px) + var(--bocchi-top-blend)*.4375),
+    rgba(23,23,30,.5) calc(var(--bocchi-header-inset,0px) + var(--bocchi-top-blend)*.5),
+    rgba(23,23,30,.407) calc(var(--bocchi-header-inset,0px) + var(--bocchi-top-blend)*.5625),
+    rgba(23,23,30,.316) calc(var(--bocchi-header-inset,0px) + var(--bocchi-top-blend)*.625),
+    rgba(23,23,30,.232) calc(var(--bocchi-header-inset,0px) + var(--bocchi-top-blend)*.6875),
+    rgba(23,23,30,.156) calc(var(--bocchi-header-inset,0px) + var(--bocchi-top-blend)*.75),
+    rgba(23,23,30,.092) calc(var(--bocchi-header-inset,0px) + var(--bocchi-top-blend)*.8125),
+    rgba(23,23,30,.043) calc(var(--bocchi-header-inset,0px) + var(--bocchi-top-blend)*.875),
+    rgba(23,23,30,.011) calc(var(--bocchi-header-inset,0px) + var(--bocchi-top-blend)*.9375),
+    rgba(23,23,30,0) 100%);
+}
+
+/* R10: soft tonal continuation. Every portrait, instrument and floor is original.
+   Only opted-in wallpapers use this block; color-portraits is unchanged. */
+.bocchi-environment-scene{position:absolute;inset:0;opacity:.86;isolation:isolate}
+html[data-bocchi-mode="work"] .bocchi-environment-scene{opacity:.76}
+.bocchi-backdrop[data-panel="true"] .bocchi-environment-scene{opacity:.58}
+.bocchi-environment-scene>.bocchi-art,.bocchi-environment-scene>.bocchi-registered-scene{opacity:1!important}
+.bocchi-environment{position:absolute;display:block;max-width:none!important;max-height:none!important;object-fit:fill;filter:blur(1.3px);mask-composite:intersect}
+.bocchi-wallpaper-layer[data-wallpaper-id="winter-night"] .bocchi-environment{filter:blur(.65px)}
+.bocchi-wallpaper-layer[data-wallpaper-id="floating-bocchi"] .bocchi-environment{filter:blur(1px)}
+.bocchi-environment[data-edges="top"]{
+ --cap-y:calc(var(--environment-cap-start,0px) - var(--environment-plane-top));
+ --cap-span:calc(var(--environment-cap-end,64px) - var(--environment-cap-start,0px));
+ mask-image:linear-gradient(90deg,transparent,#000 var(--environment-left-clear)),
+ linear-gradient(#000 var(--environment-overlap-start),transparent var(--environment-overlap-end)),
+ linear-gradient(transparent var(--cap-y),rgba(0,0,0,.104) calc(var(--cap-y) + var(--cap-span)*.2),rgba(0,0,0,.352) calc(var(--cap-y) + var(--cap-span)*.4),rgba(0,0,0,.648) calc(var(--cap-y) + var(--cap-span)*.6),rgba(0,0,0,.896) calc(var(--cap-y) + var(--cap-span)*.8),#000 calc(var(--cap-y) + var(--cap-span)));
+}
+.bocchi-environment-scene>.bocchi-art{
+ mask-image:linear-gradient(90deg,transparent,#000 var(--bocchi-feather-left)),
+ linear-gradient(transparent,rgba(0,0,0,.104) calc(var(--environment-join)*.2),rgba(0,0,0,.352) calc(var(--environment-join)*.4),rgba(0,0,0,.648) calc(var(--environment-join)*.6),rgba(0,0,0,.896) calc(var(--environment-join)*.8),#000 var(--environment-join),#000 var(--bocchi-feather-bottom),rgba(0,0,0,.896) calc(var(--bocchi-feather-bottom) + (100% - var(--bocchi-feather-bottom))*.2),rgba(0,0,0,.648) calc(var(--bocchi-feather-bottom) + (100% - var(--bocchi-feather-bottom))*.4),rgba(0,0,0,.352) calc(var(--bocchi-feather-bottom) + (100% - var(--bocchi-feather-bottom))*.6),rgba(0,0,0,.104) calc(var(--bocchi-feather-bottom) + (100% - var(--bocchi-feather-bottom))*.8),transparent);
+ mask-composite:intersect;
+}
+.bocchi-environment-scene>.bocchi-registered-scene{
+ mask-image:linear-gradient(90deg,transparent,#000 var(--bocchi-feather-left)),
+ linear-gradient(transparent,rgba(0,0,0,.104) calc(var(--environment-join)*.2),rgba(0,0,0,.352) calc(var(--environment-join)*.4),rgba(0,0,0,.648) calc(var(--environment-join)*.6),rgba(0,0,0,.896) calc(var(--environment-join)*.8),#000 var(--environment-join),#000 var(--bocchi-floor-dim-start),rgba(0,0,0,.66) var(--bocchi-floor-dim-mid),rgba(0,0,0,.24) var(--bocchi-floor-dim-low),rgba(0,0,0,.04) var(--bocchi-floor-dim-end),transparent 100%);
+ mask-composite:intersect;
+}
+.bocchi-environment[data-edges="bottom"]{
+ --lower-span:calc(var(--environment-lower-clear) - var(--environment-lower-open));
+ --tail-span:calc(var(--environment-bottom-end) - var(--environment-bottom-start));
+ filter:blur(2px);
+ mask-image:linear-gradient(90deg,transparent,#000 var(--environment-left-clear)),
+ linear-gradient(transparent var(--environment-lower-open),rgba(0,0,0,.104) calc(var(--environment-lower-open) + var(--lower-span)*.2),rgba(0,0,0,.25) calc(var(--environment-lower-open) + var(--lower-span)*.5),rgba(0,0,0,.4) var(--environment-lower-clear),rgba(0,0,0,.4) var(--environment-bottom-start),rgba(0,0,0,.2) calc(var(--environment-bottom-start) + var(--tail-span)*.5),transparent var(--environment-bottom-end));
+}
+.bocchi-backdrop[data-environment="true"]::after{--bocchi-top-blend:clamp(48px,6vh,80px)}
+
+/* R11 final: one continuous, lightly dithered top ramp over the assembled
+   wallpaper. The original foreground pixels and framing remain unchanged. */
+.bocchi-wallpaper-layer{mask-size:100% 100%;mask-repeat:no-repeat;mask-mode:alpha}
+.bocchi-backdrop::after{height:var(--bocchi-header-inset,0px);background:var(--bocchi-scene-base,#17171e)}
+.bocchi-environment[data-edges="top"]{mask-image:linear-gradient(90deg,transparent,#000 var(--environment-left-clear)),linear-gradient(#000 var(--environment-overlap-start),transparent var(--environment-overlap-end))}
+.bocchi-headphone-texture{position:absolute;max-width:none!important;max-height:none!important;filter:blur(3px);opacity:.48;mask-image:linear-gradient(90deg,transparent,#000 40%)}
+.bocchi-headphone-source-edge{position:absolute;overflow:hidden;filter:blur(var(--edge-soften));opacity:.65}
+.bocchi-headphone-source-edge>img{position:absolute;left:0;top:0;max-width:none!important;max-height:none!important}
+.bocchi-wallpaper-layer[data-wallpaper-id="headphone-evening"] .bocchi-environment-scene>.bocchi-art{
+ mask-image:linear-gradient(90deg,transparent,#000 var(--bocchi-feather-left)),linear-gradient(transparent,rgba(0,0,0,.104) calc(var(--environment-join)*.2),rgba(0,0,0,.352) calc(var(--environment-join)*.4),rgba(0,0,0,.648) calc(var(--environment-join)*.6),rgba(0,0,0,.896) calc(var(--environment-join)*.8),#000 var(--environment-join)),radial-gradient(ellipse 90% 110% at 57% -10%,#000 88%,rgba(0,0,0,.896) 90.4%,rgba(0,0,0,.648) 92.8%,rgba(0,0,0,.352) 95.2%,rgba(0,0,0,.104) 97.6%,transparent 100%);
+}
+.bocchi-wallpaper-layer[data-wallpaper-id="color-portraits"]>.bocchi-art{
+ mask-image:linear-gradient(90deg,transparent,#000 var(--bocchi-feather-left)),linear-gradient(transparent,rgba(0,0,0,.104) calc(var(--environment-join)*.2),rgba(0,0,0,.352) calc(var(--environment-join)*.4),rgba(0,0,0,.648) calc(var(--environment-join)*.6),rgba(0,0,0,.896) calc(var(--environment-join)*.8),#000 var(--environment-join),#000 var(--bocchi-feather-bottom),transparent);
+}
+
+/* R12: final background-only debanding, after scene opacity and reading veil.
+   A stable one-device-pixel texture breaks dark colour steps. Its strength
+   tapers to zero before the protected portrait area. No image blur is added. */
+.bocchi-output-dither{position:absolute;left:0;top:0;pointer-events:none;image-rendering:pixelated;max-width:none!important;max-height:none!important}
+.bocchi-output-dither-subtract{mix-blend-mode:difference}
+.bocchi-output-dither-add{mix-blend-mode:plus-lighter}
+
+/* R13: source-aligned texture and measured vector continuation; no source crop blur. */
+.bocchi-headphone-environment{filter:none!important;opacity:.54;mask-image:linear-gradient(90deg,transparent,#000 var(--environment-left-clear)),linear-gradient(#000 70%,rgba(0,0,0,.8) 84%,transparent 100%);mask-composite:intersect}
+.bocchi-headphone-lines{position:absolute;max-width:none!important;max-height:none!important;filter:none;opacity:1;mask-image:linear-gradient(90deg,transparent,#000 var(--bocchi-feather-left))}
+.bocchi-wallpaper-layer[data-wallpaper-id="headphone-evening"] .bocchi-environment-scene>.bocchi-art{mask-composite:intersect;mask-size:100% 100%;mask-repeat:no-repeat}
+
+/* R14 preview only. One continuous background canvas; source artwork stays separate. */
+.bocchi-r14-background{position:absolute;left:0;top:0;max-width:none!important;max-height:none!important;pointer-events:none}
+
+/* R15: one continuous reading plane, with a smooth same-palette shoulder. */
+.bocchi-reading-veil,html[data-bocchi-mode="work"] .bocchi-reading-veil{background:var(--bocchi-reading-paint,none)}
