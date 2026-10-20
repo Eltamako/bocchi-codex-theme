@@ -1,6 +1,6 @@
 {
   "schema": "bocchi-codex-adapter/1",
-  "themeVersion": "2.5.0",
+  "themeVersion": "2.5.1",
   "appVersion": "26.1013.40934",
   "packageVersion": "26.1013.4894.0",
   "activePage": "[data-app-shell-active-page=\"true\"]",

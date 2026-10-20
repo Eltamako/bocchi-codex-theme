@@ -1,5 +1,22 @@
 # 更新记录
 
+## 2.5.1 — 2026-10-20
+
+- 连续点击主题入口时，后一次会等待正在进行的操作，并在核对当前窗口与加载状态后复用成功结果，避免壁纸已显示却弹出“另一次操作正在进行”的错误。
+- 修复主题窗口关闭后、已验证的专用进程仍在后台时被误认为普通客户端的情况；启动与恢复入口都能重新打开同一主题窗口。
+- 托盘 Exit 后允许客户端用最多 20 秒完成退出；真正仍在运行或无法确认身份时，保留窗口，并给出对应的中英文说明。
+- 保留启动阶段的本地诊断记录。超时、未登录、版本不匹配等真实问题仍会提示，不会被当成成功。
+- 壁纸、人物取景、配色、菜单和兼容范围不变。主题版本 2.5.1，加载器 1.1.1。
+
+### English
+
+- Repeated shortcut launches wait for the current operation, then reuse a verified, successfully loaded window instead of showing an “operation in progress” error over a working wallpaper.
+- Recognize an existing verified theme process even when its window is closed. Both Start and Resume can reopen the same theme window.
+- Allow up to 20 seconds for a tray Exit to finish. A still-running or unverified client is left untouched, with specific guidance in Chinese and English.
+- Save local startup traces for troubleshooting. Genuine timeouts, sign-in delays and compatibility failures are still reported.
+- Artwork, framing, colors, menus and supported client versions are unchanged. Theme 2.5.1; loader 1.1.1.
+
+
 ## 2.5.0 — 2026-10-20
 
 - 中英文首页、安装教程、恢复说明及共用安装入口；菜单与提示可自动或手动选择语言。

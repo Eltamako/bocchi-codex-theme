@@ -37,3 +37,14 @@ The loader preserves a verified Work page through a short editor rebuild, and th
 ## An English name is shown on a Chinese system
 
 STARRY follows the client’s page language in Automatic mode. Use Language.cmd to select the language you prefer; the English and Chinese launcher filenames do not force a language.
+
+
+## The wallpaper appears, but I see “Another theme operation is in progress”
+
+This can happen when the shortcut is clicked again while the first launch is still running. In 2.5.1, the later request waits, verifies that the first launch succeeded, and reuses the current window. One click is enough; give startup a little time. An accidental extra click does not require reinstalling. If the operation is still busy after 90 seconds, the launcher explains that the new request was not carried out instead of claiming success.
+
+## I chose Exit from the tray, but Codex still appears to be running
+
+Tray Exit may take a moment to finish. Version 2.5.1 waits up to 20 seconds and distinguishes an open ordinary window, a remaining background process and an identity it cannot verify. Open the theme shortcut directly afterward; you do not need to open the ordinary client first. A verified process belonging to this theme is reused even if its window is temporarily closed.
+
+If the problem continues, keep the message and the local `.local/startup-attempt-*.json` file, along with your theme/client versions and reproduction steps. The trace records startup stages, times, related processes and window state, not chat contents. Review it for information you do not want to share before reporting it. There is no need to delete chat data or reinstall the client.

@@ -34,8 +34,13 @@ Check 'second main client detected' ($found.Count -eq 1 -and $found[0].ProcessId
 Check 'unrelated similarly named app ignored' (@(Get-BocchiOtherDesktopClients $codex -Processes @((P 21 'ChatGPT.exe' 'D:\OtherApp\ChatGPT.exe'))).Count -eq 0)
 Check 'verified executable with unknown command is treated cautiously' (@(Get-BocchiOtherDesktopClients $codex -Processes @((P 22 $null))).Count -eq 1)
 function Get-CimInstance { param($ClassName,$Filter,$ErrorAction) @($other) }
+function Start-Sleep {param($Milliseconds)}
+$script:guardClock=[datetime]'2026-10-20T00:00:00Z'
+function Get-Date {$script:guardClock=$script:guardClock.AddSeconds(10);$script:guardClock}
+function Get-BocchiParallelState {param($Processes) 'visible'}
+function Write-BocchiStartupTrace {param($Stage,$Own)}
 $blocked=$false
-try{Assert-BocchiNoParallelDesktop -Codex $codex}catch{$blocked=$_.Exception.Message.StartsWith('Codex 已经打开了。')}
+try{Assert-BocchiNoParallelDesktop -Codex $codex}catch{$blocked=($_.Exception.Data['BocchiMessageKey'] -eq 'manager.parallelVisible')}
 Check 'fresh theme launch refuses a parallel client' $blocked
 $warning=@()
 Assert-BocchiNoParallelDesktop -Codex $codex -Own ([pscustomobject]@{pid=10}) -WarningAction SilentlyContinue -WarningVariable warning

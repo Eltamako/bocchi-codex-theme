@@ -6,7 +6,7 @@ Bring a little of Kessoku Band’s backstage world into your everyday chats and 
 
 **[Download for Windows](https://github.com/Eltamako/bocchi-codex-theme/releases/latest)** · [Install guide](docs/en/install.md) · [Troubleshooting](docs/en/troubleshooting.md) · [Upgrade or restore](docs/en/upgrade-restore.md)
 
-> **2.5.0 supports Windows x64, Codex app 26.1013.40934 / package 26.1013.4894.0.** Setup checks the version. The theme temporarily uses dark appearance when active, whether your preference is Light, Dark or System. Other client versions, macOS and Linux are outside this release’s supported scope.
+> **2.5.1 supports Windows x64, Codex app 26.1013.40934 / package 26.1013.4894.0.** Setup checks the version. The theme temporarily uses dark appearance when active, whether your preference is Light, Dark or System. Other client versions, macOS and Linux are outside this release’s supported scope.
 
 ## See it in the app
 
@@ -29,6 +29,10 @@ The Windows package includes its runtime; you don’t need to install Node.js se
 If first-time sign-in takes longer than the launcher’s wait, finish signing in and run **Resume.cmd**. Pausing the theme restores the window’s original appearance without overwriting your saved preference.
 
 Choose the Windows package for everyday use. **source.zip** and GitHub’s automatic **Source code** downloads are for development and do not include the runtime binary. [Full installation guide](docs/en/install.md)
+
+## A small update: 2.5.1
+
+This patch fixes theme-window detection after closing the window and errors caused by repeated shortcut clicks during startup. A repeated launch waits and reuses a confirmed result; genuine failures are still reported. Wallpaper artwork and appearance are unchanged. [Full changelog](CHANGELOG.md)
 
 ## What’s new in 2.5
 
@@ -71,3 +75,6 @@ The program code uses the [MIT license](LICENSE). Thanks to [Codex Dynamic Skin]
 Artwork and character assets are **not** covered by the code’s MIT license. Please read the [artwork and permissions notes](docs/en/assets.md) before reusing them. This is an unofficial fan project, not affiliated with OpenAI or the official Bocchi the Rock! rights holders.
 
 [Changelog](CHANGELOG.md) · [Development and packaging](docs/en/development.md)
+
+
+2.5.1 startup tip: after choosing Exit from the tray, open the theme shortcut directly. The launcher waits for exit to complete, and repeated clicks wait for the operation already in progress. Extract upgrades into a separate folder and keep the old package for rollback.

@@ -80,6 +80,71 @@ function Get-BocchiOtherDesktopClients {
     ([string]$_.CommandLine -notmatch '(?:^|\s)"?--type(?:=|\s)')
   }|Select-Object ProcessId,CreationDate,ExecutablePath)
 }
+$script:BocchiStartupId=[Guid]::NewGuid().ToString('N')
+$script:BocchiStartupTrace=@()
+function Get-BocchiLaunchOwner([object]$Codex){
+  # A closed window can leave the verified browser alive with no page targets.
+  # Verify the executable, loopback port and exact profile before excluding it
+  # from the parallel-client check. Page readiness is checked after activation.
+  return Get-OwnIdentity $Codex -AllowEmptyTargets
+}
+function Get-BocchiParallelState([object[]]$Processes){
+  $visible=0;$background=0;$unknown=0
+  foreach($item in $Processes){
+    try{
+      $live=Get-Process -Id ([int]$item.ProcessId) -ErrorAction Stop
+      if(-not (Test-DreamSkinPathEqual -Left $live.Path -Right $item.ExecutablePath)){$unknown++;continue}
+      $started=$live.StartTime.ToUniversalTime();$started=$started.AddTicks(-($started.Ticks % 10))
+      if($started.ToString('o') -cne (ConvertTo-UtcStamp $item.CreationDate)){$unknown++;continue}
+      if($live.MainWindowHandle -ne 0){$visible++}else{$background++}
+    }catch{$unknown++}
+  }
+  if($visible -gt 0){return 'visible'}
+  if($background -gt 0 -and $unknown -eq 0){return 'background'}
+  return 'unknown'
+}
+function Write-BocchiStartupTrace([string]$Stage,[object]$Own){
+  if($Action -notin @('Start','Resume')){return}
+  try{
+    $clients=@(Get-BocchiOtherDesktopClients -Codex $codex -AllowedOwnerPid 0|ForEach-Object{
+      [pscustomobject]@{pid=$_.ProcessId;created=(ConvertTo-UtcStamp $_.CreationDate);windowState=(Get-BocchiParallelState @($_))}
+    })
+    $entry=[pscustomobject]@{stage=$Stage;at=[DateTime]::UtcNow.ToString('o');verifiedOwnerPid=$(if($Own){$Own.pid}else{0});clients=$clients}
+    $script:BocchiStartupTrace+=@($entry)
+    Write-LocalJson (Join-Path $stateRoot ('startup-attempt-'+$script:BocchiStartupId+'.json')) @{schema='bocchi-startup-trace/1';action=$Action;events=$script:BocchiStartupTrace}
+  }catch{}
+}
+function Enter-BocchiOperationLock([Threading.Mutex]$Mutex,[int]$TimeoutMilliseconds=90000){
+  # A second shortcut invocation waits for the first instead of reporting a failure.
+  $waited=$false
+  try {
+    $acquired=$Mutex.WaitOne(0)
+    if(-not $acquired){
+      $waited=$true
+      $acquired=$Mutex.WaitOne($TimeoutMilliseconds)
+    }
+  } catch [Threading.AbandonedMutexException] {
+    # Windows grants ownership to this caller when the previous owner exits.
+    $acquired=$true
+  }
+  if(-not $acquired){Throw-BocchiError -Key 'manager.operationTimeout' -Diagnostic 'THEME_OPERATION_WAIT_TIMEOUT: request not executed'}
+  return [pscustomobject]@{acquired=$true;waited=$waited}
+}
+function Test-BocchiCompletedStart([object]$State,[object]$Own){
+  # Only coalesce a queued start after verifying the same live session and request.
+  try {
+    if(-not $State -or -not $Own -or -not (Test-OwnDaemon $State)){return $false}
+    if(-not (Test-BocchiSessionMatch -Saved $State -Own $Own -Profile $profile -AppVersion $appVersion -PackageVersion $codex.Version -PackageRoot $codex.PackageRoot -RuntimeHash $runtimeHash)){return $false}
+    $control=Get-Content -LiteralPath $controlPath -Raw -Encoding utf8|ConvertFrom-Json
+    if($control.paused -ne $false -or $control.stop -ne $false -or -not $control.requestId){return $false}
+    $ready=Get-Content -LiteralPath $statusPath -Raw -Encoding utf8|ConvertFrom-Json
+    if(-not (Test-BocchiReadyStatus -Status $ready -State $State -RequestId $control.requestId -ThemeVersion $install.themeVersion)){return $false}
+    $age=([DateTime]::UtcNow-[DateTime]::Parse((ConvertTo-UtcStamp $ready.at)).ToUniversalTime()).TotalSeconds
+    if($age -lt 0 -or $age -gt 10 -or $ready.renderers[0].imageLoaded -ne $true){return $false}
+    $window=Get-Process -Id $Own.pid -ErrorAction Stop
+    return ($window.MainWindowHandle -ne 0)
+  } catch {return $false}
+}
 function Assert-BocchiNoParallelDesktop {
   [CmdletBinding()]
   param([Parameter(Mandatory=$true)][object]$Codex,[object]$Own)
@@ -90,7 +155,23 @@ function Assert-BocchiNoParallelDesktop {
     Write-Warning (Get-BocchiText 'manager.parallelWarning')
     return
   }
-  Throw-BocchiError -Key 'manager.parallel' -Diagnostic 'Codex 已经打开了。Parallel desktop session detected.'
+  # Tray Exit is asynchronous. Allow the exact application to finish quitting.
+  $deadline=(Get-Date).AddSeconds(20)
+  do{
+    Start-Sleep -Milliseconds 400
+    $others=@(Get-BocchiOtherDesktopClients -Codex $Codex -AllowedOwnerPid $allowed)
+    if($others.Count -eq 0){return}
+  }while((Get-Date)-lt $deadline)
+  $kind=Get-BocchiParallelState $others
+  $ids=($others|ForEach-Object{[string]$_.ProcessId}) -join ', '
+  Write-BocchiStartupTrace ('blocked-'+$kind) $Own
+  if($kind -eq 'background'){
+    Throw-BocchiError -Key 'manager.parallelBackground' -Diagnostic ('CODEX_BACKGROUND_STILL_RUNNING: '+$ids)
+  }
+  if($kind -eq 'visible'){
+    Throw-BocchiError -Key 'manager.parallelVisible' -Diagnostic ('CODEX_WINDOW_STILL_RUNNING: '+$ids)
+  }
+  Throw-BocchiError -Key 'manager.parallelUnknown' -Diagnostic ('CODEX_EXIT_STATE_UNVERIFIED: '+$ids)
 }
 function Stop-OwnDaemon([object]$State){
   if(-not (Test-OwnDaemon $State)){return}
@@ -140,7 +221,8 @@ New-Item -ItemType Directory -Path $stateRoot -Force|Out-Null
 $mutex=New-Object Threading.Mutex($false,'Local\BocchiCodexTheme-9347')
 $locked=$false
 try{
-  $locked=$mutex.WaitOne(0);if(-not $locked){throw 'Another theme operation is in progress'}
+  $gate=Enter-BocchiOperationLock -Mutex $mutex
+  $locked=$gate.acquired
   if((Get-FileHash -LiteralPath $node -Algorithm SHA256).Hash -cne $install.nodeSha256){throw 'Local Node runtime hash changed'}
   $codex=Get-DreamSkinCodexInstall
   $appVersion=Get-BundleVersion $codex.PackageRoot
@@ -196,20 +278,28 @@ try{
     $null=Start-DreamSkinCodex -Codex $codex
     Write-Output (Get-BocchiText 'manager.restored');exit 0
   }
-  $own=Get-OwnIdentity $codex
+  $own=Get-BocchiLaunchOwner $codex
+  Write-BocchiStartupTrace 'before-parallel-check' $own
   Assert-BocchiNoParallelDesktop -Codex $codex -Own $own
+  if($gate.waited -and $Action -in @('Start','Resume') -and (Test-BocchiCompletedStart -State $saved -Own $own)){
+    Write-BocchiStartupTrace 'reused-completed-start' $own
+    Write-Output (Get-BocchiText 'manager.reused')
+    exit 0
+  }
   $reusingOwn=[bool]$own
   if(-not $own){
     if(-not (Test-DreamSkinPortAvailable -Port $port)){throw 'Theme port is occupied by an unverified process'}
     New-Item -ItemType Directory -Path $profile -Force|Out-Null
+    Write-BocchiStartupTrace 'before-package-launch' $own
     $null=Start-DreamSkinCodex -Codex $codex -Arguments @('--remote-debugging-address=127.0.0.1',"--remote-debugging-port=$port","--user-data-dir=$profile")
     $deadline=(Get-Date).AddSeconds(40)
     do{$own=Get-OwnIdentity $codex;if($own){break};Start-Sleep -Milliseconds 700}while((Get-Date)-lt $deadline)
-    if(-not $own){throw 'Official client did not expose a verified local theme endpoint. No package or settings were modified.'}
+    Write-BocchiStartupTrace 'after-package-launch' $own
+    if(-not $own){Throw-BocchiError -Key 'manager.connectionWaiting' -Diagnostic 'THEME_ENDPOINT_NOT_READY: startup trace recorded'}
   }
   # A dedicated Electron process can survive after its window is closed.
   # Re-activate the same verified profile when its desktop Start entry is used.
-  if($Action -eq 'Start' -and $reusingOwn){
+  if($Action -in @('Start','Resume') -and $reusingOwn){
     $priorOwn=$own
     $null=Start-DreamSkinCodex -Codex $codex -Arguments @('--remote-debugging-address=127.0.0.1',"--remote-debugging-port=$port","--user-data-dir=$profile")
     $deadline=(Get-Date).AddSeconds(15)
@@ -221,6 +311,7 @@ try{
     $own=Get-OwnIdentity $codex
     if(-not $own -or $own.pid -ne $priorOwn.pid -or $own.created -cne $priorOwn.created -or $own.identity.BrowserId -cne $priorOwn.identity.BrowserId -or $visibleOwner.MainWindowHandle -eq 0){throw 'Dedicated window did not reopen with its verified identity'}
   }
+  Write-BocchiStartupTrace 'verified-window-ready' $own
   $requestId=[Guid]::NewGuid().ToString('N')
   if($saved -and (Test-OwnDaemon $saved)){
     $sameSession=Test-BocchiSessionMatch -Saved $saved -Own $own -Profile $profile -AppVersion $appVersion -PackageVersion $codex.Version -PackageRoot $codex.PackageRoot -RuntimeHash $runtimeHash
@@ -233,7 +324,7 @@ try{
     $own=Get-OwnIdentity $codex
     if(-not $own){throw 'Managed client identity unavailable after loader recovery'}
   }
-  $state=[ordered]@{schema='bocchi-runtime/1';generation=[Guid]::NewGuid().ToString('N');port=$port;browserId=$own.identity.BrowserId;ownerPid=$own.pid;ownerCreated=$own.created;profile=$profile;appVersion=$appVersion;packageVersion=$codex.Version;packageRoot=$codex.PackageRoot;runtimeHash=$runtimeHash;launcherVersion='1.1.0';created=(Get-Date).ToUniversalTime().ToString('o')}
+  $state=[ordered]@{schema='bocchi-runtime/1';generation=[Guid]::NewGuid().ToString('N');port=$port;browserId=$own.identity.BrowserId;ownerPid=$own.pid;ownerCreated=$own.created;profile=$profile;appVersion=$appVersion;packageVersion=$codex.Version;packageRoot=$codex.PackageRoot;runtimeHash=$runtimeHash;launcherVersion='1.1.1';created=(Get-Date).ToUniversalTime().ToString('o')}
   Write-LocalJson $statePath $state
   Write-LocalJson $controlPath @{paused=$false;stop=$false;requestId=$requestId}
   Write-LocalJson $statusPath @{state='starting';generation=$state.generation;browserId=$state.browserId}

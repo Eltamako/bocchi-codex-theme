@@ -1,4 +1,28 @@
-# Validation and limits — 2.5.0
+# Validation and limits — 2.5.1
+
+[中文记录](../验证记录.md)
+
+Checked on 2026-10-20. Windows x64, Codex app 26.1013.40934 / package 26.1013.4894.0; theme 2.5.1, loader 1.1.1.
+
+## Patch checks
+
+- 24 new startup checks cover exit-in-progress waits, verified windowless theme processes, foreign processes, identity changes and both Start/Resume paths.
+- 29 new duplicate-start checks use separate Windows PowerShell 5.1 processes to contend for a real named mutex, testing waits, timeouts and abandoned ownership. Isolated status fixtures cover stale acknowledgments, other sessions, pause, unloaded assets and failures. No real client is started or stopped by these tests.
+- The existing nine instance checks, eight readiness-attribution checks, and isolated shortcut creation, backup and repeat-install checks pass.
+- Node tests: 25 passed, one skipped because the sandbox blocks directory-junction creation, zero failed. Coverage includes language parity, entry aliases, six wallpaper assets, selection memory, switching and missing-asset fallback.
+- Windows/source package manifests, exclusions and per-file SHA256 checks are verified. Both approved screenshots, all wallpaper images and framing settings match 2.5.0; the renderer changes only its version number.
+
+## Live evidence and limits
+
+After the same startup fix was applied to the existing local installation, the user confirmed that the wallpaper loaded. Its trace shows background exit completion, the verified window becoming ready and the overlapping shortcut clicks. The duplicate-click fix also has isolated process tests and a read-only check that the current live theme meets the reuse conditions. The active client was not restarted for this release.
+
+This is not a complete 2.5.1 package acceptance run on another machine or an English-language Windows installation. The full visual matrix was not rerun because artwork, framing and rendering behavior are unchanged. The historical page checks below belong to 2.5.0. Real timeout, sign-in, compatibility and identity failures are still reported.
+
+Local runtime settings, traces, chats, accounts and generated test artifacts are excluded. The README screenshots remain the original approved 2.4 Chinese-interface captures.
+
+---
+
+## Historical validation — 2.5.0
 
 [中文记录](../验证记录.md)
 

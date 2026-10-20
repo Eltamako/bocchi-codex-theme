@@ -42,7 +42,13 @@
     "language.saved": "语言设置已保存：{0}。运行中的主题会在几秒内更新；暂停中的主题会在恢复时应用。",
     "language.auto": "自动（跟随界面与系统）",
     "language.invalid": "请输入 1、2 或 3，或者直接按回车保留当前设置。",
-    "assets.checked": "六款壁纸、环境背景和贴纸都检查好了。"
+    "assets.checked": "六款壁纸、环境背景和贴纸都检查好了。",
+    "manager.parallelBackground": "Codex 的窗口已关闭，但后台还没有退出。启动器已等候 20 秒。请在系统托盘中选择 Codex 的 Exit，再直接打开主题入口；如果你已经这样做过，可以保留本次启动记录继续排查，无需重装或删除数据。",
+    "manager.parallelVisible": "普通 Codex 窗口仍在运行。请先保存草稿、等正在进行的工作结束，再在系统托盘中选择 Exit，随后直接打开主题入口。启动器已等候 20 秒，没有关闭你的窗口。",
+    "manager.parallelUnknown": "暂时无法确认 Codex 是否已完全退出。当前窗口和数据都保留着，可以查看本次启动记录继续排查，无需重装。",
+    "manager.operationTimeout": "前一次主题操作还没有完成，这次请求尚未执行。请保留当前窗口，稍后再试；无需重装。",
+    "manager.connectionWaiting": "客户端已收到启动请求，但主题连接还没有就绪。请保留当前窗口。本次启动记录已经保存，可以据此继续排查，无需反复打开或重装。",
+    "manager.reused": "主题已经加载好了。这次重复启动已复用当前窗口，可以继续使用。"
   },
   "en": {
     "app.title": "Bocchi the Rock! · Codex Theme",
@@ -86,6 +92,12 @@
     "language.saved": "Language saved: {0}. A running theme will update in a few seconds; a paused theme will apply it when resumed.",
     "language.auto": "Automatic (follow the app and system)",
     "language.invalid": "Please enter 1, 2 or 3, or press Enter to keep the current setting.",
-    "assets.checked": "All six wallpapers, environment backgrounds and stickers passed the checks."
+    "assets.checked": "All six wallpapers, environment backgrounds and stickers passed the checks.",
+    "manager.parallelBackground": "The Codex window has closed, but its background process is still running after a 20-second wait. Choose Exit from the Codex tray icon, then open the theme shortcut directly. If you already did this, keep the startup trace for troubleshooting; there is no need to reinstall or delete data.",
+    "manager.parallelVisible": "An ordinary Codex window is still open after a 20-second wait. Save your drafts, let active work finish, choose Exit from the Codex tray icon, then open the theme shortcut directly. Your window has been left open.",
+    "manager.parallelUnknown": "The launcher could not confirm whether Codex has fully exited. Your windows and data are untouched. The startup trace can help investigate; there is no need to reinstall.",
+    "manager.operationTimeout": "The previous theme operation is still running, so this request has not been carried out. Keep the current window and try again later. There is no need to reinstall.",
+    "manager.connectionWaiting": "The client received the startup request, but its theme connection is not ready yet. Keep the current window. A startup trace was saved to help investigate; you do not need to keep opening the shortcut or reinstall.",
+    "manager.reused": "Your theme is already loaded. This repeated launch has reused the current window, so you can keep working."
   }
 }
