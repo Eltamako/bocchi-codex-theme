@@ -16,7 +16,9 @@ This package includes six wallpapers, a cardboard-box Bocchi sticker, a four-cha
 | Character stickers | AI-generated character sticker assets |
 | Hair-accessory decoration | SVG and styling based on the user’s shape reference |
 
-The reference provider described the source images as official public material. Existing delivery records do not include the original publication links, complete artist credits or separate redistribution permissions. AI generation and editing describe how assets were made; they do not establish rights to the underlying work.
+Original image references are credited to **[@BTR_anime](https://x.com/BTR_anime)**, the official Bocchi the Rock! anime account on X (formerly Twitter), as identified by the reference provider. The account is linked by the [official website](https://bocchi.rocks/omnibus/news/?article_id=61013). Individual post links and per-image artist credits remain to be added.
+
+The wallpapers include AI generation, background expansion and seam editing; they are not all unmodified official artwork. This attribution identifies the reference source, not official production or endorsement of the theme, and does not grant redistribution permission. Image and character rights remain with their respective holders.
 
 **The code’s MIT license does not cover images, characters, logos or derivative visual assets.** Rights remain with their respective holders. This project does not claim official authorization, and per-asset redistribution clearance has not been completed. Check the applicable permissions before reusing artwork in another project. Rights holders and contributors are welcome to provide source links, credits or permission records through an issue; assets can be credited, replaced or removed as appropriate.
 

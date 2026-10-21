@@ -1,6 +1,6 @@
 async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpaperId, selectionBridge, sticker, bandSticker, appVersion, leaseUntil, previewTopMode = "A+++", messages, language = "auto", systemLanguage = "en"}) {
   // This adapter is deliberately tied to the inspected desktop build.
-  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.6.0' || appVersion !== adapter.appVersion)
+  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.6.1' || appVersion !== adapter.appVersion)
     return {installed:false, reason:'version-mismatch'};
   if (!Number.isFinite(leaseUntil) || leaseUntil <= Date.now()) return {installed:false, reason:'expired-loader-lease'};
   if (typeof css !== 'string' || /@import\b|url\s*\(/i.test(css)) return {installed:false, reason:'nonlocal-stylesheet'};
@@ -1090,6 +1090,15 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     backdrop.style.borderBottomLeftRadius=touchesLeft?nativeShape.borderBottomLeftRadius:'0px';
     backdrop.style.borderTopRightRadius=touchesRight?nativeShape.borderTopRightRadius:'0px';
     backdrop.style.borderBottomRightRadius=touchesRight?nativeShape.borderBottomRightRadius:'0px';
+    // Windows places the page header outside main. Its theme fill must follow
+    // the same outer corners, or that independent square layer covers the cutout.
+    // Round only its background; do not clip controls or change native layout.
+    for(const header of ctx.page.querySelectorAll('[data-app-shell-titlebar]')){
+      if(!visible(header))continue;
+      const h=box(header),atTop=Math.abs(h.top-mainRect.top)<=1.1;
+      if(atTop&&Math.abs(h.left-mainRect.left)<=1.1)property(header,'border-top-left-radius',nativeShape.borderTopLeftRadius);
+      if(atTop&&Math.abs(h.right-mainRect.right)<=1.1)property(header,'border-top-right-radius',nativeShape.borderTopRightRadius);
+    }
     // The backdrop extends beneath the titlebar. Begin the soft transition at
     // its actual lower edge, rather than fading only the first image pixels.
     backdrop.style.setProperty('--bocchi-header-inset',Math.max(0,area.top-mainRect.top)+'px');
@@ -1220,7 +1229,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
   }
   function retainedImagePreview(allowLight=false) {
     const prior=lastVerifiedContext;
-    if(!prior||!prior.main.isConnected||!prior.body.isConnected||
+    if(!prior||!prior.main.isConnected||
       (prior.reader&&(!prior.reader.isConnected||!prior.main.contains(prior.reader)))||root.dir==='rtl'||
       !(root.dataset.theme==='dark'||allowLight&&root.dataset.theme==='light'))return false;
     const pages=[...document.querySelectorAll(adapter.activePage)];
@@ -1233,7 +1242,15 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     // The native editable preview portals this SAME composer out of main.
     // Its original page and reader stay mounted. Verify node identity and the
     // inspected viewer markers, rather than treating it as missing input.
-    if(!prior.main.contains(prior.body)&&!viewers.some(el=>el.contains(prior.body)))return false;
+    const sameComposer=prior.body.isConnected&&(prior.main.contains(prior.body)||viewers.some(el=>el.contains(prior.body)));
+    // Chat unmounts its conversation composer and creates an image-edit composer,
+    // unlike Work's same-node portal. Retain only the verified conversation and
+    // reader under the inspected native editable viewer, not an arbitrary dialog.
+    const chatReplacement=prior.mode==='chat'&&!prior.body.isConnected&&prior.reader?.matches(adapter.chatReader)&&
+      (viewers.some(el=>el.matches('._chrome_vhnt9_2')&&el.querySelector('[data-image-preview-toolbar]')&&
+        [...el.querySelectorAll(adapter.composerBody)].some(body=>visible(body)&&body.querySelector(adapter.composer)))||
+       state.imagePreview&&root.classList.contains('_active_vhnt9_2')&&root.classList.contains('_closing_vhnt9_2'));
+    if(!sameComposer&&!chatReplacement)return false;
     // Verified 26.1016 image lightbox marker and its opening/closing View
     // Transition class. These are not a generic dialog/failed-inspection grace.
     // Keep the complete scene while native preview snapshots temporarily lock

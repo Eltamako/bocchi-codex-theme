@@ -6,7 +6,7 @@ Bring a little of Kessoku Band’s backstage world into your everyday chats and 
 
 **[Download for Windows](https://github.com/Eltamako/bocchi-codex-theme/releases/latest)** · [Install guide](docs/en/install.md) · [Troubleshooting](docs/en/troubleshooting.md) · [Upgrade or restore](docs/en/upgrade-restore.md)
 
-> **2.6.0 supports Windows x64, Codex app 26.1016.51333 / package 26.1016.6573.0.** Setup checks the version. The theme temporarily uses dark appearance when active, whether your preference is Light, Dark or System. Other client versions, macOS and Linux are outside this release’s supported scope.
+> **2.6.1 supports Windows x64, Codex app 26.1016.51333 / package 26.1016.6573.0.** Setup checks the version. The theme temporarily uses dark appearance when active, whether your preference is Light, Dark or System. Other client versions, macOS and Linux are outside this release’s supported scope.
 
 ## See it in the app
 
@@ -30,7 +30,16 @@ If first-time sign-in takes longer than the launcher’s wait, finish signing in
 
 Choose the Windows package for everyday use. **source.zip** and GitHub’s automatic **Source code** downloads are for development and do not include the runtime binary. [Full installation guide](docs/en/install.md)
 
-## Updated Codex support in 2.6.0
+## 2.6.1 · Desktop shortcut and image-preview fixes
+
+- Setup now verifies and backs up the legacy Chinese desktop shortcut, then replaces it with Bocchi Codex Theme. This prevents an old theme from launching after you exit. Unrecognized shortcuts with the same name are left untouched.
+- Keeps the wallpaper when Chat replaces its composer for image editing, including opening and closing transitions.
+- Rounds the separate page header when the sidebar is collapsed.
+- Uses the original icon from the verified local Codex installation, with a local copy, instead of the PowerShell icon. The app icon is not redistributed in the release.
+- Preserves all six wallpapers, colors, gradients, framing and the two original screenshots. The STARRY glow stays off.
+- Compatibility is unchanged: Windows x64, Codex 26.1016.51333 / package 26.1016.6573.0. Theme 2.6.1; loader 1.2.1. Version checks remain enabled.
+
+## Updated Codex support
 
 Supports the new Codex page layout and includes sidebar/panel rendering improvements and clearer readiness diagnostics. Artwork and appearance remain unchanged. For Codex 26.1013.40934, use [2.5.1](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.5.1). [Full changelog](CHANGELOG.md)
 
@@ -74,7 +83,9 @@ The program code uses the [MIT license](LICENSE). Thanks to [Codex Dynamic Skin]
 
 Artwork and character assets are **not** covered by the code’s MIT license. Please read the [artwork and permissions notes](docs/en/assets.md) before reusing them. This is an unofficial fan project, not affiliated with OpenAI or the official Bocchi the Rock! rights holders.
 
+Original image references: the official Bocchi the Rock! anime account [@BTR_anime on X](https://x.com/BTR_anime), as identified by the reference provider. Wallpapers include AI expansion and later editing. Image and character rights remain with their respective holders.
+
 [Changelog](CHANGELOG.md) · [Development and packaging](docs/en/development.md)
 
 
-2.6.0 startup tip: after choosing Exit from the tray, open the theme shortcut directly. The launcher waits for exit to complete, and repeated clicks wait for the operation already in progress. Extract upgrades into a separate folder and keep the old package for rollback.
+2.6.1 startup tip: after choosing Exit from the tray, open the theme shortcut directly. The launcher waits for exit to complete, and repeated clicks wait for the operation already in progress. Extract upgrades into a separate folder and keep the old package for rollback.

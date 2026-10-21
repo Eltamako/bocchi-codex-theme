@@ -52,3 +52,8 @@ If the problem continues, keep the message and the local `.local/startup-attempt
 ## The backdrop disappears briefly when viewing an image
 
 Version 2.6.0 keeps the native image viewer’s transparency and animation instead of painting its full-window surface like an ordinary menu. The same conversation backdrop stays loaded while an image is open. Pausing the theme or leaving a supported page still cleans up normally. See [validation](validation.md) for the distinction between simulation and native checks.
+
+
+## An old desktop shortcut reports a client version change
+
+If the new theme works until you exit, the desktop shortcut may still point to an older installation. Run Install.cmd from the package matching your client, then use Bocchi Codex Theme. Version 2.6.1 backs up and migrates verified legacy Chinese shortcuts; the original is saved under `.local/backups/shortcut-*/`, and the old installation stays in place. Unrecognized shortcuts are left untouched; check their Properties. If Start.cmd in the new folder still reports a version change, compare the installed client with the release compatibility list. Do not edit version numbers to bypass the check.

@@ -35,7 +35,7 @@ if($Language -or -not (Test-Path -LiteralPath (Join-Path $stateRoot 'language.js
 }
 if(-not $NoShortcuts){
   . (Join-Path $PSScriptRoot 'engine\install-shortcut.ps1')
-  Install-BocchiShortcut -Root $PSScriptRoot -StateRoot $stateRoot -Desktop ([Environment]::GetFolderPath('Desktop')) -Description (Get-BocchiText 'shortcut.description')
+  Install-BocchiShortcut -Root $PSScriptRoot -StateRoot $stateRoot -Desktop ([Environment]::GetFolderPath('Desktop')) -Description (Get-BocchiText 'shortcut.description') -Executable $codex.Executable
 }
 Write-Output (Get-BocchiText 'install.done')
 Write-Output (Get-BocchiText 'install.preserved')

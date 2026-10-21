@@ -1,5 +1,24 @@
 # 更新记录 / Changelog
 
+## 2.6.1 · 桌面入口与图片预览修复
+
+- 升级时识别旧的“Codex · 孤独摇滚”桌面入口，核对启动命令及主题安装记录后备份，再迁移为 Bocchi Codex Theme，避免退出后误启旧版。不会改动同名但无法确认归属的快捷方式。
+- 修复 Chat 打开图片时替换输入框导致壁纸被移除的问题，保留打开和关闭动画中的完整场景。
+- 补齐收起侧边栏后独立标题区域的左上圆角。
+- 桌面入口使用本机已验证 Codex 安装中的原应用图标，并保存本地副本，不再显示 PowerShell 图标；图标不随发行包分发。
+- 保持六款壁纸、配色、渐变、人物取景和两张实机展示图；STARRY 不增加光晕。
+- 适配范围不变：Windows x64，Codex 26.1016.51333／安装包 26.1016.6573.0。主题 2.6.1，加载器 1.2.1。版本不匹配保护保留。
+
+## 2.6.1 · Desktop shortcut and image-preview fixes
+
+- Setup now verifies and backs up the legacy Chinese desktop shortcut, then replaces it with Bocchi Codex Theme. This prevents an old theme from launching after you exit. Unrecognized shortcuts with the same name are left untouched.
+- Keeps the wallpaper when Chat replaces its composer for image editing, including opening and closing transitions.
+- Rounds the separate page header when the sidebar is collapsed.
+- Uses the original icon from the verified local Codex installation, with a local copy, instead of the PowerShell icon. The app icon is not redistributed in the release.
+- Preserves all six wallpapers, colors, gradients, framing and the two original screenshots. The STARRY glow stays off.
+- Compatibility is unchanged: Windows x64, Codex 26.1016.51333 / package 26.1016.6573.0. Theme 2.6.1; loader 1.2.1. Version checks remain enabled.
+
+
 ## 2.6.0 · 新版 Codex 适配
 
 - 适配 Windows x64 上的 Codex 26.1016.51333／安装包 26.1016.6573.0。

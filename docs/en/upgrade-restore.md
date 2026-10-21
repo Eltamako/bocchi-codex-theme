@@ -35,4 +35,9 @@ If setup backed up a previous same-name shortcut, you can copy it back from the 
 
 ## Match the client version
 
-Use theme 2.6.0 with Codex 26.1016.51333 / 26.1016.6573.0. Theme 2.5.1 is for Codex 26.1013.40934 / 26.1013.4894.0. A theme rollback requires a matching client. Transfer only the wallpaper selection, not old runtime state.
+Use theme 2.6.1 with Codex 26.1016.51333 / 26.1016.6573.0. Theme 2.5.1 is for Codex 26.1013.40934 / 26.1013.4894.0. A theme rollback requires a matching client. Transfer only the wallpaper selection, not old runtime state.
+
+
+## An old desktop shortcut reports a client version change
+
+If the new theme works until you exit, the desktop shortcut may still point to an older installation. Run Install.cmd from the package matching your client, then use Bocchi Codex Theme. Version 2.6.1 backs up and migrates verified legacy Chinese shortcuts; the original is saved under `.local/backups/shortcut-*/`, and the old installation stays in place. Unrecognized shortcuts are left untouched; check their Properties. If Start.cmd in the new folder still reports a version change, compare the installed client with the release compatibility list. Do not edit version numbers to bypass the check.
