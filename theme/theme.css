@@ -32,15 +32,21 @@ html[data-bocchi-active="true"] [data-bocchi-reader] [data-d-component="table"]{
 }
 html[data-bocchi-active="true"] [data-app-shell-active-page="true"] :is([data-markdown-text-style="assistant-message"] a,[data-markdown-text-style="assistant-message"] strong){color:#efc4d6}
 html[data-bocchi-active="true"] [data-app-shell-active-page="true"] button[aria-label="发送"]{background-color:#f3a5c5!important;color:#271e29!important}
-html[data-bocchi-active="true"] :is([role="menu"],[role="dialog"],[role="alertdialog"],[data-radix-popper-content-wrapper]>*){background-color:#24222c!important}
+/* The native image viewer owns its transparent/animated surface. Giving its
+   full-window dialog the generic opaque menu paint hides the wallpaper. */
+html[data-bocchi-active="true"] :is([role="menu"],[role="dialog"],[role="alertdialog"],[data-radix-popper-content-wrapper]>*):not(:has([data-testid="image-preview-dismiss-area"])):not(._chrome_vhnt9_2:has([data-image-preview-toolbar])){background-color:#24222c!important}
 html[data-bocchi-active="true"] [data-bocchi-sidebar]{background-color:#19181f!important}
+/* 26.1016 paints the rounded sidebar on its inner native surface. Keep the
+   outer resize host transparent instead of filling the cut-out corners. */
+html[data-bocchi-active="true"] [data-bocchi-sidebar]:has(.sidebar-navigation){background-color:transparent!important}
+html[data-bocchi-active="true"] [data-bocchi-sidebar] .sidebar-navigation:not(.sidebar-navigation *){background-color:#19181f!important}
 html[data-bocchi-active="true"] [data-app-shell-active-page="true"] [data-app-navigation-rail]{background-color:#121218!important}
 
 /* Every decorative node is inert, inaccessible, and individually owned by the adapter. */
 [data-bocchi-owned="2"],[data-bocchi-owned="2"] *{box-sizing:border-box;pointer-events:none!important;user-select:none!important;-webkit-user-select:none!important}
 .bocchi-stage-decor{position:fixed;z-index:1;overflow:hidden;contain:layout paint;isolation:isolate}
 .bocchi-stage-decor [hidden]{display:none!important}
-.bocchi-sign{position:absolute;right:20px;top:20px;width:156px;padding:11px 12px;border:1px solid #a5847560;background:#241d22e3;border-radius:3px;transform:rotate(1deg);color:#e4cbb9;text-align:center;box-shadow:0 0 22px #e0a07009}
+.bocchi-sign{position:absolute;right:20px;top:20px;width:156px;padding:11px 12px;border:1px solid #a5847560;background:#241d22e3;border-radius:3px;transform:rotate(1deg);color:#e4cbb9;text-align:center;box-shadow:none}
 .bocchi-sign b{display:block;font-size:19px;font-weight:600;letter-spacing:.16em;line-height:1.3;white-space:nowrap}
 .bocchi-sign small{display:block;font-size:5px;letter-spacing:.08em;margin-top:4px;color:#a99590}
 .bocchi-empty-sticker{position:absolute;object-fit:contain;transform:rotate(-3deg);max-width:none!important;max-height:none!important}
@@ -76,8 +82,8 @@ html[data-bocchi-mode="work"] .bocchi-reading-veil{background:linear-gradient(90
 .bocchi-picker-root{position:fixed;inset:0;pointer-events:none;z-index:30;font-family:inherit;font-size:14px;color:#eee8e5}
 .bocchi-picker-root [hidden],.bocchi-picker-root[hidden]{display:none!important}
 .bocchi-picker-trigger,.bocchi-picker-menu{app-region:no-drag;-webkit-app-region:no-drag}
-.bocchi-picker-trigger{position:fixed;cursor:pointer;pointer-events:auto;appearance:none;min-width:0;line-height:1.3;font-family:inherit;transition:border-color 140ms,box-shadow 140ms}
-.bocchi-picker-trigger:hover,.bocchi-picker-trigger:focus-visible,.bocchi-picker-trigger[aria-expanded="true"]{border-color:#f3a5c5a0;box-shadow:0 0 0 2px #f3a5c51b;color:#f4dce4;outline:none}
+.bocchi-picker-trigger{position:fixed;cursor:pointer;pointer-events:auto;appearance:none;min-width:0;line-height:1.3;font-family:inherit;transition:border-color 140ms}
+.bocchi-picker-trigger:hover,.bocchi-picker-trigger:focus-visible,.bocchi-picker-trigger[aria-expanded="true"]{border-color:#f3a5c5a0;box-shadow:none;color:#f4dce4;outline:none}
 .bocchi-picker-trigger[data-small="true"]{padding:7px 5px}
 .bocchi-picker-trigger[data-small="true"] b{font-size:13px;letter-spacing:.1em}
 .bocchi-picker-trigger[data-small="true"] small{display:none}

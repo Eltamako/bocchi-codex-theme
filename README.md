@@ -8,7 +8,7 @@ A fan-made **Bocchi the Rock! anime theme for OpenAI Codex Desktop on Windows**:
 
 **[下载 Windows 完整包 / Download for Windows](https://github.com/Eltamako/bocchi-codex-theme/releases/latest)** · [安装说明](docs/使用说明.md) · [常见问题](docs/常见问题.md) · [恢复与回退](docs/恢复与回退.md)
 
-> **2.5.1 适配：Windows x64 · Codex 26.1013.40934（安装包 26.1013.4894.0）。** 安装会检查版本。主题启动后会临时使用深色显示，原先是浅色、深色或跟随系统都可以。其他客户端版本、macOS 和 Linux 不在本版适配范围内。
+> **2.6.0 适配：Windows x64 · Codex 26.1016.51333（安装包 26.1016.6573.0）。** 安装会检查版本。主题启动后会临时使用深色显示，原先是浅色、深色或跟随系统都可以。其他客户端版本、macOS 和 Linux 不在本版适配范围内。
 
 ## 先看看实机效果
 
@@ -32,9 +32,9 @@ A fan-made **Bocchi the Rock! anime theme for OpenAI Codex Desktop on Windows**:
 
 GitHub 的 **Source code** 和发行页的 **source.zip** 用于查看源码与开发，不是完整安装包。详细步骤见 [使用说明](docs/使用说明.md)。
 
-## 2.5.1 小更新
+## 2.6.0 新版适配
 
-修复退出后主题窗口识别和重复点击启动时的错误提示。启动需要一点时间时，再点一次也会等候并复用已确认的结果；真实故障仍会给出说明。壁纸和画面效果不变。[完整更新记录](CHANGELOG.md)
+适配新版 Codex 的页面布局，合并侧栏与标签面板切换的流畅度优化，并提供更具体的加载诊断。六款壁纸与已确认画面效果保持不变。旧版 Codex 26.1013.40934 请继续使用 [2.5.1](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.5.1)。[完整更新记录](CHANGELOG.md)
 
 ## 2.5 带来了什么
 
@@ -85,4 +85,4 @@ GitHub 的 **Source code** 和发行页的 **source.zip** 用于查看源码与�
 [更新记录](CHANGELOG.md) · [版本选择](docs/版本选择.md) · [开发与打包](docs/开发与打包.md)
 
 
-2.5.1 启动提醒：从托盘选择 Exit 后，可直接打开主题入口；启动器会等候退出完成。重复点击会等待已在进行的操作。新版请解压到独立文件夹，保留旧版用于回退。
+2.6.0 启动提醒：从托盘选择 Exit 后，可直接打开主题入口；启动器会等候退出完成。重复点击会等待已在进行的操作。新版请解压到独立文件夹，保留旧版用于回退。

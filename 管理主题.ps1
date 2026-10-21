@@ -195,7 +195,15 @@ function Stop-OwnDaemon([object]$State){
   if(Test-OwnDaemon $State){throw 'Previous loader did not exit; refusing a duplicate loader'}
 }
 function Throw-BocchiNotReady {
-  $key=if($script:BocchiReadinessReason -eq 'automatic-dark-appearance-failed'){'manager.dark'}else{'manager.waiting'}
+  $key=switch($script:BocchiReadinessReason){
+    'automatic-dark-appearance-failed' {'manager.dark';break}
+    'theme-connection-unavailable' {'manager.connectionWaiting';break}
+    'loader-stopped' {'manager.loaderStopped';break}
+    'loader-unavailable' {'manager.loaderStopped';break}
+    'version-mismatch' {'manager.updated';break}
+    {$_ -in @('required-surface-missing','unknown-column-owner','unknown-mode','main-region-too-small','unsupported-request-card-shell','unsupported-submitting-shell')} {'manager.layout';break}
+    default {'manager.waiting'}
+  }
   Throw-BocchiError -Key $key -Diagnostic ('Current theme renderer did not confirm this request; inspect local status. '+$script:BocchiReadinessReason)
 }
 function Wait-ThemeReady([object]$State,[string]$RequestId){
@@ -203,9 +211,11 @@ function Wait-ThemeReady([object]$State,[string]$RequestId){
   $deadline=(Get-Date).AddSeconds(15)
   do {
     Start-Sleep -Milliseconds 400
-    if(-not (Test-OwnDaemon $State)){return $false}
+    if(-not (Test-OwnDaemon $State)){$script:BocchiReadinessReason='loader-stopped';return $false}
     try {
       $ready=Get-Content -LiteralPath $statusPath -Raw -Encoding utf8|ConvertFrom-Json
+      $diagnostic=Get-BocchiReadinessDiagnostic -Status $ready -State $State -RequestId $RequestId
+      if($diagnostic){$script:BocchiReadinessReason=$diagnostic}
       $reason=Get-BocchiBlockedReason -Status $ready -State $State -RequestId $RequestId
       if($reason){$script:BocchiReadinessReason=$reason;return $false}
       if(Test-BocchiReadyStatus -Status $ready -State $State -RequestId $RequestId -ThemeVersion $install.themeVersion){
@@ -324,7 +334,7 @@ try{
     $own=Get-OwnIdentity $codex
     if(-not $own){throw 'Managed client identity unavailable after loader recovery'}
   }
-  $state=[ordered]@{schema='bocchi-runtime/1';generation=[Guid]::NewGuid().ToString('N');port=$port;browserId=$own.identity.BrowserId;ownerPid=$own.pid;ownerCreated=$own.created;profile=$profile;appVersion=$appVersion;packageVersion=$codex.Version;packageRoot=$codex.PackageRoot;runtimeHash=$runtimeHash;launcherVersion='1.1.1';created=(Get-Date).ToUniversalTime().ToString('o')}
+  $state=[ordered]@{schema='bocchi-runtime/1';generation=[Guid]::NewGuid().ToString('N');port=$port;browserId=$own.identity.BrowserId;ownerPid=$own.pid;ownerCreated=$own.created;profile=$profile;appVersion=$appVersion;packageVersion=$codex.Version;packageRoot=$codex.PackageRoot;runtimeHash=$runtimeHash;launcherVersion='1.2.0';created=(Get-Date).ToUniversalTime().ToString('o')}
   Write-LocalJson $statePath $state
   Write-LocalJson $controlPath @{paused=$false;stop=$false;requestId=$requestId}
   Write-LocalJson $statusPath @{state='starting';generation=$state.generation;browserId=$state.browserId}

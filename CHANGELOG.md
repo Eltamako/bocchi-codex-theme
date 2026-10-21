@@ -1,4 +1,29 @@
-# 更新记录
+# 更新记录 / Changelog
+
+## 2.6.0 · 新版 Codex 适配
+
+- 适配 Windows x64 上的 Codex 26.1016.51333／安装包 26.1016.6573.0。
+- 主内容定位避开新版标题栏和标签栏的同名焦点标记。
+- 壁纸跟随原版内容区圆角，保留侧栏内外边界。
+- 图片查看器沿用原版透明与动画样式；打开和关闭图片时保留同一对话的完整壁纸，避免遮黑和重新加载。
+- 去掉 STARRY 按钮常态和悬停时的光晕，保持原有壁纸遮罩、明暗渐变与去色带处理。
+- 合并 R18：缓存复用、减少离屏扫描与重复绘制、连续尺寸变化时取消过时任务并保留完整场景。
+- 加载未就绪时保留与当前请求匹配的诊断，区分页面布局、连接和加载器问题；不将未知问题归因于登录或外观。
+- 六款壁纸、人物取景、配色、双语菜单和原有两张实机展示图不变。
+- 旧客户端请使用 2.5.1；旧标签和附件保留。
+
+## 2.6.0 · Updated Codex support
+
+- Supports Windows x64, Codex 26.1016.51333 / package 26.1016.6573.0.
+- Locates the content pane without confusing it with the new header and tab-row focus markers.
+- Matches the native rounded content edges, including sidebar boundaries.
+- Preserves native image-viewer transparency and transitions, keeping the same conversation backdrop through image opening and closing.
+- Removes the STARRY button glow while preserving the existing wallpaper shading, gradients and dithering.
+- Includes R18 caching and scheduling improvements for sidebar and panel transitions, with less off-screen scanning and redundant rendering.
+- Keeps request-matched readiness diagnostics for page, connection and loader failures, without assuming a sign-in or appearance issue.
+- Keeps all six wallpapers, framing, colors, bilingual menus and the two approved original screenshots.
+- Use 2.5.1 with the previous supported client; older tags and downloads remain available.
+
 
 ## 2.5.1 — 2026-10-20
 

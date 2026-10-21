@@ -32,3 +32,7 @@ Run Restore.cmd from the new package. Save drafts and exit the ordinary client, 
 Restore the ordinary client first. Once it opens normally, you can remove the theme shortcut and move the extracted folder to the Recycle Bin. The dedicated profile inside that folder contains its local sign-in and settings; removing it may mean signing in again later. It does not delete cloud account conversations or the ordinary client profile. Keeping the folder is also fine; there is no autostart task.
 
 If setup backed up a previous same-name shortcut, you can copy it back from the package’s local shortcut-backup folder after checking that its old target folder still exists.
+
+## Match the client version
+
+Use theme 2.6.0 with Codex 26.1016.51333 / 26.1016.6573.0. Theme 2.5.1 is for Codex 26.1013.40934 / 26.1013.4894.0. A theme rollback requires a matching client. Transfer only the wallpaper selection, not old runtime state.

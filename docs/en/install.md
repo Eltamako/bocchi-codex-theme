@@ -2,7 +2,7 @@
 
 [简体中文](../使用说明.md) · [English home](../../README.en.md)
 
-Install and open the official Codex client once before setting up the theme. Use the 2.5.1 Windows x64 package with Codex app 26.1013.40934 / package 26.1013.4894.0 ; dark appearance is applied automatically while the theme is active.
+Install and open the official Codex client once before setting up the theme. Use the 2.6.0 Windows x64 package with Codex app 26.1016.51333 / package 26.1016.6573.0 ; dark appearance is applied automatically while the theme is active.
 
 Extract the whole archive into a writable, permanent folder. Avoid WindowsApps, Program Files and temporary extraction folders. Run **Install.cmd**. It creates an installation record, a local data folder and one desktop shortcut named **Bocchi Codex Theme**. Setup does not close your current client or immediately switch its appearance. If a same-name shortcut points elsewhere, it is backed up before being updated; other shortcuts are left alone.
 
@@ -25,4 +25,4 @@ From a terminal, the same tools accept **-Language auto**, **-Language zh-CN** o
 Command windows remain open at the end so you can read the result; press any key to close them. The entry scripts set execution policy only for their own PowerShell process, not system-wide. On managed computers, follow your organization’s software policy.
 
 
-2.5.1 startup tip: after choosing Exit from the tray, open the theme shortcut directly. The launcher waits for exit to complete, and repeated clicks wait for the operation already in progress. Extract upgrades into a separate folder and keep the old package for rollback.
+2.6.0 startup tip: after choosing Exit from the tray, open the theme shortcut directly. The launcher waits for exit to complete, and repeated clicks wait for the operation already in progress. Extract upgrades into a separate folder and keep the old package for rollback.

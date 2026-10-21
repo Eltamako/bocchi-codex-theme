@@ -36,7 +36,7 @@
     "manager.running": "主题已经就绪。点击右上角 STARRY，挑一张喜欢的壁纸吧。",
     "manager.resumed": "主题已恢复，当前画面也已确认加载。",
     "manager.updated": "客户端版本发生了变化，这版主题已停止应用。请下载与当前客户端匹配的主题包。",
-    "manager.waiting": "客户端已经打开，但主题还没确认就绪。请先完成登录，进入聊天或工作首页，然后运行“恢复主题”。主题会自动使用深色显示；若仍未成功，可以查看本地诊断状态。",
+    "manager.waiting": "客户端已经打开，但主题还没确认加载成功。若仍在登录或加载页面，请完成后进入聊天或工作页面，再运行“恢复主题”。若已经在这些页面，也可能是页面识别或加载连接的问题；请保留诊断信息，无需反复安装。",
     "manager.dark": "这次没能自动使用深色显示。可以先把 Codex 外观切换为深色，再运行“恢复主题”，不需要重新安装。",
     "manager.generic": "暂时没能完成这一步。请查看下方诊断信息，或参考常见问题中的对应说明。",
     "language.saved": "语言设置已保存：{0}。运行中的主题会在几秒内更新；暂停中的主题会在恢复时应用。",
@@ -48,7 +48,9 @@
     "manager.parallelUnknown": "暂时无法确认 Codex 是否已完全退出。当前窗口和数据都保留着，可以查看本次启动记录继续排查，无需重装。",
     "manager.operationTimeout": "前一次主题操作还没有完成，这次请求尚未执行。请保留当前窗口，稍后再试；无需重装。",
     "manager.connectionWaiting": "客户端已收到启动请求，但主题连接还没有就绪。请保留当前窗口。本次启动记录已经保存，可以据此继续排查，无需反复打开或重装。",
-    "manager.reused": "主题已经加载好了。这次重复启动已复用当前窗口，可以继续使用。"
+    "manager.reused": "主题已经加载好了。这次重复启动已复用当前窗口，可以继续使用。",
+    "manager.layout": "主题暂时没能识别当前页面布局，原界面已保留。可以先回到聊天或工作首页，再运行“恢复主题”。如果仍未成功，请提供主题版本、客户端版本和下方诊断代码，帮助继续检查。",
+    "manager.loaderStopped": "主题加载连接没有保持就绪，当前窗口和数据已保留。可以运行一次“恢复主题”；如果再次出现，请保留本地诊断状态和启动记录，无需重装或删除数据。"
   },
   "en": {
     "app.title": "Bocchi the Rock! · Codex Theme",
@@ -86,7 +88,7 @@
     "manager.running": "Your theme is ready. Choose a wallpaper from STARRY in the top-right corner.",
     "manager.resumed": "The theme is back, and the current view has finished loading.",
     "manager.updated": "Your client version has changed, so this theme release has stopped applying. Please use a theme package that matches the current client.",
-    "manager.waiting": "The client has opened, but the theme isn’t ready yet. Please finish signing in, open the Chat or Work home page, then run Resume.cmd. Dark appearance is applied automatically. If that doesn’t help, check the local diagnostic status.",
+    "manager.waiting": "The client is open, but the theme has not confirmed a successful load. If sign-in or page loading is still in progress, finish it, open Chat or Work, then run Resume.cmd. If you are already there, page detection or the theme connection may need investigation. Keep the diagnostic details; repeated installation is not needed.",
     "manager.dark": "Automatic dark appearance couldn’t be applied. Please switch Codex to dark appearance and run Resume.cmd. There’s no need to reinstall.",
     "manager.generic": "We couldn’t finish this step. Please check the diagnostic details below or look up the matching situation in the troubleshooting guide.",
     "language.saved": "Language saved: {0}. A running theme will update in a few seconds; a paused theme will apply it when resumed.",
@@ -98,6 +100,8 @@
     "manager.parallelUnknown": "The launcher could not confirm whether Codex has fully exited. Your windows and data are untouched. The startup trace can help investigate; there is no need to reinstall.",
     "manager.operationTimeout": "The previous theme operation is still running, so this request has not been carried out. Keep the current window and try again later. There is no need to reinstall.",
     "manager.connectionWaiting": "The client received the startup request, but its theme connection is not ready yet. Keep the current window. A startup trace was saved to help investigate; you do not need to keep opening the shortcut or reinstall.",
-    "manager.reused": "Your theme is already loaded. This repeated launch has reused the current window, so you can keep working."
+    "manager.reused": "Your theme is already loaded. This repeated launch has reused the current window, so you can keep working.",
+    "manager.layout": "The theme could not recognize the current page layout. Your original interface is unchanged. Open the Chat or Work home page and run Resume.cmd. If this continues, share the theme version, client version and diagnostic code below to help investigate.",
+    "manager.loaderStopped": "The theme connection did not stay ready. Your window and data are unchanged. Try Resume.cmd once. If it happens again, keep the local status and startup trace; there is no need to reinstall or delete data."
   }
 }

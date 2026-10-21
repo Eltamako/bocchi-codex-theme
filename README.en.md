@@ -6,7 +6,7 @@ Bring a little of Kessoku Band’s backstage world into your everyday chats and 
 
 **[Download for Windows](https://github.com/Eltamako/bocchi-codex-theme/releases/latest)** · [Install guide](docs/en/install.md) · [Troubleshooting](docs/en/troubleshooting.md) · [Upgrade or restore](docs/en/upgrade-restore.md)
 
-> **2.5.1 supports Windows x64, Codex app 26.1013.40934 / package 26.1013.4894.0.** Setup checks the version. The theme temporarily uses dark appearance when active, whether your preference is Light, Dark or System. Other client versions, macOS and Linux are outside this release’s supported scope.
+> **2.6.0 supports Windows x64, Codex app 26.1016.51333 / package 26.1016.6573.0.** Setup checks the version. The theme temporarily uses dark appearance when active, whether your preference is Light, Dark or System. Other client versions, macOS and Linux are outside this release’s supported scope.
 
 ## See it in the app
 
@@ -30,9 +30,9 @@ If first-time sign-in takes longer than the launcher’s wait, finish signing in
 
 Choose the Windows package for everyday use. **source.zip** and GitHub’s automatic **Source code** downloads are for development and do not include the runtime binary. [Full installation guide](docs/en/install.md)
 
-## A small update: 2.5.1
+## Updated Codex support in 2.6.0
 
-This patch fixes theme-window detection after closing the window and errors caused by repeated shortcut clicks during startup. A repeated launch waits and reuses a confirmed result; genuine failures are still reported. Wallpaper artwork and appearance are unchanged. [Full changelog](CHANGELOG.md)
+Supports the new Codex page layout and includes sidebar/panel rendering improvements and clearer readiness diagnostics. Artwork and appearance remain unchanged. For Codex 26.1013.40934, use [2.5.1](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.5.1). [Full changelog](CHANGELOG.md)
 
 ## What’s new in 2.5
 
@@ -77,4 +77,4 @@ Artwork and character assets are **not** covered by the code’s MIT license. Pl
 [Changelog](CHANGELOG.md) · [Development and packaging](docs/en/development.md)
 
 
-2.5.1 startup tip: after choosing Exit from the tray, open the theme shortcut directly. The launcher waits for exit to complete, and repeated clicks wait for the operation already in progress. Extract upgrades into a separate folder and keep the old package for rollback.
+2.6.0 startup tip: after choosing Exit from the tray, open the theme shortcut directly. The launcher waits for exit to complete, and repeated clicks wait for the operation already in progress. Extract upgrades into a separate folder and keep the old package for rollback.
