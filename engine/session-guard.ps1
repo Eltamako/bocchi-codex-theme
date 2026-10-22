@@ -17,7 +17,7 @@ function Test-BocchiReadyStatus([object]$Status,[object]$State,[string]$RequestI
     $Status.generation -cne $State.generation -or $Status.browserId -cne $State.browserId -or
     [int]$Status.daemonPid -ne [int]$State.daemonPid -or $Status.runtimeHash -cne $State.runtimeHash){return $false}
   $renderers=@($Status.renderers)
-  return ($renderers.Count -eq 1 -and $renderers[0].installed -eq $true -and $renderers[0].version -ceq $ThemeVersion)
+  return ($renderers.Count -eq 1 -and $renderers[0].installed -eq $true -and $renderers[0].ready -eq $true -and $renderers[0].version -ceq $ThemeVersion)
 }
 
 # Only attribute a blocked renderer to this exact request and managed session.
@@ -32,16 +32,19 @@ function Get-BocchiBlockedReason([object]$Status,[object]$State,[string]$Request
 }
 
 # Diagnostic capture is separate from early failure: transient page states may recover.
-function Get-BocchiReadinessDiagnostic([object]$Status,[object]$State,[string]$RequestId){
+function Get-BocchiReadinessDiagnostic([object]$Status,[object]$State,[string]$RequestId,[string]$ThemeVersion){
   if(-not $Status -or -not $State -or -not $RequestId){return $null}
   if($Status.requestId -cne $RequestId -or $Status.generation -cne $State.generation -or
     $Status.browserId -cne $State.browserId -or [int]$Status.daemonPid -ne [int]$State.daemonPid -or
     $Status.runtimeHash -cne $State.runtimeHash){return $null}
-  if($Status.state -ceq 'waiting-or-blocked'){
-    if($Status.reason -in @('fetch failed','Endpoint unavailable','Connection closed','Connection failed','Connection timeout')){return 'theme-connection-unavailable'}
+  if($Status.state -in @('blocked','stopped')){return 'loader-stopped'}
+  if($Status.state -in @('retrying','waiting-or-blocked')){
+    if($Status.reason -in @('theme-connection-unavailable','fetch failed','Endpoint unavailable','Connection closed','Connection failed','Connection timeout')){return 'theme-connection-unavailable'}
     return 'loader-unavailable'
   }
   $renderers=@($Status.renderers)
+  if($Status.state -in @('running','suspended') -and $renderers.Count -eq 1 -and $ThemeVersion -and $renderers[0].version -cne $ThemeVersion){return 'version-mismatch'}
+  if($Status.state -in @('running','suspended') -and $renderers.Count -eq 1 -and $renderers[0].installed -eq $true -and $renderers[0].ready -ne $true){return 'renderer-not-ready'}
   if($Status.state -ceq 'suspended' -and $renderers.Count -eq 1 -and $renderers[0].installed -eq $false){
     $known=@('automatic-dark-appearance-failed','required-markers-missing','unknown-active-page-or-layout','required-surface-missing','unknown-column-owner','unknown-mode','main-region-too-small','unsupported-request-card-shell','unsupported-submitting-shell','version-mismatch','expired-loader-lease')
     if($renderers[0].reason -cin $known){return $renderers[0].reason}

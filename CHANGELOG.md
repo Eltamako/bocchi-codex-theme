@@ -1,5 +1,24 @@
 # 更新记录 / Changelog
 
+## 2.6.2 · 加载恢复与安装归属修复
+
+- 合并 r3：渲染安装按代际取消，过时任务不能覆盖新实例；requestAnimationFrame 等待有界，改善最小化后恢复。
+- 加载器区分暂时连接故障与身份/配置错误；连续暂时故障最多恢复 60 秒，退避期间每 250 毫秒响应暂停或停止。
+- 校验安装记录归属，拒绝复制目录携带的外部状态路径；加强配置校验及进程身份保护。
+- 加入安装、连接恢复和进程身份行为回归；六款壁纸、素材及客户端适配范围保持不变。
+- 主题 2.6.2，加载器 1.2.2；Windows x64，Codex 26.1016.51333／安装包 26.1016.6573.0。
+- 实机重复启动与真实断连恢复尚未验证；详见验证记录。
+
+## 2.6.2 · Recovery and installation ownership fixes
+
+- Includes r3 generation cancellation and bounded animation-frame waits; retired work cannot replace a successor installation.
+- Distinguishes transient transport failures from identity/configuration errors. Continuous recovery is bounded to 60 seconds; Pause/Stop is checked every 250 ms during backoff.
+- Rejects foreign state paths in copied installation records; strengthens configuration checks and process identity guards.
+- Adds installation, recovery and process-identity regression coverage. Artwork and supported client versions are unchanged.
+- Theme 2.6.2; loader 1.2.2. Windows x64, Codex 26.1016.51333 / package 26.1016.6573.0.
+- Native repeated-start and real disconnect recovery remain unverified; see validation notes.
+
+
 ## 2.6.1 · 桌面入口与图片预览修复
 
 - 升级时识别旧的“Codex · 孤独摇滚”桌面入口，核对启动命令及主题安装记录后备份，再迁移为 Bocchi Codex Theme，避免退出后误启旧版。不会改动同名但无法确认归属的快捷方式。

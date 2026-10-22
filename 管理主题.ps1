@@ -6,7 +6,8 @@ $root=$PSScriptRoot
 $engine=Join-Path $root 'engine'
 . (Join-Path $engine 'common-windows.ps1')
 $install=Get-Content -LiteralPath (Join-Path $root 'installation.json') -Raw -Encoding utf8 | ConvertFrom-Json
-$stateRoot=[IO.Path]::GetFullPath($install.stateRoot)
+. (Join-Path $engine 'installation-guard.ps1')
+$stateRoot=Assert-BocchiInstallation -Install $install -Root $root
 . (Join-Path $engine 'i18n.ps1')
 Initialize-BocchiLanguage -Root $root -StateRoot $stateRoot -Language $Language
 $profile=[IO.Path]::GetFullPath((Join-Path $stateRoot 'managed-profile'))
@@ -184,7 +185,7 @@ function Stop-OwnDaemon([object]$State){
     try {
       $heldHandle=$loaderProcess.Handle
       $start=$loaderProcess.StartTime.ToUniversalTime();$start=$start.AddTicks(-($start.Ticks % 10))
-      if(-not $heldHandle -or $start.ToString('o') -cne (ConvertTo-UtcStamp $State.daemonCreated) -or
+      if(-not $heldHandle -or $heldHandle -eq [IntPtr]::Zero -or $start.ToString('o') -cne (ConvertTo-UtcStamp $State.daemonCreated) -or
         -not (Test-DreamSkinPathEqual -Left $loaderProcess.Path -Right $node) -or -not (Test-OwnDaemon $State)){
         throw 'Loader identity changed; no process stopped'
       }
@@ -214,7 +215,7 @@ function Wait-ThemeReady([object]$State,[string]$RequestId){
     if(-not (Test-OwnDaemon $State)){$script:BocchiReadinessReason='loader-stopped';return $false}
     try {
       $ready=Get-Content -LiteralPath $statusPath -Raw -Encoding utf8|ConvertFrom-Json
-      $diagnostic=Get-BocchiReadinessDiagnostic -Status $ready -State $State -RequestId $RequestId
+      $diagnostic=Get-BocchiReadinessDiagnostic -Status $ready -State $State -RequestId $RequestId -ThemeVersion $install.themeVersion
       if($diagnostic){$script:BocchiReadinessReason=$diagnostic}
       $reason=Get-BocchiBlockedReason -Status $ready -State $State -RequestId $RequestId
       if($reason){$script:BocchiReadinessReason=$reason;return $false}
@@ -275,7 +276,7 @@ try{
           $liveStart=$remainingProcess.StartTime.ToUniversalTime()
           # CIM stores microseconds; normalize the native 100 ns timestamp to that precision.
           $liveStart=$liveStart.AddTicks(-($liveStart.Ticks % 10))
-          if(-not $heldHandle -or $liveStart.ToString('o') -cne $remaining.created -or -not (Test-DreamSkinPathEqual -Left $remainingProcess.Path -Right $restoreCodex.Executable)){throw 'Background process identity changed; nothing terminated'}
+          if(-not $heldHandle -or $heldHandle -eq [IntPtr]::Zero -or $liveStart.ToString('o') -cne $remaining.created -or -not (Test-DreamSkinPathEqual -Left $remainingProcess.Path -Right $restoreCodex.Executable)){throw 'Background process identity changed; nothing terminated'}
           if(@($remainingTargets).Count -ne 0 -or $remainingProcess.MainWindowHandle -ne 0){throw 'Managed window is still open; background process left untouched'}
           Stop-Process -InputObject $remainingProcess -ErrorAction Stop
         }finally{$remainingProcess.Dispose()}
@@ -334,7 +335,7 @@ try{
     $own=Get-OwnIdentity $codex
     if(-not $own){throw 'Managed client identity unavailable after loader recovery'}
   }
-  $state=[ordered]@{schema='bocchi-runtime/1';generation=[Guid]::NewGuid().ToString('N');port=$port;browserId=$own.identity.BrowserId;ownerPid=$own.pid;ownerCreated=$own.created;profile=$profile;appVersion=$appVersion;packageVersion=$codex.Version;packageRoot=$codex.PackageRoot;runtimeHash=$runtimeHash;launcherVersion='1.2.0';created=(Get-Date).ToUniversalTime().ToString('o')}
+  $state=[ordered]@{schema='bocchi-runtime/1';generation=[Guid]::NewGuid().ToString('N');port=$port;browserId=$own.identity.BrowserId;ownerPid=$own.pid;ownerCreated=$own.created;profile=$profile;appVersion=$appVersion;packageVersion=$codex.Version;packageRoot=$codex.PackageRoot;runtimeHash=$runtimeHash;launcherVersion=$install.launcherVersion;created=(Get-Date).ToUniversalTime().ToString('o')}
   Write-LocalJson $statePath $state
   Write-LocalJson $controlPath @{paused=$false;stop=$false;requestId=$requestId}
   Write-LocalJson $statusPath @{state='starting';generation=$state.generation;browserId=$state.browserId}

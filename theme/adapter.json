@@ -1,6 +1,6 @@
 {
   "schema": "bocchi-codex-adapter/1",
-  "themeVersion": "2.6.1",
+  "themeVersion": "2.6.2",
   "appVersion": "26.1016.51333",
   "packageVersion": "26.1016.6573.0",
   "activePage": "[data-app-shell-active-page=\"true\"]",
@@ -40,5 +40,5 @@
   "workReader": "[data-thread-user-message-navigation-content=\"true\"][data-mcp-app-portal-target=\"true\"]",
   "workSubmittingInput": "[data-composer-input] > [role=\"textbox\"][aria-busy=\"true\"][aria-readonly=\"true\"][data-composer-input-layout=\"multiline\"][data-composer-input-variant=\"default\"]",
   "inputStateRevision": "native-request-and-submitting-shell-20261021",
-  "validatedOn": "2026-10-21"
+  "validatedOn": "2026-10-22"
 }

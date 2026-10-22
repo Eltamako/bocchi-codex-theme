@@ -35,7 +35,7 @@ If setup backed up a previous same-name shortcut, you can copy it back from the 
 
 ## Match the client version
 
-Use theme 2.6.1 with Codex 26.1016.51333 / 26.1016.6573.0. Theme 2.5.1 is for Codex 26.1013.40934 / 26.1013.4894.0. A theme rollback requires a matching client. Transfer only the wallpaper selection, not old runtime state.
+Use theme 2.6.2 with Codex 26.1016.51333 / 26.1016.6573.0. Theme 2.5.1 is for Codex 26.1013.40934 / 26.1013.4894.0. A theme rollback requires a matching client. Transfer only the wallpaper selection, not old runtime state.
 
 
 ## An old desktop shortcut reports a client version change

@@ -1,8 +1,8 @@
 {
   "schema": "bocchi-public-release/1",
-  "releaseVersion": "2.6.1",
-  "themeVersion": "2.6.1",
-  "launcherVersion": "1.2.1",
+  "releaseVersion": "2.6.2",
+  "themeVersion": "2.6.2",
+  "launcherVersion": "1.2.2",
   "appVersion": "26.1016.51333",
   "packageVersion": "26.1016.6573.0",
   "port": 9347,

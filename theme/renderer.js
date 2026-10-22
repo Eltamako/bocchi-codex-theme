@@ -1,6 +1,6 @@
-async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpaperId, selectionBridge, sticker, bandSticker, appVersion, leaseUntil, previewTopMode = "A+++", messages, language = "auto", systemLanguage = "en"}) {
+async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpaperId, selectionBridge, sticker, bandSticker, appVersion, leaseUntil, installGeneration, loaderGeneration, previewTopMode = "A+++", messages, language = "auto", systemLanguage = "en"}) {
   // This adapter is deliberately tied to the inspected desktop build.
-  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.6.1' || appVersion !== adapter.appVersion)
+  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.6.2' || appVersion !== adapter.appVersion)
     return {installed:false, reason:'version-mismatch'};
   if (!Number.isFinite(leaseUntil) || leaseUntil <= Date.now()) return {installed:false, reason:'expired-loader-lease'};
   if (typeof css !== 'string' || /@import\b|url\s*\(/i.test(css)) return {installed:false, reason:'nonlocal-stylesheet'};
@@ -118,15 +118,27 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
         // Begin after layout/observer work has yielded back to the browser.
         job.slice=-Infinity;await rasterYield(job);
         const commit=await paint(job);
-        if(job.frameCommit)await new Promise(resolve=>requestAnimationFrame(resolve));
+        let presented=false;
+        if(job.frameCommit)presented=await waitRasterFrame(job);
+        if(presented)state.frameCallbackObserved=true;
         if(rasterAlive(job)&&records.get(name)===job){commit();job.done=true;}
       }catch(error){
-        if(rasterAlive(job)&&error.message!=='raster-cancelled'){state.lastRasterError=String(error.message);records.delete(name);if(name==='background'&&owner===currentLayer)state.scenePending=false;}
+        if(rasterAlive(job)&&error.message!=='raster-cancelled'){state.ready=false;state.lastRasterError='raster-failed';records.delete(name);if(name==='background'&&owner===currentLayer)state.scenePending=false;}
       }finally{
         for(const url of job.urls)releaseRasterURL(url);
         rasterJobs.delete(job);state.rasterPending=rasterJobs.size;
       }
     })();
+  }
+  function waitRasterFrame(job){
+    return new Promise(resolve=>{
+      let frameId,timerId,done=false;
+      const finish=presented=>{if(done)return;done=true;cancelAnimationFrame(frameId);clearTimeout(timerId);job.cancelFrame=null;resolve(presented);};
+      job.cancelFrame=()=>finish(false);
+      frameId=requestAnimationFrame(()=>finish(true));
+      timerId=setTimeout(()=>finish(false),1000);
+      if(!rasterAlive(job))finish(false);
+    });
   }
   async function settleRasterJobs(){
     while(!stopped&&(rasterJobs.size||deferredRasters.size)){
@@ -238,7 +250,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     fastFrame=requestAnimationFrame(()=>{fastFrame=null;if(!stopped)refresh();});
   }
 
-  const state = {installed:false, reason:'initializing', version:adapter.themeVersion, appVersion,
+  const state = {ready:false,frameCallbackObserved:false,installed:false, reason:'initializing', version:adapter.themeVersion, appVersion,
     validation:adapter.status||'pending-live-validation', imageLoaded:false, stickerLoaded:false};
   const visible = el => !!el && el.isConnected && el.getClientRects().length > 0 &&
     getComputedStyle(el).visibility !== 'hidden' && getComputedStyle(el).display !== 'none';
@@ -283,11 +295,14 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
   function discard(el) { if(!el)return; for(const layer of [...sceneLayers])if(layer===el||el.contains(layer))clearSceneLayer(layer); for(const node of [el,...el.querySelectorAll(".bocchi-wallpaper-layer")])for(const url of node.__rasterURLs||[])releaseRasterURL(url); for(const child of [...nodes])if(child===el||el.contains(child)){child.remove();nodes.delete(child);} }
   function place(el,r) { for(const [key,value]of Object.entries({left:r.left,top:r.top,width:r.width,height:r.height})){const text=value+"px";if(el.style[key]!==text)el.style[key]=text;} }
   function remove(reason='removed') {
+    if(!/^[a-z][a-z0-9-]{0,79}$/.test(reason))reason='renderer-unavailable';
     if(stopped)return {removed:true,reason:state.reason}; stopped=true;
     cancelAnimationFrame(fastFrame);cancelAnimationFrame(clipFrame);
     for(const pending of [...deferredRasters])cancelDeferredRaster(pending.owner,pending.name);
     clearTimeout(backdrop?.__ditherCacheTimer);backdrop?.__ditherCache?.clear();if(backdrop)backdrop.__ditherEntry=null;
-    for(const job of rasterJobs)job.cancelled=true;
+    for(const job of rasterJobs){job.cancelled=true;job.cancelFrame?.();}
+    cancelInstall?.();
+    if(window.__BOCCHI_INSTALL__===installation)delete window.__BOCCHI_INSTALL__;
     for(const layer of [...sceneLayers])clearSceneLayer(layer);
     for(const asset of readyAssets.values())for(const key of ["main","ambient","environmentAsset"])asset[key]?.bitmap?.close();
     cleanupPicker();clearTimeout(timer); clearInterval(leaseTimer); observer?.disconnect(); resize?.disconnect();
@@ -303,7 +318,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     readerFadeNodes.clear();attrs.clear();props.clear();nodes.clear();blobs.clear();observed.clear();wantedAttrs.clear();wantedProps.clear();
     sheet=backdrop=stage=side=inputDetails=observer=resize=null;wallpaperUrl=stickerUrl=bandStickerUrl=null;css=wallpaperCatalog=sticker=bandSticker=null;
     if(window.__BOCCHI_THEME__===api)delete window.__BOCCHI_THEME__;
-    Object.assign(state,{installed:false,reason,decorations:false,sidebarSticker:false,emptySticker:false,composerTransition:false});
+    Object.assign(state,{ready:false,installed:false,reason,decorations:false,sidebarSticker:false,emptySticker:false,composerTransition:false});
     lastVerifiedContext=null;composerMissingSince=null;
     return {removed:true,reason};
   }
@@ -313,7 +328,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     const bytes=new Uint8Array(decoded.length);for(let i=0;i<decoded.length;i++)bytes[i]=decoded.charCodeAt(i);
     const url=URL.createObjectURL(new Blob([bytes],{type:mime}));blobs.add(url);
     const probe=new Image();probe.src=url;
-    try {await probe.decode();if(!probe.naturalWidth||!probe.naturalHeight)throw new Error('empty-image');const cw=256,ch=Math.max(1,Math.round(cw*probe.naturalHeight/probe.naturalWidth)),sample=document.createElement('canvas');sample.width=cw;sample.height=ch;const sc=sample.getContext('2d',{willReadFrequently:true});sc.filter='blur(1px)';sc.drawImage(probe,0,0,cw,ch);const rgba=sc.getImageData(0,0,cw,ch).data,luma=new Float32Array(cw*ch);for(let i=0;i<luma.length;i++){const r=rgba[i*4]/255,g=rgba[i*4+1]/255,b=rgba[i*4+2]/255;luma[i]=Math.min(1,(.2126*r+.7152*g+.0722*b+Math.max(r,g,b)*.16)/.6);}return{url,width:probe.naturalWidth,height:probe.naturalHeight,sample:{w:cw,h:ch,luma},bitmap:await createImageBitmap(probe)};}
+    try {await awaitCurrent(probe.decode());if(!probe.naturalWidth||!probe.naturalHeight)throw new Error('empty-image');const cw=256,ch=Math.max(1,Math.round(cw*probe.naturalHeight/probe.naturalWidth)),sample=document.createElement('canvas');sample.width=cw;sample.height=ch;const sc=sample.getContext('2d',{willReadFrequently:true});sc.filter='blur(1px)';sc.drawImage(probe,0,0,cw,ch);const rgba=sc.getImageData(0,0,cw,ch).data,luma=new Float32Array(cw*ch);for(let i=0;i<luma.length;i++){const r=rgba[i*4]/255,g=rgba[i*4+1]/255,b=rgba[i*4+2]/255;luma[i]=Math.min(1,(.2126*r+.7152*g+.0722*b+Math.max(r,g,b)*.16)/.6);}return{url,width:probe.naturalWidth,height:probe.naturalHeight,sample:{w:cw,h:ch,luma},bitmap:await awaitCurrent(createImageBitmap(probe),bitmap=>bitmap.close())};}
     catch(error){URL.revokeObjectURL(url);blobs.delete(url);throw error;} finally {probe.removeAttribute('src');}
   }
   // The picker is an interactive sibling, never inside the inert decoration tree.
@@ -360,13 +375,13 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     if(!assetCache.has(id))assetCache.set(id,(async()=>{
       const entry=catalog.get(id),decoded=[];
       try{
-        const decode=async data=>{const asset=await decodeAsset(data);decoded.push(asset);if(stopped)throw Error('theme-removed');return asset;};
+        const decode=async data=>{const asset=await decodeAsset(data);decoded.push(asset);assertCurrent();return asset;};
         const main=await decode(entry.image),ambient=await decode(entry.background),environmentAsset=entry.environment?await decode(entry.environment.image):null;
         if(environmentAsset&&(environmentAsset.width!==entry.environment.nativeSize.width||environmentAsset.height!==entry.environment.nativeSize.height))throw Error('environment-size-mismatch');
         let continuation=null;
-        if(id==='headphone-evening'){continuation={url:headphoneContinuation()};decoded.push(continuation);const probe=new Image();probe.src=continuation.url;try{await probe.decode();if(stopped)throw Error('theme-removed');}finally{probe.removeAttribute('src');}}
+        if(id==='headphone-evening'){continuation={url:headphoneContinuation()};decoded.push(continuation);const probe=new Image();probe.src=continuation.url;try{await awaitCurrent(probe.decode());assertCurrent();}finally{probe.removeAttribute('src');}}
         const value={...entry,main,ambient,environmentAsset,continuation};value.tone=id==="floating-bocchi"?{rgb:[23,23,30],css:"rgb(23, 23, 30)",source:"R17.3-classic-2.3-palette"}:["backstage","headphone-evening","color-portraits"].includes(id)?{rgb:[24,24,24],css:"rgb(24, 24, 24)",source:"R16-neutral-charcoal"}:r15SampleTone(value);readyAssets.set(id,value);state.decodedWallpapers=readyAssets.size;return value;
-      }catch(error){for(const asset of decoded){URL.revokeObjectURL(asset.url);blobs.delete(asset.url);}throw error;}
+      }catch(error){for(const asset of decoded){asset.bitmap?.close();URL.revokeObjectURL(asset.url);blobs.delete(asset.url);}throw error;}
     })().catch(error=>{assetCache.delete(id);throw error;}));
     return assetCache.get(id);
   }
@@ -374,7 +389,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
   async function prepareWallpaper(id,requestId){
     if(!validRequest(id,requestId))return{ok:false,id,requestId,reason:'stale-request'};
     try{await loadWallpaper(id);return{ok:validRequest(id,requestId),id,requestId};}
-    catch(error){return{ok:false,id,requestId,reason:error.message};}
+    catch(error){return{ok:false,id,requestId,reason:'wallpaper-prepare-failed'};}
   }
   function message(text){if(!notice)return;notice.textContent=text;notice.hidden=false;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>{if(notice)notice.hidden=true;},4500);}
   function rejectWallpaper(requestId,text){
@@ -665,7 +680,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     layer.dataset.sceneGeneration=String(frame.generation);
     state.scenePresentation={generation:frame.generation,key,cacheHit,geometry:{...frame.geometry}};
     state.sceneCacheHits=(state.sceneCacheHits||0)+(cacheHit?1:0);
-    state.scenePending=false;state.lastRasterError=null;
+    state.scenePending=false;state.lastRasterError=null;state.ready=state.installed===true;
     cacheStableScene(layer,frame,key);revealReadyLayer(layer);
   }
   async function decodeSceneFrame(draft,job){
@@ -688,7 +703,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
       cancelDeferredRaster(layer,'background');
       const job=rasterRecords.get(layer)?.get('background');if(job&&job.key!==key)job.cancelled=true;
       layer.__sceneCommittedKey=key;state.scenePresentation.key=key;
-      state.scenePending=false;cacheStableScene(layer,layer.__sceneFrame,key);return;
+      state.scenePending=false;state.ready=state.installed===true;cacheStableScene(layer,layer.__sceneFrame,key);return;
     }
     const cached=layer.__sceneCache.get(key)||[...layer.__sceneCache.values()].find(frame=>frame.pixelKey===pixelKey);
     if(cached){
@@ -696,7 +711,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
       const records=rasterRecords.get(layer),job=records?.get('background');if(job)job.cancelled=true;records?.delete('background');
       presentSceneFrame(layer,cached,true,key);return;
     }
-    state.scenePending=true;
+    state.scenePending=true;state.ready=false;
     scheduleRaster(layer,'background',key,async job=>{
       job.frameCommit=true;
       const page=layer.__scenePage,main=layer.__sceneMain;
@@ -1325,13 +1340,32 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     return state;
   }
   function schedule(){if(stopped||timer)return;timer=setTimeout(()=>{timer=null;refresh();},100);}
+  // Register ownership and cancellation synchronously, before the first await.
+  let cancelInstall;
+  const cancelled=new Promise(resolve=>{cancelInstall=()=>resolve();});
+  const installation={generation:installGeneration||instanceId,loaderGeneration,cancel:remove};
+  function assertCurrent(){
+    if(stopped||window.__BOCCHI_INSTALL__!==installation)throw Error('superseded-installation');
+    if(Date.now()>=expiresAt)throw Error('expired-loader-lease');
+  }
+  async function awaitCurrent(promise,dispose){
+    const work=Promise.resolve(promise).then(value=>{
+      try{assertCurrent();}catch(error){dispose?.(value);throw error;}return value;
+    });
+    const value=await Promise.race([work,cancelled.then(()=>{throw Error('cancelled-installation');})]);
+    assertCurrent();return value;
+  }
+  window.__BOCCHI_INSTALL__?.cancel('superseded-installation');
+  window.__BOCCHI_INSTALL__=installation;
+  leaseTimer=setInterval(()=>{if(Date.now()>=expiresAt)remove('expired-loader-lease');},250);
   try {
-    validateCatalog();currentAssets=await loadWallpaper(initialWallpaperId);
-    const wallpaper=currentAssets.main,small=await decodeAsset(sticker),band=await decodeAsset(bandSticker);
+    validateCatalog();currentAssets=await awaitCurrent(loadWallpaper(initialWallpaperId));
+    const wallpaper=currentAssets.main,small=await awaitCurrent(decodeAsset(sticker)),band=await awaitCurrent(decodeAsset(bandSticker));
+    assertCurrent();
     wallpaperUrl=wallpaper.url;stickerUrl=small.url;bandStickerUrl=band.url;sticker=bandSticker=null;state.wallpaperId=initialWallpaperId;state.selectionPending=false;
     Object.assign(state,{imageLoaded:true,stickerLoaded:true,imageWidth:wallpaper.width,imageHeight:wallpaper.height,stickerWidth:small.width,stickerHeight:small.height,bandStickerLoaded:true,bandStickerWidth:band.width,bandStickerHeight:band.height});
     // Reject unsupported pages before replacing an existing, valid installation.
-    inspect(true);if(Date.now()>expiresAt)throw new Error('expired-loader-lease');
+    inspect(true);assertCurrent();
     window.__BOCCHI_THEME__?.remove();
     acquireAppearance();inspect();
     // Migrate only the obsolete three-stop pixel mask written by this theme.
@@ -1343,7 +1377,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     }
     sheet=document.createElement('style');sheet.id='bocchi-theme-style-v2';sheet.textContent=css;document.head.append(sheet);
     api={state,refresh,setLanguage,prepareWallpaper,commitWallpaper,rejectWallpaper,heartbeat(until){if(Number.isFinite(until)&&until>Date.now())expiresAt=until;},remove};
-    window.__BOCCHI_THEME__=api;
+    assertCurrent();window.__BOCCHI_THEME__=api;
     observer=new MutationObserver(records=>{
       if(records.some(record=>!record.target?.closest?.('[data-bocchi-owned]')&&
         (record.type!=='childList'||[...record.addedNodes,...record.removedNodes].some(node=>node.nodeType!==1||!node.hasAttribute('data-bocchi-owned'))))){
@@ -1375,7 +1409,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
       if(entries.some(entry=>entry.target!==lastVerifiedContext?.reader))scheduleFast();else schedule();
     });window.addEventListener('resize',scheduleFast);document.addEventListener('scroll',onThemeScroll,true);
     window.visualViewport?.addEventListener('resize',scheduleFast);window.visualViewport?.addEventListener('scroll',onThemeScroll);
-    leaseTimer=setInterval(()=>{if(Date.now()>expiresAt)remove('expired-loader-lease');},1000);
-    refresh();await settleRasterJobs();return state;
-  } catch(error) {remove(error?.message||'asset-or-install-failure');return state;}
+    refresh();await awaitCurrent(settleRasterJobs());assertCurrent();
+    state.ready=state.installed===true&&!state.scenePending&&!state.lastRasterError;return state;
+  } catch(error) {remove(/^[a-z][a-z0-9-]{0,79}$/.test(error?.message)?error.message:'asset-or-install-failure');return state;}
 }

@@ -19,9 +19,12 @@ if($appVersion -cne $release.appVersion -or $codex.Version -cne $release.package
 if($CheckOnly){Write-Output (Get-BocchiText 'install.checked');exit 0}
 $config=Join-Path $PSScriptRoot 'installation.json'
 $stateRoot=Join-Path $PSScriptRoot '.local'
+. (Join-Path $PSScriptRoot 'engine/installation-guard.ps1')
+$stateRoot=Assert-BocchiInstallation -Install ([pscustomobject]@{schema='bocchi-local-install/1';stateRoot=$stateRoot}) -Root $PSScriptRoot
 if(Test-Path -LiteralPath $config){
   $existing=Get-Content -LiteralPath $config -Raw -Encoding utf8|ConvertFrom-Json
-  if(-not (Test-DreamSkinPathEqual -Left $existing.stateRoot -Right $stateRoot)){Throw-BocchiError 'install.moved'}
+  . (Join-Path $PSScriptRoot 'engine/installation-guard.ps1')
+  $stateRoot=Assert-BocchiInstallation -Install $existing -Root $PSScriptRoot
   if($existing.nodeSha256 -cne $release.nodeSha256 -or $existing.appVersion -cne $release.appVersion -or $existing.packageVersion -cne $release.packageVersion -or $existing.themeVersion -cne $release.themeVersion){Throw-BocchiError 'install.otherRelease'}
 }else{
   New-Item -ItemType Directory -Path $stateRoot -Force|Out-Null

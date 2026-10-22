@@ -8,8 +8,8 @@ try{
   $config=Join-Path $PSScriptRoot 'installation.json'
   if(-not (Test-Path -LiteralPath $config)){Throw-BocchiError 'entry.setupFirst'}
   $install=Get-Content -LiteralPath $config -Raw -Encoding utf8|ConvertFrom-Json
-  $expected=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '.local'))
-  if(-not [string]::Equals($expected,[IO.Path]::GetFullPath($install.stateRoot),[StringComparison]::OrdinalIgnoreCase)){Throw-BocchiError 'install.moved'}
+  . (Join-Path $PSScriptRoot 'engine/installation-guard.ps1')
+  $expected=Assert-BocchiInstallation -Install $install -Root $PSScriptRoot
   if(-not $Language){
     Write-Host '1. 自动 / Automatic'
     Write-Host '2. 简体中文'

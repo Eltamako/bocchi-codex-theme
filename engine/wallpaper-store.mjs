@@ -17,6 +17,23 @@ export function validateEnvironment(value,id){
  if(!Array.isArray(r)||r.length!==4||r.some(v=>!Number.isFinite(v))||r[0]<-n.width*.5||r[1]<0||r[2]<=0||r[2]>n.width*2||r[3]<=0||r[0]+r[2]>n.width*1.5||r[1]+r[3]>n.height*1.15||r[1]+r[3]*.15>n.height||Math.abs(r[2]/r[3]-1672/941)>.002)throw Error('Invalid environment registration');
  if(!['top','top-bottom'].includes(value.edges)||value.edges==='top-bottom'&&id!=='headphone-evening')throw Error('Invalid environment extent');
 }
+export function validateLayout(entry){
+      const l=entry.layout;
+      for(const key of ['widthFraction','heightFraction','anchorY','featherLeft','featherTop','featherBottom','ambientOpacity'])if(!Number.isFinite(l[key])||l[key]<0||l[key]>1)throw Error('invalid-wallpaper-layout');
+      if(l.widthFraction<.5||l.heightFraction<.5||l.featherLeft>.4||l.featherTop>.15||l.featherBottom>.15)throw Error('unsafe-wallpaper-layout');
+      if(l.framing){
+        const f=l.framing;
+        if(!['winter-night','headphone-evening'].includes(entry.id)||f.mode!=='r1-relative')throw Error('invalid-relative-framing');
+        for(const key of ['scale','referenceProtectedLeft','referenceWidthFraction','referenceHeightFraction','referenceAnchorY','rightShiftFraction'])if(!Number.isFinite(f[key])||f[key]<0||f[key]>1)throw Error('invalid-relative-framing');
+        if(f.adjustment){const a=f.adjustment;if(!Number.isFinite(a.scale)||a.scale<.9||a.scale>1.15||!Number.isFinite(a.x)||Math.abs(a.x)>64||!Number.isFinite(a.y)||Math.abs(a.y)>64)throw Error('invalid-framing-adjustment');}
+        if(f.downShift!==undefined&&(!Number.isFinite(f.downShift)||f.downShift<0||f.downShift>64))throw Error('invalid-vertical-framing');
+        if(f.scale<.5||f.referenceProtectedLeft>=.95||f.referenceWidthFraction<.5||f.referenceHeightFraction<.5||f.rightShiftFraction>.1)throw Error('unsafe-relative-framing');
+        if(!Number.isFinite(f.referenceReadingGap)||f.referenceReadingGap<0||f.referenceReadingGap>96||!Number.isFinite(f.rightShiftMin)||!Number.isFinite(f.rightShiftMax)||f.rightShiftMin<0||f.rightShiftMax<f.rightShiftMin||f.rightShiftMax>96)throw Error('invalid-relative-framing');
+        const r=f.faceRegion;
+        if(!Array.isArray(r)||r.length!==4||r.some(v=>!Number.isFinite(v)||v<0||v>1)||r[0]>=r[2]||r[1]>=r[3])throw Error('invalid-face-region');
+      }
+
+}
 const LIMIT=10*1024*1024;
 const crcTable=Array.from({length:256},(_,n)=>{for(let k=0;k<8;k++)n=n&1?0xedb88320^(n>>>1):n>>>1;return n>>>0;});
 function crc32(b){let crc=0xffffffff;for(const v of b)crc=crcTable[(crc^v)&255]^(crc>>>8);return(crc^0xffffffff)>>>0;}
@@ -48,9 +65,9 @@ export class WallpaperCatalog {
    const m=JSON.parse(await fs.readFile(manifestFile,'utf8'));if(m.schema!=='bocchi-wallpapers/1'||m.defaultId!==DEFAULT_ID||!Array.isArray(m.wallpapers)||m.wallpapers.length!==WALLPAPER_IDS.length)throw Error('Invalid wallpaper manifest');
    const tracked=['wallpapers.json'];const out=[];
    for(let i=0;i<WALLPAPER_IDS.length;i++){
-    const item=m.wallpapers[i];if(!item||item.id!==WALLPAPER_IDS[i]||typeof item.name!=='string'||!item.name.trim()||item.name.length>120||!item.layout||typeof item.layout!=='object'||Array.isArray(item.layout))throw Error('Invalid wallpaper ID, order, name or layout');
+    const item=m.wallpapers[i];if(!item||item.id!==WALLPAPER_IDS[i]||typeof item.name!=='string'||!item.name.trim()||item.name.length>80||!item.layout||typeof item.layout!=='object'||Array.isArray(item.layout))throw Error('Invalid wallpaper ID, order, name or layout');
     for(const key of ['image','background']){if(item[key]!==`wallpapers/${item.id}/${key==='image'?'main':'background'}.png`)throw Error('Unexpected wallpaper asset path');tracked.push(item[key]);}
-    validateEnvironment(item.environment,item.id);if(item.environment)tracked.push(item.environment.image);
+    validateLayout(item);validateEnvironment(item.environment,item.id);if(item.environment)tracked.push(item.environment.image);
    }
    this.tracked=tracked;
    for(const item of m.wallpapers){
@@ -65,7 +82,7 @@ export class WallpaperCatalog {
     out.push(row);
    }
    this.cached=out;this.loads++;this.warning=null;
-  }catch(e){this.warning='Wallpaper catalog reload failed: '+e.message;}
+  }catch(e){this.warning='Wallpaper catalog reload failed: '+(e.code?'asset-read-failed':e instanceof SyntaxError?'invalid-json':/^[A-Za-z][A-Za-z0-9 ,.-]{0,100}$/.test(e.message)?e.message:'invalid-asset');}
   this.lastSignature=(await Promise.all(this.tracked.map(async name=>`${name}:${await signature(path.join(this.root,name))}`))).join('|');
   if(!this.cached)throw Error(this.warning);return{catalog:this.cached,warning:this.warning};
  }
@@ -75,7 +92,7 @@ export async function atomicSelection(file,id,io=fs){
  try{handle=await io.open(tmp,'wx',0o600);await handle.writeFile(JSON.stringify({schema:'bocchi-wallpaper-selection/1',wallpaperId:id,updatedAt:new Date().toISOString()},null,2),'utf8');await handle.sync();await handle.close();handle=null;await io.rename(tmp,file);}finally{if(handle)await handle.close().catch(()=>{});await io.unlink(tmp).catch(()=>{});}
 }
 export async function readSelection(file){
- try{const stat=await fs.stat(file);if(stat.size>4096)throw Error('Preference too large');const value=JSON.parse(await fs.readFile(file,'utf8'));if(value.schema!=='bocchi-wallpaper-selection/1'||!WALLPAPER_IDS.includes(value.wallpaperId))throw Error('Invalid preference');return{id:value.wallpaperId,warning:null};}catch(e){return{id:DEFAULT_ID,warning:`Wallpaper preference ${e.code==='ENOENT'?'missing':'invalid'}; using ${DEFAULT_ID}: ${e.message}`};}
+ try{const stat=await fs.stat(file);if(stat.size>4096)throw Error('Preference too large');const value=JSON.parse(await fs.readFile(file,'utf8'));if(value.schema!=='bocchi-wallpaper-selection/1'||!WALLPAPER_IDS.includes(value.wallpaperId))throw Error('Invalid preference');return{id:value.wallpaperId,warning:null};}catch(e){return{id:DEFAULT_ID,warning:`Wallpaper preference ${e.code==='ENOENT'?'missing':'invalid'}; using ${DEFAULT_ID}`};}
 }
 export function parseSelectionEvent(payload,token){
  if(typeof payload!=='string'||payload.length>1024)return null;try{const p=JSON.parse(payload);if(p.token!==token||!WALLPAPER_IDS.includes(p.id)||typeof p.requestId!=='string'||!p.requestId||p.requestId.length>128)return null;return{id:p.id,requestId:p.requestId};}catch{return null;}
@@ -103,7 +120,7 @@ export class SelectionCoordinator {
    }catch(e){
     // A lost CDP reply can follow a successful commit: reconcile observable state.
     if(saved&&this.active){try{const s=await this.getState();if(s?.wallpaperId===r.id){committed=true;this.displayedId=r.id;}}catch{}}
-    this.onError(e);if(this.active&&this.latest===r&&!committed)try{await this.reject(r,e.message);}catch{}
+    this.onError(e);if(this.active&&this.latest===r&&!committed)try{await this.reject(r,'wallpaper-selection-failed');}catch{}
    }finally{
     if(saved&&!committed){try{await this.save(previous);}catch(e){this.active=false;this.onError(Error('Preference rollback failed: '+e.message));}}
     if(this.latest===r)this.latest=null;

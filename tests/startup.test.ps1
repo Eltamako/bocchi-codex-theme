@@ -79,8 +79,8 @@ $src=Get-Content -LiteralPath $target -Raw -Encoding utf8
 Check 'launcher probes owned browser before parallel guard' ($src.Contains('$own=Get-BocchiLaunchOwner $codex'))
 Check 'normal page readiness remains after window activation' ($src.Contains('$own=Get-OwnIdentity $codex') -and $src.Contains("Dedicated window did not reopen with its verified identity"))
 Check 'resume can also reactivate the exact theme window' ($src.Contains("if(`$Action -in @('Start','Resume') -and `$reusingOwn)"))
-$base=Get-Content -LiteralPath $target -Raw -Encoding utf8
-Check 'no new process termination path' (([regex]::Matches($base,'Stop-Process')).Count -eq ([regex]::Matches($src,'Stop-Process')).Count)
+. (Join-Path $PSScriptRoot 'termination-contract.ps1')
+Assert-BocchiTerminationContract $ast
 $out=@{passed=$true;count=$checks.Count;checks=$checks;scope='isolated PowerShell logic; no client launched or terminated'}
 [IO.File]::WriteAllText((Join-Path $stage '.test-output/startup-checks.json'),($out|ConvertTo-Json -Depth 6),[Text.UTF8Encoding]::new($false))
 $out|ConvertTo-Json -Depth 6

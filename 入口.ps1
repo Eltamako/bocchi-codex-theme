@@ -16,7 +16,9 @@ try {
   Initialize-BocchiLanguage -Root $PSScriptRoot -Language $Language
   if(-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'installation.json'))){Throw-BocchiError 'entry.setupFirst'}
   $entryInstall=Get-Content -LiteralPath ([IO.Path]::Combine($PSScriptRoot,'installation.json')) -Raw -Encoding utf8|ConvertFrom-Json
-  $entryResultPath=[IO.Path]::Combine($entryInstall.stateRoot,'last-entry-result.json')
+  . (Join-Path $PSScriptRoot 'engine/installation-guard.ps1')
+  $entryStateRoot=Assert-BocchiInstallation -Install $entryInstall -Root $PSScriptRoot
+  $entryResultPath=[IO.Path]::Combine($entryStateRoot,'last-entry-result.json')
   Write-EntryResult 'started'
   $options=@{Action=$Action};if($Language){$options.Language=$Language}
   & ([IO.Path]::Combine($PSScriptRoot,'管理主题.ps1')) @options

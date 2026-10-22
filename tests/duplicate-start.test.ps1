@@ -46,9 +46,9 @@ try {
 [IO.File]::WriteAllText((Join-Path $Directory ($Mode+'-result.json')),($result|ConvertTo-Json))
 '@
 [IO.File]::WriteAllText((Join-Path $fixture 'worker.ps1'),$worker,$utf8)
-$shell='C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+$shell=(Get-Process -Id $PID).Path
 function Run-Worker($Name,$Mode,$Timeout=10000){
-  $arguments='-NoProfile -ExecutionPolicy Bypass -File "'+(Join-Path $fixture 'worker.ps1')+'" -Directory "'+$fixture+'" -MutexName "'+$Name+'" -Mode '+$Mode+' -TimeoutMilliseconds '+$Timeout+' -PackageRoot "'+$stage+'"'
+  $arguments='-NoProfile -File "'+(Join-Path $fixture 'worker.ps1')+'" -Directory "'+$fixture+'" -MutexName "'+$Name+'" -Mode '+$Mode+' -TimeoutMilliseconds '+$Timeout+' -PackageRoot "'+$stage+'"'
   Start-Process -FilePath $shell -ArgumentList $arguments -WindowStyle Hidden -PassThru
 }
 function Wait-Marker($Name){
@@ -103,7 +103,7 @@ $saved=[pscustomobject]@{schema='bocchi-runtime/1';browserId='browser';ownerPid=
 $own=[pscustomobject]@{pid=11;created=$saved.ownerCreated;identity=[pscustomobject]@{BrowserId='browser'}}
 function Reset-Fixture {
   $script:control=@{paused=$false;stop=$false;requestId='request'}
-  $script:ready=@{state='running';requestId='request';generation='generation';browserId='browser';daemonPid=22;runtimeHash=$runtimeHash;themeHash=$themeHash;at=[datetime]::UtcNow.ToString('o');renderers=@(@{installed=$true;imageLoaded=$true;version='test-theme'})}
+  $script:ready=@{state='running';requestId='request';generation='generation';browserId='browser';daemonPid=22;runtimeHash=$runtimeHash;themeHash=$themeHash;at=[datetime]::UtcNow.ToString('o');renderers=@(@{installed=$true;ready=$true;imageLoaded=$true;version='test-theme'})}
 }
 function Can-Reuse {
   [IO.File]::WriteAllText($controlPath,($script:control|ConvertTo-Json -Depth 5))
@@ -147,8 +147,8 @@ Check 'incomplete status does not bypass normal recovery' (-not (Test-BocchiComp
 $source=Get-Content -LiteralPath $target -Raw -Encoding utf8
 Check 'coalescing limited to queued start or resume' ($source.Contains('$gate.waited -and $Action -in @(''Start'',''Resume'')'))
 Check 'normal readiness and recovery preserved' ($source.Contains('if(-not (Wait-ThemeReady -State $state -RequestId $requestId))'))
-$baseline=Get-Content -LiteralPath $target -Raw -Encoding utf8
-Check 'no new process termination behavior' (([regex]::Matches($source,'Stop-Process')).Count -eq ([regex]::Matches($baseline,'Stop-Process')).Count)
+. (Join-Path $PSScriptRoot 'termination-contract.ps1')
+Assert-BocchiTerminationContract $ast
 $report=@{passed=$true;count=$checks.Count;checks=$checks;scope='isolated named-mutex process tests and fixture session checks; actual client untouched'}
 [IO.File]::WriteAllText((Join-Path $stage '.test-output/duplicate-start-checks.json'),($report|ConvertTo-Json -Depth 6),[Text.UTF8Encoding]::new($false))
 [ordered]@{passed=$report.passed;count=$report.count;scope=$report.scope}|ConvertTo-Json -Compress

@@ -6,7 +6,7 @@ Bring a little of Kessoku Band’s backstage world into your everyday chats and 
 
 **[Download for Windows](https://github.com/Eltamako/bocchi-codex-theme/releases/latest)** · [Install guide](docs/en/install.md) · [Troubleshooting](docs/en/troubleshooting.md) · [Upgrade or restore](docs/en/upgrade-restore.md)
 
-> **2.6.1 supports Windows x64, Codex app 26.1016.51333 / package 26.1016.6573.0.** Setup checks the version. The theme temporarily uses dark appearance when active, whether your preference is Light, Dark or System. Other client versions, macOS and Linux are outside this release’s supported scope.
+> **2.6.2 supports Windows x64, Codex app 26.1016.51333 / package 26.1016.6573.0.** Setup checks the version. The theme temporarily uses dark appearance when active, whether your preference is Light, Dark or System. Other client versions, macOS and Linux are outside this release’s supported scope.
 
 ## See it in the app
 
@@ -29,6 +29,15 @@ The Windows package includes its runtime; you don’t need to install Node.js se
 If first-time sign-in takes longer than the launcher’s wait, finish signing in and run **Resume.cmd**. Pausing the theme restores the window’s original appearance without overwriting your saved preference.
 
 Choose the Windows package for everyday use. **source.zip** and GitHub’s automatic **Source code** downloads are for development and do not include the runtime binary. [Full installation guide](docs/en/install.md)
+
+## 2.6.2 · Recovery and installation ownership fixes
+
+- Includes r3 generation cancellation and bounded animation-frame waits; retired work cannot replace a successor installation.
+- Distinguishes transient transport failures from identity/configuration errors. Continuous recovery is bounded to 60 seconds; Pause/Stop is checked every 250 ms during backoff.
+- Rejects foreign state paths in copied installation records; strengthens configuration checks and process identity guards.
+- Adds installation, recovery and process-identity regression coverage. Artwork and supported client versions are unchanged.
+- Theme 2.6.2; loader 1.2.2. Windows x64, Codex 26.1016.51333 / package 26.1016.6573.0.
+- Native repeated-start and real disconnect recovery remain unverified; see validation notes.
 
 ## 2.6.1 · Desktop shortcut and image-preview fixes
 
@@ -88,4 +97,4 @@ Original image references: the official Bocchi the Rock! anime account [@BTR_ani
 [Changelog](CHANGELOG.md) · [Development and packaging](docs/en/development.md)
 
 
-2.6.1 startup tip: after choosing Exit from the tray, open the theme shortcut directly. The launcher waits for exit to complete, and repeated clicks wait for the operation already in progress. Extract upgrades into a separate folder and keep the old package for rollback.
+2.6.2 startup tip: after choosing Exit from the tray, open the theme shortcut directly. The launcher waits for exit to complete, and repeated clicks wait for the operation already in progress. Extract upgrades into a separate folder and keep the old package for rollback.
