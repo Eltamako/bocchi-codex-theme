@@ -18,7 +18,9 @@ Run `node --test tests/*.test.mjs` on macOS for the shared Node regressions and 
 
 The native lifecycle evidence above belongs to the prototype package before this source-only rebase. The rebased contribution passed 48 Node tests (zero failed or skipped) and 18 headless renderer scenarios on 2026-10-25, including two explicit Windows legacy Chat/Work reader cases. The installed-app signature/version inspection also passed. A repeat live ownership probe could not proceed because the prototype owner process had exited; the rebased contribution has not repeated the authenticated native lifecycle run.
 
-Windows PowerShell 5.1/7 and macOS Node jobs are included in `.github/workflows/tests.yml`. Each PowerShell suite runs in a separate process to isolate its mocks. CI status is reported in the PR; CI tests do not log into or launch Codex.
+Windows PowerShell 5.1/7 and macOS Node jobs are included in `.github/workflows/tests.yml`. Each PowerShell suite runs in a separate process to isolate its mocks. CI tests do not log into or launch Codex.
+
+CI on 2026-10-25 passed all 48 Mac Node tests, 36 Windows Node tests and six of the seven Windows suites under each PowerShell host. The unchanged shortcut suite fails on the English hosted runner: COM shortcut readback changes the Chinese `入口.ps1` argument to `??.ps1`. Running the original upstream `e9b85c8` shortcut suite on the same runner reproduced the failure (exit 1; reported ANSI code page 1252). This is an existing Windows baseline failure, remains visible in CI and is not resolved by this Mac contribution. See the [diagnostic run](https://github.com/greppro/bocchi-codex-theme/actions/runs/40160837673); the PR links the latest run.
 
 ## Pending acceptance
 
