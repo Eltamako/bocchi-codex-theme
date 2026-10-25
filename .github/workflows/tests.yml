@@ -15,6 +15,37 @@ jobs:
           node-version: '24.19.0'
       - name: Node regression tests including macOS guards
         run: node --test tests/*.test.mjs
+      - name: Renderer fixtures and upstream Windows comparison
+        run: |
+          npm install --prefix "$RUNNER_TEMP/bocchi-browser" playwright@1.56.1
+          "$RUNNER_TEMP/bocchi-browser/node_modules/.bin/playwright" install chromium
+          git fetch --depth=1 origin e9b85c8712bf3922de6769c93af3deeaf9019b9a
+          git show e9b85c8712bf3922de6769c93af3deeaf9019b9a:theme/renderer.js > "$RUNNER_TEMP/upstream-renderer.js"
+          BOCCHI_PLAYWRIGHT_MODULE="$RUNNER_TEMP/bocchi-browser/node_modules/playwright/index.mjs" BOCCHI_BASELINE_RENDERER="$RUNNER_TEMP/upstream-renderer.js" node tools/test-renderer.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: renderer-regression-evidence
+          path: .test-output/renderer-macos-21828/results.json
+  windows-package:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+      - name: Check Windows manifest is current
+        run: |
+          node tools/update-checksums.mjs
+          git diff --exit-code -- CHECKSUMS.sha256
+      - name: Build and inspect Windows ZIP under PowerShell 5.1 and 7
+        shell: pwsh
+        run: |
+          $runtime = Join-Path $env:RUNNER_TEMP 'node-release.exe'
+          Invoke-WebRequest 'https://nodejs.org/dist/v24.19.0/win-x64/node.exe' -OutFile $runtime
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./tools/test-windows-package.ps1 -NodePath $runtime
+          if ($LASTEXITCODE -ne 0) { throw 'Windows package validation failed under PowerShell 5.1' }
+          & pwsh -NoProfile -File ./tools/test-windows-package.ps1 -NodePath $runtime
+          if ($LASTEXITCODE -ne 0) { throw 'Windows package validation failed under PowerShell 7' }
   windows:
     runs-on: windows-latest
     steps:
@@ -23,7 +54,7 @@ jobs:
         with:
           node-version: '24.19.0'
       - name: Existing Windows Node regression tests
-        run: node --test tests/wallpaper-store.test.mjs tests/environment.test.mjs tests/language.test.mjs tests/runtime-install.test.mjs tests/runtime-recovery.test.mjs
+        run: node --test tests/wallpaper-store.test.mjs tests/environment.test.mjs tests/language.test.mjs tests/runtime-install.test.mjs tests/runtime-recovery.test.mjs tests/windows-runtime.test.mjs
       - name: Windows PowerShell 5.1 regression tests
         shell: powershell
         run: |

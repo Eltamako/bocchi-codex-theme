@@ -10,6 +10,7 @@ const root=path.resolve(import.meta.dirname,'..'),out=path.join(root,'.test-outp
 await fs.mkdir(out,{recursive:true});
 const adapter=JSON.parse(await fs.readFile(path.join(root,'macos/adapter.json'),'utf8'));
 const source=await fs.readFile(path.join(root,'theme/renderer.js'),'utf8');
+const baseline=process.env.BOCCHI_BASELINE_RENDERER?await fs.readFile(process.env.BOCCHI_BASELINE_RENDERER,'utf8'):null;
 const payload={adapter,appVersion:adapter.appVersion,css:await fs.readFile(path.join(root,'theme/theme.css'),'utf8'),messages:JSON.parse(await fs.readFile(path.join(root,'theme/messages.json'),'utf8')),wallpaperCatalog:(await new WallpaperCatalog(path.join(root,'theme')).load()).catalog,initialWallpaperId:'night-stage',selectionBridge:{binding:'__BOCCHI_SELECT_WALLPAPER__',token:'a'.repeat(32)},installGeneration:'b'.repeat(32),loaderGeneration:'fixture',sticker:'data:image/png;base64,'+(await fs.readFile(path.join(root,'theme/sticker.png'))).toString('base64'),bandSticker:'data:image/png;base64,'+(await fs.readFile(path.join(root,'theme/band-sticker.png'))).toString('base64')};
 const browser=await chromium.launch({headless:true,...(process.env.BOCCHI_CHROME_EXECUTABLE?{executablePath:process.env.BOCCHI_CHROME_EXECUTABLE}:{})});
 const results=[];
@@ -20,8 +21,8 @@ function fixture(mode='chat',kind='composer'){
  *{box-sizing:border-box}body{margin:0;font:16px system-ui;color:#ddd}html[data-theme=light] body{color:#333;background:#eee}html[data-theme=dark] body{background:#17171e;color:#eee}aside{position:absolute;width:240px;inset:0 auto 0 0;background:#222}main{position:relative;margin-left:240px;width:calc(100% - 240px);height:900px}header{height:56px}section{height:844px;position:relative}.thread-scroll-container{height:100%;position:relative}.mx-auto{margin-left:auto;margin-right:auto}.max-w-chat{max-width:720px;width:90%}.reader{height:520px;padding:24px}footer{position:absolute;bottom:32px;left:0;right:0}[data-composer-body]{padding:20px;border:1px solid #888;border-radius:24px;min-height:100px}[contenteditable]{min-height:50px}.sidebar-title{padding:22px}h1{margin:0 0 16px}
  </style></head><body><div data-app-shell-active-page="true"><aside data-app-shell-left-panel-appearance><div class="sidebar-title">Fixture sidebar</div></aside><main data-app-shell-main-surface="default"><header data-app-shell-titlebar="true"><span>Mac titlebar fixture</span></header><section data-app-shell-focus-area="main"><div class="thread-scroll-container" data-pip-anchor-host="codex-main-thread"><div class="reader mx-auto max-w-chat" ${reader}><h1>孤独摇滚 · ${mode} 测试夹具</h1><p>阅读区与输入框布局验证。这里不包含用户聊天内容。</p></div><footer data-thread-scroll-footer="true"><div class="mx-auto max-w-chat" data-pip-obstacle="thread-footer"><div data-codex-composer-root data-composer-placement="thread">${input}</div></div></footer></div></section></main></div></body></html>`;
 }
-async function install(page,overrides={}){
- await page.addScriptTag({content:source});
+async function install(page,overrides={},renderer=source){
+ await page.addScriptTag({content:renderer});
  return page.evaluate(async data=>{
   window.__BOCCHI_SELECT_WALLPAPER__=async raw=>{const r=JSON.parse(raw),a=window.__BOCCHI_THEME__;if((await a.prepareWallpaper(r.id,r.requestId)).ok)a.commitWallpaper(r.id,r.requestId);};
   return installBocchiTheme({...data,leaseUntil:Date.now()+120000});
@@ -54,6 +55,28 @@ try{
   assert.equal(result.installed,true,result.reason);assert.equal(result.reader,true);assert.equal(result.mode,mode);
   results.push({test:'Windows legacy '+mode+' reader path unchanged',passed:true});
   await page.evaluate(()=>window.__BOCCHI_THEME__.remove());
+ }
+ if(baseline){
+  const chat=fixture('chat').replace('fixture-conversation-id','true');
+  const cases=[['Chat reader',chat],['Work reader',fixture('work')],['Chat fallback reader',chat.replace('data-chatgpt-conversation-selection-target="true" data-thread-find-target="conversation"','data-thread-user-message-navigation-content="true"')],['Chat without reader',chat.replace('data-chatgpt-conversation-selection-target="true" data-thread-find-target="conversation"','')],['Chat duplicate legacy readers',chat.replace('<footer','<div class="reader mx-auto max-w-chat" data-chatgpt-conversation-selection-target="true">Second reader</div><footer')]];
+  for(const [name,html] of cases){
+   const observations=[];
+   for(const renderer of [baseline,source]){
+    await page.setViewportSize({width:1440,height:900});await page.setContent(html);
+    await install(page,{adapter:windows,appVersion:windows.appVersion},renderer);
+    const states=[];
+    for(const width of [1440,800]){
+     await page.setViewportSize({width,height:900});
+     await page.waitForFunction(()=>window.__BOCCHI_THEME__?.state.ready);
+     states.push(await page.evaluate(()=>{const s=window.__BOCCHI_THEME__.refresh();return Object.fromEntries(['installed','ready','mode','reader','inputKind','wallpaperId','starryVisible','contentWidth','columnLeft','columnWidth'].map(k=>[k,s[k]]));}));
+    }
+    const cleanup=await page.evaluate(()=>{window.__BOCCHI_THEME__.remove();return{nodes:document.querySelectorAll('[data-bocchi-owned]').length,styles:document.querySelectorAll('#bocchi-theme-style-v2').length,theme:document.documentElement.dataset.theme};});
+    assert.deepEqual(cleanup,{nodes:0,styles:0,theme:'light'});
+    observations.push({states,cleanup});
+   }
+   assert.deepEqual(observations[1],observations[0],name+' differs from upstream Windows behavior');
+   results.push({test:'Windows upstream/current equivalence: '+name+' at 1440/800px and cleanup',passed:true});
+  }
  }
  const report={scope:'Headless Chromium fixtures using installed-client markers; not native Mac window visual acceptance',appVersion:adapter.appVersion,build:adapter.packageVersion,results};await fs.writeFile(path.join(out,'results.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
 }finally{await browser.close();}

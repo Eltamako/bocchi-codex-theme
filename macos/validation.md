@@ -31,3 +31,15 @@ CI on 2026-10-25 passed all 48 Mac Node tests, 36 Windows Node tests and six of 
 - Maintainer review of Mac directory/release layout and inherited-helper policy.
 
 The source contribution includes no app code, runtime binary, profile, token, local installation record or raw user log. Artwork and its licensing/attribution are unchanged.
+
+## Maintainer review follow-up (2026-10-25)
+
+`CHECKSUMS.sha256` now lists Windows distribution files only. It retains every upstream Windows manifest path and adds only the Windows payload/endpoint regression and Windows ZIP test. `.command`, `macos/`, `.github/`, Mac engine modules/tests and Mac tools are excluded. `build-release.ps1` also rejects these entries in a stale or edited manifest before opening the archive. Mac continues to use `build-macos.py` and the archive's independent `CHECKSUMS-macos.sha256`.
+
+The dedicated `windows-package` CI job builds a real Windows ZIP with the hash-verified official Node runtime under both PowerShell 5.1 and 7. It compares the full ZIP contents to the Windows manifest, checks required launchers and adapter, runs the Windows payload/endpoint tests from the extracted package without Mac files, and rejects six mixed manifests. This job runs independently of the pre-existing shortcut failure.
+
+The renderer harness can compare the original upstream `e9b85c8` renderer with the current renderer using the same Windows adapter. It exercises Chat/Work readers, the fallback reader, no reader, and duplicate legacy readers at 1440px and 800px, comparing readiness, geometry and cleanup. The macOS CI job preserves the result JSON as `renderer-regression-evidence`. These remain fixtures, not authenticated native client acceptance.
+
+Boundary review: launch and Resume verify the OpenAI signer and exact version/build; each target-discovery pass probes the disk version and process/socket identity. The Mac launcher creates only package-owned `.local/managed-profile` and `.local/codex-home`, refuses symlink directories, and does not copy ordinary account data. Stop controls the loader and keeps the client open. Terminal identity errors fail closed and stop reconnecting; if cleanup cannot reach the renderer, the 12-second heartbeat lease removes the theme after its last renewal. No command kills clients by application name or deletes user profiles. `SIGKILL` cannot run immediate cleanup, so lease expiration rather than immediate removal is the expected bound. A launcher crash can leave an operation lock; the documented recovery requires confirming no launch operation is running and removing only that lock, not the profile.
+
+Native input and screenshots are still unavailable through Computer Use (`com.openai.codex` is denied by the tool). Sending messages, uploading a harmless attachment, switching all wallpapers and resizing the native window require a human run. Record each result in `macos/native-acceptance.md`; do not mark these scenarios passed from CI evidence.

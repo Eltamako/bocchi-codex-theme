@@ -15,6 +15,7 @@ $files=@()
 foreach($line in (Get-Content -LiteralPath (Join-Path $root 'CHECKSUMS.sha256') -Encoding utf8)){
   if($line -notmatch '^([a-fA-F0-9]{64})  (.+)$'){throw '源码校验清单格式不完整。'}
   $expected=$Matches[1];$relative=$Matches[2]
+  if($relative -match '(^|/)(macos|\.github)(/|$)|\.command$|^engine/(macos-[^/]+|node-darwin-arm64)$|^tests/macos-|^tools/(build-macos\.py|inspect-macos\.py|test-macos-session\.mjs|test-renderer\.mjs)$'){throw ('Windows manifest contains a non-Windows release file: '+$relative)}
   if($relative -match '(^/|\\|:|(^|/)\.\.?(/|$))' -or $relative -match '(^|/)(\.local|\.test-output|dist|installation\.json|node\.exe|managed-profile)(/|$)' -or $relative -match '\.(log|lnk|zip)$'){throw '清单包含本机数据或不支持的路径。'}
   $current=$root
   foreach($part in $relative.Split('/')){

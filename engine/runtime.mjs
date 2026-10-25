@@ -120,8 +120,8 @@ if(action==='restore'){
  while(running){
   try{
    const control=JSON.parse(await fs.readFile(controlPath,'utf8'));requestId=typeof control.requestId==='string'?control.requestId:null;
-   if(control.stop){let cleanup;try{cleanup=await removeAll();}catch{}await status({state:'stopped',cleanup,at:new Date().toISOString()});break;}
-   if(control.paused){if(lastPaused!==true)lastCleanup=await removeAll();lastPaused=true;await status({state:'paused',cleanup:lastCleanup,at:new Date().toISOString()});}
+   if(control.stop){let cleanup;try{cleanup=await removeAll();}catch{}await status({state:'stopped',...(state.platform==='darwin'?{cleanup}:{}),at:new Date().toISOString()});break;}
+   if(control.paused){if(lastPaused!==true)lastCleanup=await removeAll();lastPaused=true;await status({state:'paused',...(state.platform==='darwin'?{cleanup:lastCleanup}:{}),at:new Date().toISOString()});}
    else{
     lastPaused=false;
     if(retryDeadline!==null&&Date.now()>=retryDeadline){await status({state:'stopped',reason:'recovery-window-expired',failureCount,at:new Date().toISOString()});break;}
