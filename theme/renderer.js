@@ -1029,13 +1029,24 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
       if(editors.length!==1)throw new Error('required-markers-missing');
       editor=editors[0];body=editor.closest(adapter.composerBody);
       if(!body||!main.contains(editor))throw new Error('composer-outside-main');
-      mode=editor.matches(adapter.localWorkComposer)?'work':adapter.chatLabels.includes(editor.getAttribute('aria-label'))?'chat':null;
-      if(!mode)throw new Error('unknown-mode');
       if(adapter.platform==='darwin'){
-        const readers=[...main.querySelectorAll(mode==='work'?adapter.workReader:adapter.chatReader)].filter(inMain);
-        if(readers.length>1)throw new Error('ambiguous-conversation-reader');
-        reader=readers[0]||null;
+        const chatReaders=[...main.querySelectorAll(adapter.chatReader)].filter(inMain);
+        const workReaders=[...main.querySelectorAll(adapter.workReader)].filter(inMain);
+        const workEditor=editor.matches(adapter.localWorkComposer),chatLabel=adapter.chatLabels.includes(editor.getAttribute('aria-label'));
+        Object.assign(state.layoutProbe,{workEditor,chatLabelRecognized:chatLabel,chatReaders:chatReaders.length,workReaders:workReaders.length});
+        if(chatReaders.length>1||workEditor&&workReaders.length>1)throw new Error('ambiguous-conversation-reader');
+        if(workEditor&&chatReaders.length)throw new Error('ambiguous-conversation-mode');
+        // Archived native Chat uses the same conversation-ID reader while its
+        // accessible composer label can differ. The unique inspected reader,
+        // inside the verified main surface, identifies this mode without labels.
+        // The user-message-navigation/portal reader also appears in native Chat;
+        // it is not a Work mode discriminator and must not override this marker.
+        mode=workEditor?'work':chatLabel||chatReaders.length===1?'chat':null;
+        if(!mode)throw new Error('unknown-mode');
+        reader=(mode==='chat'?chatReaders:workReaders)[0]||null;
       }else{
+        mode=editor.matches(adapter.localWorkComposer)?'work':adapter.chatLabels.includes(editor.getAttribute('aria-label'))?'chat':null;
+        if(!mode)throw new Error('unknown-mode');
         reader=[...main.querySelectorAll(adapter.chatReader)].find(inMain)||[...main.querySelectorAll('[data-thread-user-message-navigation-content]')].find(inMain)||null;
       }
       scroll=editor.closest('.thread-scroll-container');

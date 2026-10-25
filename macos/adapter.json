@@ -14,7 +14,7 @@
     "Ask ChatGPT",
     "Message ChatGPT"
   ],
-  "status": "experimental-macos-work-home-verified",
+  "status": "experimental-macos-native-chat-work-renderer-verified",
   "validationScope": "See macos/validation.md for prototype native checks and source contribution test boundaries.",
   "visualDesign": "six-wallpapers-matched-scenes-and-poster-r1",
   "assetPolicy": "Approved native main images preserved; registered winter floor and quiet poster plate; uniform framing and CSS masks",
@@ -39,7 +39,7 @@
   "workThreadScroll": ".thread-scroll-container[data-pip-anchor-host=\"codex-main-thread\"]",
   "workReader": "[data-thread-user-message-navigation-content=\"true\"][data-mcp-app-portal-target=\"true\"]",
   "workSubmittingInput": "[data-composer-input] > [role=\"textbox\"][aria-busy=\"true\"][aria-readonly=\"true\"][data-composer-input-layout=\"multiline\"][data-composer-input-variant=\"default\"]",
-  "inputStateRevision": "macos-conversation-id-reader-20261025",
+  "inputStateRevision": "macos-archived-chat-mode-20261025",
   "validatedOn": "2026-10-25",
   "platform": "darwin"
 }

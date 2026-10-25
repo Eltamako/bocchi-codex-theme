@@ -48,6 +48,32 @@ try{
  await page.setContent(fixture());const rejected=await install(page,{appVersion:'26.1021.99999'});assert.equal(rejected.reason,'version-mismatch');assert.equal(await page.locator('[data-bocchi-owned]').count(),0);results.push({test:'unsupported version rejected before mutation',passed:true});
  await page.setContent(fixture());await page.locator('.reader').evaluate(el=>el.after(el.cloneNode(true)));const ambiguous=await install(page);assert.equal(ambiguous.reason,'ambiguous-conversation-reader');assert.equal(await page.locator('[data-bocchi-owned]').count(),0);results.push({test:'ambiguous reader rejected and cleaned',passed:true});
  await page.setContent(fixture());await install(page);await page.evaluate(()=>window.__BOCCHI_THEME__.heartbeat(Date.now()+300));await page.waitForFunction(()=>!window.__BOCCHI_THEME__);assert.equal(await page.locator('[data-bocchi-owned]').count(),0);results.push({test:'expired loader lease cleans renderer',passed:true});
+ await page.setContent(fixture().replace('aria-label="Ask ChatGPT"','aria-label="Archived conversation input"'));
+ const archived=await install(page);assert.equal(archived.installed,true,archived.reason);assert.equal(archived.mode,'chat');assert.equal(archived.reader,true);assert.equal(archived.layoutProbe.chatLabelRecognized,false);
+ results.push({test:'Mac archived Chat uses its unique native reader without a recognized composer label',passed:true});
+ await page.evaluate(()=>{
+  window.__BOCCHI_TEST_API__=window.__BOCCHI_THEME__;
+  const reader=document.querySelector('.reader'),next=document.createElement('div');
+  next.className='reader mx-auto max-w-chat';next.textContent='Another archived fixture';next.setAttribute('data-thread-find-target','conversation');
+  next.setAttribute('data-chatgpt-conversation-selection-target','another-archived-id');reader.replaceWith(next);
+  document.querySelector('[contenteditable]').setAttribute('aria-label','Another archived input');
+  window.__BOCCHI_THEME__.refresh();
+ });
+ await page.waitForFunction(()=>window.__BOCCHI_THEME__?.state.ready);
+ assert(await page.evaluate(()=>window.__BOCCHI_THEME__===window.__BOCCHI_TEST_API__));
+ assert.equal((await page.evaluate(()=>window.__BOCCHI_THEME__.state)).wallpaperId,'night-stage');
+ results.push({test:'Mac archived Chat reader replacement retains the theme instance and wallpaper',passed:true});
+ await page.evaluate(()=>window.__BOCCHI_THEME__.remove());
+ await page.setContent(fixture().replace('aria-label="Ask ChatGPT"','aria-label="Unknown input"').replace('data-chatgpt-conversation-selection-target="fixture-conversation-id" data-thread-find-target="conversation"',''));
+ const unknown=await install(page);assert.equal(unknown.reason,'unknown-mode');assert.equal(await page.locator('[data-bocchi-owned]').count(),0);
+ results.push({test:'Unknown composer without a native Chat reader remains rejected',passed:true});
+ await page.setContent(fixture().replace('aria-label="Ask ChatGPT"','aria-label="Archived input"').replace('data-thread-find-target="conversation"','data-thread-find-target="conversation" data-thread-user-message-navigation-content="true" data-mcp-app-portal-target="true"'));
+ const sharedReader=await install(page);assert.equal(sharedReader.installed,true,sharedReader.reason);assert.equal(sharedReader.mode,'chat');
+ results.push({test:'Mac archived Chat may share the generic navigation/portal reader marker',passed:true});
+ await page.evaluate(()=>window.__BOCCHI_THEME__.remove());
+ await page.setContent(fixture().replace('contenteditable="true"','contenteditable="true" data-codex-composer="true"'));
+ const conflict=await install(page);assert.equal(conflict.reason,'ambiguous-conversation-mode');assert.equal(await page.locator('[data-bocchi-owned]').count(),0);
+ results.push({test:'Conflicting Mac Chat reader and explicit Work composer remain rejected',passed:true});
  const windows=JSON.parse(await fs.readFile(path.join(root,'theme/adapter.json'),'utf8'));
  for(const mode of ['chat','work']){
   await page.setContent(fixture(mode).replace('fixture-conversation-id','true'));
