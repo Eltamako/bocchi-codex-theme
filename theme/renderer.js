@@ -987,8 +987,10 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
   }
   function inspect(allowLight=false) {
     const pages=[...document.querySelectorAll(adapter.activePage)];
+    if(adapter.platform==='darwin')state.layoutProbe={activePages:pages.length,appearance:['light','dark'].includes(root.dataset.theme)?root.dataset.theme:'unknown',rtl:root.dir==='rtl'};
     if(pages.length!==1||!(root.dataset.theme==='dark'||allowLight&&root.dataset.theme==='light')||root.dir==='rtl')throw new Error('unknown-active-page-or-layout');
     const page=pages[0],surfaces=[...page.querySelectorAll(adapter.surface)].filter(visible);
+    if(adapter.platform==='darwin')state.layoutProbe.surfaces=surfaces.length;
     if(surfaces.length!==1)throw new Error('required-surface-missing');
     const main=surfaces[0];
     // Side-panel chats are a separate app surface even though they share <main>.
@@ -1029,7 +1031,13 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
       if(!body||!main.contains(editor))throw new Error('composer-outside-main');
       mode=editor.matches(adapter.localWorkComposer)?'work':adapter.chatLabels.includes(editor.getAttribute('aria-label'))?'chat':null;
       if(!mode)throw new Error('unknown-mode');
-      reader=[...main.querySelectorAll(adapter.chatReader)].find(inMain)||[...main.querySelectorAll('[data-thread-user-message-navigation-content]')].find(inMain)||null;
+      if(adapter.platform==='darwin'){
+        const readers=[...main.querySelectorAll(mode==='work'?adapter.workReader:adapter.chatReader)].filter(inMain);
+        if(readers.length>1)throw new Error('ambiguous-conversation-reader');
+        reader=readers[0]||null;
+      }else{
+        reader=[...main.querySelectorAll(adapter.chatReader)].find(inMain)||[...main.querySelectorAll('[data-thread-user-message-navigation-content]')].find(inMain)||null;
+      }
       scroll=editor.closest('.thread-scroll-container');
     }
     const composerColumn=columnFor(body,main,true),readerColumn=reader?columnFor(reader,main):null;
@@ -1359,6 +1367,8 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
   window.__BOCCHI_INSTALL__=installation;
   leaseTimer=setInterval(()=>{if(Date.now()>=expiresAt)remove('expired-loader-lease');},250);
   try {
+    // Unsupported/login/browser pages need no raster decoding while suspended.
+    if(adapter.platform==='darwin'){inspect(true);assertCurrent();}
     validateCatalog();currentAssets=await awaitCurrent(loadWallpaper(initialWallpaperId));
     const wallpaper=currentAssets.main,small=await awaitCurrent(decodeAsset(sticker)),band=await awaitCurrent(decodeAsset(bandSticker));
     assertCurrent();

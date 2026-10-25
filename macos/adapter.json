@@ -1,0 +1,45 @@
+{
+  "schema": "bocchi-codex-adapter/1",
+  "themeVersion": "2.6.2",
+  "appVersion": "26.1021.31345",
+  "packageVersion": "21828",
+  "activePage": "[data-app-shell-active-page=\"true\"]",
+  "surface": "[data-app-shell-main-surface]",
+  "composer": "[data-composer-markdown][contenteditable=\"true\"]",
+  "composerBody": "[data-composer-body]",
+  "chatReader": "[data-chatgpt-conversation-selection-target][data-thread-find-target=\"conversation\"]",
+  "localWorkComposer": "[data-codex-composer=\"true\"]",
+  "chatLabels": [
+    "询问 ChatGPT",
+    "Ask ChatGPT",
+    "Message ChatGPT"
+  ],
+  "status": "experimental-macos-work-home-verified",
+  "validationScope": "See macos/validation.md for prototype native checks and source contribution test boundaries.",
+  "visualDesign": "six-wallpapers-matched-scenes-and-poster-r1",
+  "assetPolicy": "Approved native main images preserved; registered winter floor and quiet poster plate; uniform framing and CSS masks",
+  "layoutTargets": {
+    "main1119": {
+      "left": 100.7,
+      "width": 621
+    },
+    "main986": {
+      "left": 56,
+      "width": 560
+    },
+    "rightPanel": {
+      "left": 44,
+      "width": "available minus 88"
+    }
+  },
+  "cleanupPolicy": "owned elements and recorded attributes/styles only; full teardown on unsupported markers or expired lease",
+  "upstream": "https://github.com/CCDawn/Codex-Dynamic-Skin/tree/5a0e74043b63ed9518ab37cdcf6865340a57006c",
+  "requestCard": "[data-codex-composer-request-navigation=\"true\"]",
+  "workComposerRoot": "[data-codex-composer-root][data-composer-placement=\"thread\"]",
+  "workThreadScroll": ".thread-scroll-container[data-pip-anchor-host=\"codex-main-thread\"]",
+  "workReader": "[data-thread-user-message-navigation-content=\"true\"][data-mcp-app-portal-target=\"true\"]",
+  "workSubmittingInput": "[data-composer-input] > [role=\"textbox\"][aria-busy=\"true\"][aria-readonly=\"true\"][data-composer-input-layout=\"multiline\"][data-composer-input-variant=\"default\"]",
+  "inputStateRevision": "macos-conversation-id-reader-20261025",
+  "validatedOn": "2026-10-25",
+  "platform": "darwin"
+}

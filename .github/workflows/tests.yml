@@ -1,0 +1,42 @@
+name: Platform regression tests
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+      - name: Node regression tests including macOS guards
+        run: node --test tests/*.test.mjs
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+      - name: Existing Windows Node regression tests
+        run: node --test tests/wallpaper-store.test.mjs tests/environment.test.mjs tests/language.test.mjs tests/runtime-install.test.mjs tests/runtime-recovery.test.mjs
+      - name: Windows PowerShell 5.1 regression tests
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($test in @('shortcut', 'instance-guard', 'readiness', 'startup', 'duplicate-start', 'installation-guard', 'termination-behavior')) {
+            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "./tests/$test.test.ps1"
+            if ($LASTEXITCODE -ne 0) { throw "Regression failed: $test" }
+          }
+      - name: PowerShell 7 regression tests
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($test in @('shortcut', 'instance-guard', 'readiness', 'startup', 'duplicate-start', 'installation-guard', 'termination-behavior')) {
+            & pwsh -NoProfile -File "./tests/$test.test.ps1"
+            if ($LASTEXITCODE -ne 0) { throw "Regression failed: $test" }
+          }

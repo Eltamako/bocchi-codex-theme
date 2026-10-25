@@ -32,7 +32,7 @@ async function json(url){
   throw error;
  }
 }
-async function getTargets(){const version=await json('http://127.0.0.1:'+state.port+'/json/version');wsUrl(version.webSocketDebuggerUrl,'browser',state.browserId);const list=await json('http://127.0.0.1:'+state.port+'/json/list');return list.filter(x=>x.type==='page'&&x.url==='app://-/index.html').map(x=>({...x,webSocketDebuggerUrl:wsUrl(x.webSocketDebuggerUrl,'page',x.id)}));}
+async function getTargets(){if(state.platform==='darwin'){if(process.platform!=='darwin')throw Error('Mac runtime requires macOS');await (await import('./macos-app.mjs')).verifyMacApp(state);await (await import('./macos-identity.mjs')).verifyMacOwner(state);}const version=await json('http://127.0.0.1:'+state.port+'/json/version');wsUrl(version.webSocketDebuggerUrl,'browser',state.browserId);const list=await json('http://127.0.0.1:'+state.port+'/json/list');return list.filter(x=>x.type==='page'&&x.url==='app://-/index.html').map(x=>({...x,webSocketDebuggerUrl:wsUrl(x.webSocketDebuggerUrl,'page',x.id)}));}
 function cdpFailure(error){
  const transient=['Cannot find context with specified id','Cannot find default execution context','Execution context was destroyed.','Inspected target navigated or closed'];
  return transient.includes(error?.message)?transientError('CONTEXT_CHANGED','Main context changed'):Error('CDP command rejected');
@@ -52,9 +52,9 @@ async function status(value){return atomicJson(statusPath,{...value,generation:s
 async function payload(){
  const dir=path.join(root,'theme'),names=['adapter.json','theme.css','renderer.js','messages.json','sticker.png','band-sticker.png'];
  const metadata=await Promise.all(names.map(async name=>{const s=await fs.stat(path.join(dir,name),{bigint:true});return name+':'+[s.ino,s.size,s.mtimeNs,s.ctimeNs].join(':');}));
- const loaded=await catalogReader.load();const signature=metadata.join('|');
+ const loaded=await catalogReader.load();const signature=metadata.join('|')+(state.platform==='darwin'?'|'+await fs.readFile(path.join(root,'macos','adapter.json'),'utf8'):'');
  if(assetCache?.signature===signature&&assetCache.catalog===loaded.catalog)return{...assetCache,warning:loaded.warning};
- const adapter=JSON.parse(await fs.readFile(path.join(dir,'adapter.json'),'utf8'));if(adapter.appVersion!==state.appVersion||adapter.packageVersion!==state.packageVersion)throw Error('Adapter version mismatch');
+ const adapter=JSON.parse(await fs.readFile((state.platform==='darwin'?path.join(root,'macos','adapter.json'):path.join(dir,'adapter.json')),'utf8'));if(adapter.appVersion!==state.appVersion||adapter.packageVersion!==state.packageVersion)throw Error('Adapter version mismatch');
  const [css,source,sticker,bandSticker]=await Promise.all([fs.readFile(path.join(dir,'theme.css'),'utf8'),fs.readFile(path.join(dir,'renderer.js'),'utf8'),fs.readFile(path.join(dir,'sticker.png')),fs.readFile(path.join(dir,'band-sticker.png'))]);
  if(css.length>128000||source.length>128000)throw Error('Unexpected theme asset');validatePng(sticker);validatePng(bandSticker);
  const messages=JSON.parse(await fs.readFile(path.join(dir,'messages.json'),'utf8'));
@@ -111,17 +111,17 @@ async function cleanSession(s){
  catch{const list=await getTargets();if(list.length===1&&list[0].id===s.targetId){const fresh=await connect(list[0].webSocketDebuggerUrl);try{if(s.earlyId)await fresh.call('Page.removeScriptToEvaluateOnNewDocument',{identifier:s.earlyId});if(await evaluate(fresh,cancelExpression(s.installGeneration)))await fresh.call('Runtime.removeBinding',{name:BINDING});}finally{fresh.close();}}}
  finally{s.off();s.c.close();}
 }
-async function removeAll(){for(const s of sessions.values()){try{await cleanSession(s);}catch{}}sessions.clear();const list=await getTargets();if(list.length>1)throw Error('Exactly one verified main renderer required');for(const target of list){const c=await connect(target.webSocketDebuggerUrl);try{if(await evaluate(c,loaderCleanupExpression()))await c.call('Runtime.removeBinding',{name:BINDING});}finally{c.close();}}}
+async function removeAll(){for(const s of sessions.values()){try{await cleanSession(s);}catch{}}sessions.clear();const list=await getTargets();if(list.length>1)throw Error('Exactly one verified main renderer required');const cleanup=[];for(const target of list){const c=await connect(target.webSocketDebuggerUrl);try{if(await evaluate(c,loaderCleanupExpression()))await c.call('Runtime.removeBinding',{name:BINDING});if(state.platform==='darwin')cleanup.push(await evaluate(c,'({ownedNodes:document.querySelectorAll("[data-bocchi-owned]").length,themeStyles:document.querySelectorAll("#bocchi-theme-style-v2").length,themePresent:!!window.__BOCCHI_THEME__})'));}finally{c.close();}}return cleanup;}
 if(action==='restore'){
  await removeAll();const c=await connect(wsUrl('ws://127.0.0.1:'+state.port+'/devtools/browser/'+state.browserId,'browser',state.browserId));try{await c.call('Browser.close');}catch(e){if(!/Closed|timeout/i.test(e.message))throw e;}finally{c.close();}console.log('Managed window close requested; original appearance retained');
 }else if(action==='watch'||action==='once'){
- let lastHash='',failureCount=0,lastPaused=null,retryDeadline=null,retryAt=0;
+ let lastHash='',failureCount=0,lastPaused=null,lastCleanup=null,retryDeadline=null,retryAt=0;
  const recoveryWindowMs=60000,controlPollMs=250;
  while(running){
   try{
    const control=JSON.parse(await fs.readFile(controlPath,'utf8'));requestId=typeof control.requestId==='string'?control.requestId:null;
-   if(control.stop){try{await removeAll();}catch{}await status({state:'stopped',at:new Date().toISOString()});break;}
-   if(control.paused){if(lastPaused!==true)await removeAll();lastPaused=true;await status({state:'paused',at:new Date().toISOString()});}
+   if(control.stop){let cleanup;try{cleanup=await removeAll();}catch{}await status({state:'stopped',cleanup,at:new Date().toISOString()});break;}
+   if(control.paused){if(lastPaused!==true)lastCleanup=await removeAll();lastPaused=true;await status({state:'paused',cleanup:lastCleanup,at:new Date().toISOString()});}
    else{
     lastPaused=false;
     if(retryDeadline!==null&&Date.now()>=retryDeadline){await status({state:'stopped',reason:'recovery-window-expired',failureCount,at:new Date().toISOString()});break;}
@@ -150,4 +150,7 @@ if(action==='restore'){
  if(action==='watch'){try{await removeAll();}catch{}}
  if(!running)await status({state:'stopped',reason:'loader-stopped',at:new Date().toISOString()});
  for(const s of sessions.values()){s.disposed=true;invalidate(s);await finishCoordinator(s);s.off();s.c.close();}
+ // Node's native WebSocket can retain a transport after a terminal validation
+ // failure. Cleanup/status writes above are complete; end this loader only.
+ if(action==='watch'&&state.platform==='darwin')process.exit(0);
 }else throw Error('Unknown runtime action');

@@ -1,0 +1,297 @@
+{
+  "schema": "bocchi-mac-static-validation/1",
+  "source": "installed signed application",
+  "appPath": "/Applications/ChatGPT.app",
+  "appVersion": "26.1021.31345",
+  "build": "21828",
+  "bundleId": "com.openai.codex",
+  "signingRequirement": "=anchor apple generic and identifier \"com.openai.codex\" and certificate leaf[subject.OU] = \"2DC432GLL2\"",
+  "signatureVerified": true,
+  "inspectedOn": "2026-10-25",
+  "asarHeaderSha256": "8136307f304d7637b8fc70bf98e588ca474a44f364ce1e0fb70dcbad72c3d40e",
+  "selectors": {
+    "activePage": {
+      "selector": "[data-app-shell-active-page=\"true\"]",
+      "tokensPresent": true,
+      "missing": [],
+      "sources": {
+        "data-app-shell-active-page": [
+          "webview/assets/app-initial-feb30b196d11.js",
+          "webview/assets/app-primary-7d7313419f84.js",
+          "webview/assets/app-runtime-7eafc695f601.js",
+          "webview/assets/codex-micro-bridge-a2956a34f88d.js",
+          "webview/assets/composer-content-75731baf379a.js",
+          "webview/assets/dialog-f363abcf4aa5.js",
+          "webview/assets/thread-app-shell-chrome-91eb645a95f7.js"
+        ]
+      },
+      "sourceCounts": {
+        "data-app-shell-active-page": 7
+      }
+    },
+    "surface": {
+      "selector": "[data-app-shell-main-surface]",
+      "tokensPresent": true,
+      "missing": [],
+      "sources": {
+        "data-app-shell-main-surface": [
+          "webview/assets/app-primary-7d7313419f84.js",
+          "webview/assets/app-shared-2cae01273bae.js",
+          "webview/assets/dialog-f363abcf4aa5.js",
+          "webview/assets/settings-content-layout-5b11fcf439d5.js"
+        ]
+      },
+      "sourceCounts": {
+        "data-app-shell-main-surface": 4
+      }
+    },
+    "composer": {
+      "selector": "[data-composer-markdown][contenteditable=\"true\"]",
+      "tokensPresent": true,
+      "missing": [],
+      "sources": {
+        "data-composer-markdown": [
+          "webview/assets/app-initial-feb30b196d11.js",
+          "webview/assets/app-primary-7d7313419f84.js",
+          "webview/assets/app-runtime-7eafc695f601.js",
+          "webview/assets/local-conversation-page-3d1be8ff726a.js"
+        ],
+        "contenteditable": [
+          "webview/assets/annotation-comment-editor-card-db6371e13a63.js",
+          "webview/assets/annotation-editor-77a8f76bc999.js",
+          "webview/assets/app-initial-feb30b196d11.js",
+          "webview/assets/app-primary-7d7313419f84.js",
+          "webview/assets/app-shared-2cae01273bae.js",
+          "webview/assets/artifact-annotation-batch-controls-9e355f7cd0ca.js",
+          "webview/assets/artifact-comments-header-856c27e386e4.js",
+          "webview/assets/artifact-source-bootstrap-2d7d3d6e0342.js"
+        ]
+      },
+      "sourceCounts": {
+        "data-composer-markdown": 4,
+        "contenteditable": 61
+      }
+    },
+    "composerBody": {
+      "selector": "[data-composer-body]",
+      "tokensPresent": true,
+      "missing": [],
+      "sources": {
+        "data-composer-body": [
+          "webview/assets/app-initial-feb30b196d11.js",
+          "webview/assets/map-1dd687cacdff.js"
+        ]
+      },
+      "sourceCounts": {
+        "data-composer-body": 2
+      }
+    },
+    "chatReader": {
+      "selector": "[data-chatgpt-conversation-selection-target][data-thread-find-target=\"conversation\"]",
+      "tokensPresent": true,
+      "missing": [],
+      "sources": {
+        "data-chatgpt-conversation-selection-target": [
+          "webview/assets/chatgpt-conversation-page-60cdba72de29.js"
+        ],
+        "data-thread-find-target": [
+          "webview/assets/chatgpt-conversation-page-60cdba72de29.js",
+          "webview/assets/local-conversation-thread-f8411a03e6c2.js",
+          "webview/assets/remote-conversation-page-370277b96d9a.js",
+          "webview/assets/thread-side-panel-tab-content-11ed14558029.js"
+        ]
+      },
+      "sourceCounts": {
+        "data-chatgpt-conversation-selection-target": 1,
+        "data-thread-find-target": 4
+      }
+    },
+    "localWorkComposer": {
+      "selector": "[data-codex-composer=\"true\"]",
+      "tokensPresent": true,
+      "missing": [],
+      "sources": {
+        "data-codex-composer": [
+          "webview/assets/app-initial-feb30b196d11.js",
+          "webview/assets/app-primary-7d7313419f84.js",
+          "webview/assets/app-shared-2cae01273bae.js",
+          "webview/assets/codex-composer-adapter-8f303ad0f240.js",
+          "webview/assets/codex-micro-bridge-a2956a34f88d.js",
+          "webview/assets/composer-content-75731baf379a.js",
+          "webview/assets/composer-controls-956cbaf74bbc.js",
+          "webview/assets/floating-chat-surface-63c33fd45d48.js"
+        ]
+      },
+      "sourceCounts": {
+        "data-codex-composer": 14
+      }
+    },
+    "requestCard": {
+      "selector": "[data-codex-composer-request-navigation=\"true\"]",
+      "tokensPresent": true,
+      "missing": [],
+      "sources": {
+        "data-codex-composer-request-navigation": [
+          "webview/assets/app-initial-feb30b196d11.js",
+          "webview/assets/app-primary-7d7313419f84.js",
+          "webview/assets/codex-micro-bridge-a2956a34f88d.js",
+          "webview/assets/composer-content-75731baf379a.js",
+          "webview/assets/composer-controls-956cbaf74bbc.js"
+        ]
+      },
+      "sourceCounts": {
+        "data-codex-composer-request-navigation": 5
+      }
+    },
+    "workComposerRoot": {
+      "selector": "[data-codex-composer-root][data-composer-placement=\"thread\"]",
+      "tokensPresent": true,
+      "missing": [],
+      "sources": {
+        "data-codex-composer-root": [
+          "webview/assets/app-initial-feb30b196d11.js",
+          "webview/assets/app-primary-7d7313419f84.js",
+          "webview/assets/codex-composer-adapter-8f303ad0f240.js",
+          "webview/assets/codex-micro-bridge-a2956a34f88d.js",
+          "webview/assets/composer-content-75731baf379a.js",
+          "webview/assets/composer-controls-956cbaf74bbc.js",
+          "webview/assets/pierre-file-editor-e358287701bc.js",
+          "webview/assets/workspace-bce62be12333.js"
+        ],
+        "data-composer-placement": [
+          "webview/assets/app-primary-7d7313419f84.js",
+          "webview/assets/codex-composer-adapter-8f303ad0f240.js",
+          "webview/assets/page-36f31397e902.js",
+          "webview/assets/usage-1fa74ea0aaf6.js"
+        ]
+      },
+      "sourceCounts": {
+        "data-codex-composer-root": 8,
+        "data-composer-placement": 4
+      }
+    },
+    "workThreadScroll": {
+      "selector": ".thread-scroll-container[data-pip-anchor-host=\"codex-main-thread\"]",
+      "tokensPresent": true,
+      "missing": [],
+      "sources": {
+        "data-pip-anchor-host": [
+          "webview/assets/app-primary-7d7313419f84.js",
+          "webview/assets/onboarding-task-environment-eb9190c47e8d.js",
+          "webview/assets/remote-hosted-pip-anchor-bridge-b20d604ea799.js"
+        ],
+        "thread-scroll-container": [
+          "webview/assets/app-primary-7d7313419f84.js",
+          "webview/assets/bookmarked-thread-user-message-navigation-83816232f349.js",
+          "webview/assets/chatgpt-conversation-turn-content-2b28a90ef308.js",
+          "webview/assets/pending-auto-scroll-controller-6818f067a9f2.js",
+          "webview/assets/placement-d0e2524cc723.js",
+          "webview/assets/placement-presentation-3e5ff983afd0.js",
+          "webview/assets/preview-da30506cc34c.js",
+          "webview/assets/widget-8367811f39d7.js"
+        ]
+      },
+      "sourceCounts": {
+        "data-pip-anchor-host": 3,
+        "thread-scroll-container": 8
+      }
+    },
+    "workReader": {
+      "selector": "[data-thread-user-message-navigation-content=\"true\"][data-mcp-app-portal-target=\"true\"]",
+      "tokensPresent": true,
+      "missing": [],
+      "sources": {
+        "data-thread-user-message-navigation-content": [
+          "webview/assets/app-primary-7d7313419f84.js",
+          "webview/assets/static-thread-transcript-34265957f0ba.js",
+          "webview/assets/thread-user-message-navigation-rail-9cbf9c6f8c38.js",
+          "webview/assets/virtualized-turn-list-5f0b8c1edbc7.js"
+        ],
+        "data-mcp-app-portal-target": [
+          "webview/assets/app-primary-7d7313419f84.js",
+          "webview/assets/chatgpt-ecosystem-widget-5255325988a3.js",
+          "webview/assets/quick-action-dialog-b26062fe2386.js",
+          "webview/assets/tasks-80f745e722fb.js",
+          "webview/assets/view-frame-1de62f51a3a8.js",
+          "webview/assets/widget-8367811f39d7.js"
+        ]
+      },
+      "sourceCounts": {
+        "data-thread-user-message-navigation-content": 4,
+        "data-mcp-app-portal-target": 6
+      }
+    },
+    "workSubmittingInput": {
+      "selector": "[data-composer-input] > [role=\"textbox\"][aria-busy=\"true\"][aria-readonly=\"true\"][data-composer-input-layout=\"multiline\"][data-composer-input-variant=\"default\"]",
+      "tokensPresent": true,
+      "missing": [],
+      "sources": {
+        "data-composer-input": [
+          "webview/assets/app-initial-feb30b196d11.js",
+          "webview/assets/floating-chat-surface-63c33fd45d48.js"
+        ],
+        "role": [
+          "webview/assets/Button-9738cdd9017f.js",
+          "webview/assets/CartesianChart-21ce2e5504c0.js",
+          "webview/assets/CompilerIntrinsics-954b7b83f1a6.js",
+          "webview/assets/ComposedChart-3a595b92a583.js",
+          "webview/assets/DatePicker-2ca452a419ac.js",
+          "webview/assets/Markdown-832a4de8dbb0.js",
+          "webview/assets/OrbitControls-8f2a439aa566.js",
+          "webview/assets/PieChart-158b9a42faec.js"
+        ],
+        "aria-busy": [
+          "webview/assets/ComposedChart-3a595b92a583.js",
+          "webview/assets/DatePicker-2ca452a419ac.js",
+          "webview/assets/about-you-summary-c56bb2ffd68d.js",
+          "webview/assets/account-dialog-f0de65cd2a80.js",
+          "webview/assets/account-pin-query-a382eb05966f.js",
+          "webview/assets/accounts-valdi-46baf0544b9c.js",
+          "webview/assets/action-6e780a47941c.js",
+          "webview/assets/action-7f8b3bb94747.js"
+        ],
+        "aria-readonly": [
+          "webview/assets/ComposedChart-3a595b92a583.js",
+          "webview/assets/annotation-comment-editor-card-db6371e13a63.js",
+          "webview/assets/app-initial-feb30b196d11.js",
+          "webview/assets/chartLayoutContext-326c34e84b93.js",
+          "webview/assets/dist-adcd44b22fca.js",
+          "webview/assets/dist-cce20070b358.js",
+          "webview/assets/mathlive.min-c4bd9636f76e.js",
+          "webview/assets/renderer-b71ad4d4b28e.js"
+        ],
+        "data-composer-input-layout": [
+          "webview/assets/app-initial-feb30b196d11.js",
+          "webview/assets/floating-chat-surface-63c33fd45d48.js"
+        ],
+        "data-composer-input-variant": [
+          "webview/assets/app-initial-feb30b196d11.js"
+        ]
+      },
+      "sourceCounts": {
+        "data-composer-input": 2,
+        "role": 1700,
+        "aria-busy": 193,
+        "aria-readonly": 9,
+        "data-composer-input-layout": 2,
+        "data-composer-input-variant": 1
+      }
+    }
+  },
+  "sourceListPolicy": "Up to eight filenames per marker; sourceCounts records all matches. Marker presence does not prove DOM structure.",
+  "conversationReader": {
+    "attributeValue": "conversation ID, not boolean true",
+    "sources": [
+      "webview/assets/chatgpt-conversation-page-60cdba72de29.js"
+    ]
+  },
+  "profileIsolation": {
+    "environment": "CODEX_ELECTRON_USER_DATA_PATH",
+    "sources": [
+      ".vite/build/bootstrap-CoL4UX0u.js",
+      ".vite/build/main-0FVbxCQU.js",
+      ".vite/build/startup-requirements-CuyNnLmn.js"
+    ]
+  },
+  "limitation": "Installed source inspection and signature verification only. Live launch, layout and restoration evidence is recorded separately in macos/validation.md."
+}
