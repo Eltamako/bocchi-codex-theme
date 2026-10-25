@@ -98,3 +98,7 @@ Original image references: the official Bocchi the Rock! anime account [@BTR_ani
 
 
 2.6.2 startup tip: after choosing Exit from the tray, open the theme shortcut directly. The launcher waits for exit to complete, and repeated clicks wait for the operation already in progress. Extract upgrades into a separate folder and keep the old package for rollback.
+
+## Experimental macOS contribution
+
+Apple Silicon macOS support for ChatGPT / Codex 26.1021.31345 (21828) has a separate experimental launcher and adapter. It does not replace or expand the stable Windows release. See [macOS instructions and validation limits](macos/README.md).

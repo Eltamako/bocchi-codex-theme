@@ -1,5 +1,12 @@
 # 更新记录 / Changelog
 
+## Unreleased · 实验性 macOS Apple Silicon 支持
+
+- 新增独立 macOS 启动入口及 26.1021.31345（21828）适配器；保留 Windows 2.6.2 的版本配置和启动器。
+- Mac 连接前复核 OpenAI 签名/版本/进程/loopback 监听者；严格验证官方 Computer Use helper 继承的同一 socket。
+- Mac 使用会话 ID 阅读区选取与唯一性检查；未知页面等待，暂停/停止清理，独立配置不迁移普通客户端登录。
+- 新增 Mac 检查、源码/打包说明与隔离 CI。原型已实测 Work 首页及生命周期，完整原生 Chat/Work 和视觉验收仍待完成。
+
 ## 2.6.2 · 加载恢复与安装归属修复
 
 - 合并 r3：渲染安装按代际取消，过时任务不能覆盖新实例；requestAnimationFrame 等待有界，改善最小化后恢复。

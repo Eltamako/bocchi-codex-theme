@@ -1,0 +1,32 @@
+{
+  "schema": "bocchi-native-archived-chat/1",
+  "observedAt": "2026-10-25T11:58:44.551Z",
+  "appVersion": "26.1021.31345",
+  "rendererSha256": "216fdafaafab785f8ea63e5a6c3c5c7708885e3d631182201180d23f5d10c9c9",
+  "scope": "Theme-owned diagnostics on the user-selected old native Chat page; no chat text, labels, IDs, screenshots or account data captured.",
+  "renderer": {
+    "installed": true,
+    "ready": true,
+    "mode": "chat",
+    "reader": true,
+    "inputKind": "composer",
+    "layoutProbe": {
+      "activePages": 1,
+      "appearance": "dark",
+      "rtl": false,
+      "surfaces": 1,
+      "workEditor": false,
+      "chatLabelRecognized": true,
+      "chatReaders": 1,
+      "workReaders": 1
+    }
+  },
+  "limitations": [
+    "Human confirmed that older native Chat conversations lost the theme before this change.",
+    "Outgoing messages, attachment/request states and full visual acceptance remain unverified."
+  ],
+  "humanRetest": {
+    "result": "passed",
+    "scope": "User opened multiple older native Chat conversations and returned to a new conversation; all reliably restored the selected theme."
+  }
+}

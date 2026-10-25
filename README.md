@@ -8,7 +8,7 @@ A fan-made **Bocchi the Rock! anime theme for OpenAI Codex Desktop on Windows**:
 
 **[下载 Windows 完整包 / Download for Windows](https://github.com/Eltamako/bocchi-codex-theme/releases/latest)** · [安装说明](docs/使用说明.md) · [常见问题](docs/常见问题.md) · [恢复与回退](docs/恢复与回退.md)
 
-> **2.6.2 适配：Windows x64 · Codex 26.1016.51333（安装包 26.1016.6573.0）。** 安装会检查版本。主题启动后会临时使用深色显示，原先是浅色、深色或跟随系统都可以。其他客户端版本、macOS 和 Linux 不在本版适配范围内。
+> **2.6.2 适配：Windows x64 · Codex 26.1016.51333（安装包 26.1016.6573.0）。** 安装会检查版本。主题启动后会临时使用深色显示，原先是浅色、深色或跟随系统都可以。其他 Windows 客户端版本和 Linux 不在本版适配范围内。macOS Apple Silicon 的独立实验适配见 [macos/README.md](macos/README.md)，不属于本版正式 Windows 发行。
 
 ## 先看看实机效果
 

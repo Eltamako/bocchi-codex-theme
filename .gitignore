@@ -13,3 +13,10 @@ dist/
 *.zip
 Thumbs.db
 .DS_Store
+
+# Mac runtime and local validation artifacts
+/engine/node-darwin-arm64
+/CHECKSUMS-macos.sha256
+/macos/live-validation.json
+/macos/renderer-fixture-validation.json
+/macos/node-tests.txt
