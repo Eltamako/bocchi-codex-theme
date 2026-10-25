@@ -50,6 +50,8 @@ jobs:
         shell: pwsh
         run: |
           $baseline = Join-Path $env:RUNNER_TEMP 'bocchi-upstream-baseline'
+          git fetch --depth=1 origin e9b85c8712bf3922de6769c93af3deeaf9019b9a
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot fetch upstream baseline' }
           git worktree add --detach $baseline e9b85c8712bf3922de6769c93af3deeaf9019b9a
           if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect upstream baseline' }
           & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$baseline/tests/shortcut.test.ps1"
