@@ -23,6 +23,10 @@
   },
   "limitations": [
     "Human confirmed that older native Chat conversations lost the theme before this change.",
-    "Multiple-conversation navigation retest, outgoing messages, attachment/request states and full visual acceptance remain pending."
-  ]
+    "Outgoing messages, attachment/request states and full visual acceptance remain unverified."
+  ],
+  "humanRetest": {
+    "result": "passed",
+    "scope": "User opened multiple older native Chat conversations and returned to a new conversation; all reliably restored the selected theme."
+  }
 }

@@ -1,0 +1,30 @@
+{
+  "observedAt": "2026-10-25T12:02:25.330Z",
+  "appVersion": "26.1021.31345",
+  "build": "21828",
+  "results": [
+    {
+      "signal": "SIGTERM",
+      "passed": true,
+      "managedClientPreserved": true,
+      "ordinaryClientsPreserved": 1,
+      "selectionPreserved": true,
+      "loaderRestarted": true,
+      "rendererReady": true,
+      "mode": "chat"
+    },
+    {
+      "signal": "SIGKILL",
+      "passed": true,
+      "managedClientPreserved": true,
+      "ordinaryClientsPreserved": 1,
+      "selectionPreserved": true,
+      "loaderRestarted": true,
+      "rendererReady": true,
+      "mode": "chat"
+    }
+  ],
+  "limitation": "SIGKILL visual lease cleanup is not observed by this probe; it waits 13 seconds before Resume. No user content or screenshots read.",
+  "sourceCommit": "915076655f91d9eeb2afc1cfb983e6c031dd1fe8",
+  "rendererSha256": "216fdafaafab785f8ea63e5a6c3c5c7708885e3d631182201180d23f5d10c9c9"
+}
