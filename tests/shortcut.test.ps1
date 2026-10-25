@@ -12,14 +12,13 @@ Install-BocchiShortcut -Root $first -StateRoot $state -Desktop $desktop
 $link=Join-Path $desktop 'Bocchi Codex Theme.lnk'
 $shell=New-Object -ComObject WScript.Shell
 $created=$shell.CreateShortcut($link)
-# Windows shell links can canonicalize drive-letter case on readback.
-if($created.WorkingDirectory -ine $first -or -not $created.Arguments.Contains(('"'+(Join-Path $first '入口.ps1')+'"'))){throw ('Incorrect shortcut target or quoting. Expected directory: '+$first+'; actual: '+$created.WorkingDirectory+'; arguments: '+$created.Arguments)}
+if($created.WorkingDirectory -cne $first -or -not $created.Arguments.Contains(('"'+(Join-Path $first '入口.ps1')+'"'))){throw 'Incorrect shortcut target or quoting'}
 if($created.Arguments -notmatch '-WindowStyle Hidden' -or $created.Arguments -notmatch '-Action Start'){throw 'Unexpected launch arguments'}
 $hash=(Get-FileHash -LiteralPath $link).Hash
 Install-BocchiShortcut -Root $second -StateRoot $state -Desktop $desktop
 $backups=@(Get-ChildItem -LiteralPath (Join-Path $state 'backups') -Filter '*.lnk' -Recurse)
 if($backups.Count -ne 1 -or (Get-FileHash -LiteralPath $backups[0].FullName).Hash -cne $hash){throw 'Original shortcut not preserved'}
-if($shell.CreateShortcut($link).WorkingDirectory -ine $second){throw 'Shortcut not updated'}
+if($shell.CreateShortcut($link).WorkingDirectory -cne $second){throw 'Shortcut not updated'}
 Install-BocchiShortcut -Root $second -StateRoot $state -Desktop $desktop
 if(@(Get-ChildItem -LiteralPath (Join-Path $state 'backups') -Filter '*.lnk' -Recurse).Count -ne 1){throw 'Repeated setup produced another backup'}
 Write-Output 'PASS: create, quoted arguments, hidden launch, exact backup, update and idempotent shortcut setup. Test directory only; no desktop changes or launch.'
@@ -57,7 +56,7 @@ $iconSource=Join-Path $fakeApp 'resources\icon-chatgpt.ico';$stream=[IO.File]::C
 try{[Drawing.SystemIcons]::Application.Save($stream)}finally{$stream.Dispose()}
 Install-BocchiShortcut -Root $second -StateRoot $state -Desktop $desktop -Executable $fakeExe
 $expectedIcon=Join-Path $state 'icons\codex-app.ico'
-if($shell.CreateShortcut($link).IconLocation -ine ($expectedIcon+',0')){throw 'Application icon is not assigned'}
+if($shell.CreateShortcut($link).IconLocation -cne ($expectedIcon+',0')){throw 'Application icon is not assigned'}
 if((Get-FileHash -LiteralPath $expectedIcon).Hash -cne (Get-FileHash -LiteralPath $iconSource).Hash){throw 'Icon copy differs'}
 if((Get-BocchiShortcutIcon -StateRoot $state -Executable (Join-Path $env:SystemRoot 'notepad.exe')) -cne ((Join-Path $env:SystemRoot 'notepad.exe')+',0')){throw 'Executable icon fallback failed'}
 Write-Output 'PASS: local application icon copy and executable fallback; no icon bundled or downloaded.'
