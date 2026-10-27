@@ -6,9 +6,12 @@
 
 A fan-made **Bocchi the Rock! anime theme for OpenAI Codex Desktop on Windows**: six wallpapers, a STARRY picker and comfortable Chat / Work reading. [Read the English guide →](README.en.md)
 
-**[下载 Windows 完整包 / Download for Windows](https://github.com/Eltamako/bocchi-codex-theme/releases/latest)** · [安装说明](docs/使用说明.md) · [常见问题](docs/常见问题.md) · [恢复与回退](docs/恢复与回退.md)
+**[GitHub 发行页与下载](https://github.com/Eltamako/bocchi-codex-theme/releases)** · [安装说明](docs/使用说明.md) · [常见问题](docs/常见问题.md) · [恢复与回退](docs/恢复与回退.md)
 
-> **2.6.2 适配：Windows x64 · Codex 26.1016.51333（安装包 26.1016.6573.0）。** 安装会检查版本。主题启动后会临时使用深色显示，原先是浅色、深色或跟随系统都可以。其他客户端版本、macOS 和 Linux 不在本版适配范围内。
+
+2.7.0 保留已确认的六款画面，支持本地任务新窗口，并加强下载后安装检查。Windows 完整包独立发行；macOS 开发仍处于实验阶段。[平台与验证边界](docs/2.7-integration-notes.md)。
+
+> **2.7.0适配：Windows x64 · Codex 26.1021.31345（安装包 26.1021.3705.0）。** 请核对客户端版本，再选择对应主题包；旧版主题包不适用于此构建。
 
 ## 先看看实机效果
 
@@ -22,7 +25,7 @@ A fan-made **Bocchi the Rock! anime theme for OpenAI Codex Desktop on Windows**:
 
 ## 三步开始
 
-1. 在 [最新发行页](https://github.com/Eltamako/bocchi-codex-theme/releases/latest) 下载 **windows-x64.zip** 完整包，完整解压到准备长期保留、自己可以写入的文件夹。
+1. 从发行页选择与客户端匹配的 **Bocchi-Codex-Theme-2.7.0-windows-x64.zip** 完整包，完整解压到准备长期保留、自己可以写入的文件夹。
 2. 双击 **01-安装.cmd** 或 **Install.cmd**。检查通过后，桌面会出现 **Bocchi Codex Theme**。
 3. 先保存草稿、等正在处理的工作结束并退出普通 Codex 窗口，再双击桌面入口或 **02-启动主题.cmd / Start.cmd**。完成登录、进入 Chat 或 Work，主题会自动使用深色显示；点右上角 **STARRY** 挑选壁纸。
 
@@ -31,6 +34,16 @@ A fan-made **Bocchi the Rock! anime theme for OpenAI Codex Desktop on Windows**:
 如果首次登录耗时较长，完成登录后运行 **04-恢复主题.cmd / Resume.cmd** 即可。暂停主题后，窗口会恢复原外观；不会覆盖长期外观偏好。
 
 GitHub 的 **Source code** 和发行页的 **source.zip** 用于查看源码与开发，不是完整安装包。详细步骤见 [使用说明](docs/使用说明.md)。
+
+## 2.7.0 · 新版 Windows 适配
+
+- 本地任务选择“在新窗口中打开”后，也会自动加载壁纸。每个窗口可以保留自己的选择，新窗口沿用最近一次成功保存的壁纸；暂停和恢复作用于全部主题窗口。
+
+- 适配 Codex 26.1021.31345／安装包 26.1021.3705.0，主题 2.7.0，加载器 1.3.0。
+- 更新 Chat 正文识别，保留六款壁纸、已确认的画面与原有交互保护。
+- 修复英文代码页下桌面快捷方式中文路径损坏；使用 Unicode 读写并核对原始参数。
+- 客户端查询、安装清单、架构与版本问题分别提示，保留原界面和诊断代码。
+- 安装器核对发行清单后，仅处理清单内脚本的下载标记；不更改系统执行策略。Windows 包不包含实验性 macOS 功能。
 
 ## 2.6.2 · 加载恢复与安装归属修复
 
@@ -106,3 +119,5 @@ GitHub 的 **Source code** 和发行页的 **source.zip** 用于查看源码与�
 
 
 2.6.2 启动提醒：从托盘选择 Exit 后，可直接打开主题入口；启动器会等候退出完成。重复点击会等待已在进行的操作。新版请解压到独立文件夹，保留旧版用于回退。
+
+感谢 greppro 对 Mac 适配、平台打包边界和测试的投入，详见[协作致谢](THIRD_PARTY_NOTICES.md#协作致谢--contributor-thanks)。Mac 支持继续在独立实验分支推进。

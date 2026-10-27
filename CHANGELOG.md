@@ -1,5 +1,30 @@
 # 更新记录 / Changelog
 
+## 2.7.0 · 新版 Windows 适配
+
+- 保留已确认的 Windows 运行核心与画面；完善平台包边界、源码共存依赖测试及可靠截图检查。安装器在完整清单验证后处理脚本下载标记。
+
+- 本地任务的新窗口自动加载壁纸；各窗口独立绘制，共享最后一次成功保存的选择，统一暂停与恢复。慢加载或关闭一个窗口不再清理其他窗口的主题。
+
+- 适配 Codex 26.1021.31345／安装包 26.1021.3705.0，主题 2.7.0，加载器 1.3.0。
+- 更新 Chat 正文识别，保留六款壁纸、已确认的画面与原有交互保护。
+- 修复英文代码页下桌面快捷方式中文路径损坏；使用 Unicode 读写并核对原始参数。
+- 客户端查询、安装清单、架构与版本问题分别提示，保留原界面和诊断代码。
+- Windows 独立发行；不包含实验性 macOS 功能。
+
+## 2.7.0 · Updated Windows adapter
+
+- Preserves the confirmed Windows runtime and visuals. Adds source-coexistence dependency probes, package boundaries and reliable screenshot checks. Setup clears script download markers only after manifest verification.
+
+- Local tasks opened in a new window now load the theme automatically. Windows render independently, share the last successfully saved choice for future windows, and pause/resume together. A slow or closing window no longer tears down its siblings.
+
+- Targets Codex 26.1021.31345 / package 26.1021.3705.0. Theme 2.7.0; loader 1.3.0.
+- Updates Chat reader detection while preserving all six wallpapers and existing visual and lifecycle safeguards.
+- Fixes corrupted Unicode shortcut arguments under an English ANSI code page; verifies saved links against the original values.
+- Separates app discovery, manifest, architecture and version errors without changing the ordinary client.
+- Windows is distributed independently. Experimental macOS support is not included.
+
+
 ## 2.6.2 · 加载恢复与安装归属修复
 
 - 合并 r3：渲染安装按代际取消，过时任务不能覆盖新实例；requestAnimationFrame 等待有界，改善最小化后恢复。

@@ -11,6 +11,8 @@ $release=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'release.json') -Raw 
 $node=Join-Path $PSScriptRoot 'engine\node.exe'
 if(-not (Test-Path -LiteralPath $node)){Throw-BocchiError 'install.source'}
 if((Get-FileHash -LiteralPath $node -Algorithm SHA256).Hash -cne $release.nodeSha256){Throw-BocchiError 'install.runtime'}
+. (Join-Path $PSScriptRoot 'engine/package-integrity.ps1')
+try{$verifiedScripts=@(Get-BocchiVerifiedPackageScripts -Root $PSScriptRoot)}catch{Throw-BocchiError -Key 'install.integrity' -Diagnostic $_.Exception.Message}
 $assetDetails=& $node '--preserve-symlinks' '--preserve-symlinks-main' (Join-Path $PSScriptRoot 'tools\check-assets.mjs') 2>&1
 if($LASTEXITCODE -ne 0){Throw-BocchiError -Key 'install.assets' -Diagnostic ($assetDetails|Out-String)}
 $codex=Get-DreamSkinCodexInstall
@@ -21,12 +23,16 @@ $config=Join-Path $PSScriptRoot 'installation.json'
 $stateRoot=Join-Path $PSScriptRoot '.local'
 . (Join-Path $PSScriptRoot 'engine/installation-guard.ps1')
 $stateRoot=Assert-BocchiInstallation -Install ([pscustomobject]@{schema='bocchi-local-install/1';stateRoot=$stateRoot}) -Root $PSScriptRoot
-if(Test-Path -LiteralPath $config){
+$alreadyInstalled=Test-Path -LiteralPath $config
+if($alreadyInstalled){
   $existing=Get-Content -LiteralPath $config -Raw -Encoding utf8|ConvertFrom-Json
   . (Join-Path $PSScriptRoot 'engine/installation-guard.ps1')
   $stateRoot=Assert-BocchiInstallation -Install $existing -Root $PSScriptRoot
   if($existing.nodeSha256 -cne $release.nodeSha256 -or $existing.appVersion -cne $release.appVersion -or $existing.packageVersion -cne $release.packageVersion -or $existing.themeVersion -cne $release.themeVersion){Throw-BocchiError 'install.otherRelease'}
-}else{
+}
+try{$unblocked=Unblock-BocchiVerifiedPackageScripts -Scripts $verifiedScripts}catch{Throw-BocchiError -Key 'install.unblock' -Diagnostic $_.Exception.Message}
+if($unblocked -gt 0){Write-Output (Get-BocchiText 'install.unblocked' @($unblocked))}
+if(-not $alreadyInstalled){
   New-Item -ItemType Directory -Path $stateRoot -Force|Out-Null
   $value=[ordered]@{schema='bocchi-local-install/1';stateRoot=$stateRoot;backupRoot=(Join-Path $stateRoot 'backups');port=$release.port;appVersion=$release.appVersion;packageVersion=$release.packageVersion;nodeSha256=$release.nodeSha256;autostart=$false;nativeConfigChanged=$false;launcherVersion=$release.launcherVersion;themeVersion=$release.themeVersion;releaseVersion=$release.releaseVersion}
   $tmp=$config+'.tmp-'+[Guid]::NewGuid().ToString('N')

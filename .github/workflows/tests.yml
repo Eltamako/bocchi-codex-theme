@@ -1,0 +1,57 @@
+name: Windows 2.7 regression tests
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+      - name: All Windows Node regression tests
+        run: node --test tests/*.test.mjs
+      - name: Asset and manifest checks
+        run: |
+          node tools/check-assets.mjs
+          node tools/update-checksums.mjs
+          git diff --exit-code -- CHECKSUMS.sha256
+      - name: PowerShell regressions with process-scoped RemoteSigned
+        shell: pwsh
+        run: |
+          $failed = @()
+          foreach ($hostName in @('powershell.exe','pwsh')) {
+            foreach ($test in @('discovery','shortcut','instance-guard','readiness','startup','duplicate-start','installation-guard','termination-behavior','package-integrity','package-origin-edge')) {
+              & $hostName -NoProfile -ExecutionPolicy RemoteSigned -File "./tests/$test.test.ps1"
+              if ($LASTEXITCODE -ne 0) { $failed += "$hostName/$test" }
+            }
+          }
+          if ($failed.Count) { throw "Failed or blocked: $($failed -join ', ')" }
+      - name: Windows archive and mixed-manifest checks
+        if: ${{ !cancelled() }}
+        shell: pwsh
+        run: |
+          $runtime = Join-Path $env:RUNNER_TEMP 'node-release.exe'
+          Invoke-WebRequest 'https://nodejs.org/dist/v24.19.0/win-x64/node.exe' -OutFile $runtime
+          $failed = @()
+          foreach ($hostName in @('powershell.exe','pwsh')) {
+            & $hostName -NoProfile -ExecutionPolicy RemoteSigned -File ./tools/test-windows-package.ps1 -NodePath $runtime
+            if ($LASTEXITCODE -ne 0) { $failed += $hostName }
+          }
+          if ($failed.Count) { throw "Package tests failed or blocked: $($failed -join ', ')" }
+      - name: Windows renderer fixtures (not native acceptance)
+        shell: pwsh
+        run: |
+          npm install --prefix "$env:RUNNER_TEMP/bocchi-browser" playwright@1.56.1
+          & "$env:RUNNER_TEMP/bocchi-browser/node_modules/.bin/playwright.cmd" install chromium
+          $env:BOCCHI_PLAYWRIGHT_MODULE = "$env:RUNNER_TEMP/bocchi-browser/node_modules/playwright/index.mjs"
+          node tools/test-renderer.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-renderer-fixtures
+          path: .test-output/renderer-windows-270/

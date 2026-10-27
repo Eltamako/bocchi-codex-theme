@@ -8,7 +8,7 @@ Download **windows-x64.zip** from Releases and extract it completely. GitHub’s
 
 ## My client version doesn’t match
 
-This release supports app 26.1016.51333 / package 26.1016.6573.0 only. Client updates can change the interface structure. Use the ordinary client while waiting for a matching theme release; editing the expected version number does not adapt the theme.
+This release supports app 26.1021.31345 / package 26.1021.3705.0 only. Client updates can change the interface structure. Use the ordinary client while waiting for a matching theme release; editing the expected version number does not adapt the theme.
 
 ## Setup succeeded, but startup says the renderer did not confirm
 
@@ -57,3 +57,7 @@ Version 2.6.0 keeps the native image viewer’s transparency and animation inste
 ## An old desktop shortcut reports a client version change
 
 If the new theme works until you exit, the desktop shortcut may still point to an older installation. Run Install.cmd from the package matching your client, then use Bocchi Codex Theme. Version 2.6.1 backs up and migrates verified legacy Chinese shortcuts; the original is saved under `.local/backups/shortcut-*/`, and the old installation stays in place. Unrecognized shortcuts are left untouched; check their Properties. If Start.cmd in the new folder still reports a version change, compare the installed client with the release compatibility list. Do not edit version numbers to bypass the check.
+
+## Start.cmd works but the desktop shortcut does not
+
+Run setup from this release first. Download markers can affect RemoteSigned script startup; this installer verifies the manifest before clearing markers from the required scripts. If verification fails, download and extract a fresh complete package and check its ZIP hash. Do not disable system execution policy or security software. [Installation guide](install.md)

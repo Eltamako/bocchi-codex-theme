@@ -50,7 +50,18 @@
     "manager.connectionWaiting": "客户端已收到启动请求，但主题连接还没有就绪。请保留当前窗口。本次启动记录已经保存，可以据此继续排查，无需反复打开或重装。",
     "manager.reused": "主题已经加载好了。这次重复启动已复用当前窗口，可以继续使用。",
     "manager.layout": "主题暂时没能识别当前页面布局，原界面已保留。可以先回到聊天或工作首页，再运行“恢复主题”。如果仍未成功，请提供主题版本、客户端版本和下方诊断代码，帮助继续检查。",
-    "manager.loaderStopped": "主题加载连接没有保持就绪，当前窗口和数据已保留。可以运行一次“恢复主题”；如果再次出现，请保留本地诊断状态和启动记录，无需重装或删除数据。"
+    "manager.loaderStopped": "主题加载连接没有保持就绪，当前窗口和数据已保留。可以运行一次“恢复主题”；如果再次出现，请保留本地诊断状态和启动记录，无需重装或删除数据。",
+    "discovery.module": "当前启动环境没有可用的 Windows 应用查询模块。请使用包内的 Install.cmd 或 Start.cmd；原客户端没有改动。",
+    "discovery.denied": "Windows 暂时不允许查询当前账户的应用安装信息。原界面已保留，请附上诊断代码反馈；这不表示客户端未安装。",
+    "discovery.query": "暂时无法查询客户端安装信息。请稍后重试，并保留下面的诊断代码。",
+    "discovery.missing": "当前 Windows 账户下没有找到已注册的官方 Codex 应用。请先打开官方客户端，再回来安装主题。",
+    "discovery.distribution": "找到了 Codex 安装记录，但无法确认它是本版支持的官方 Store 发行形式。原界面保持不变。",
+    "discovery.architecture": "这份主题包只适配 Windows x64；当前客户端的架构不匹配。原界面保持不变。",
+    "discovery.layout": "客户端的安装结构与本版预期不同。请使用对应的主题适配版，原界面保持不变。",
+    "discovery.manifest": "无法读取客户端安装清单，暂时不能验证安装身份。请保留诊断代码反馈；不需要先重装客户端。",
+    "install.integrity": "安装包有文件缺失或内容发生变化。请从项目发行页重新下载完整包，解压到新文件夹后再安装。",
+    "install.unblock": "文件检查已完成，但下载标记暂时没能处理好。请保留下面的诊断信息，参考安装说明重试；不需要关闭安全软件。",
+    "install.unblocked": "已核对安装包，并处理 {0} 个脚本的下载标记；系统执行策略保持原样。"
   },
   "en": {
     "app.title": "Bocchi the Rock! · Codex Theme",
@@ -102,6 +113,17 @@
     "manager.connectionWaiting": "The client received the startup request, but its theme connection is not ready yet. Keep the current window. A startup trace was saved to help investigate; you do not need to keep opening the shortcut or reinstall.",
     "manager.reused": "Your theme is already loaded. This repeated launch has reused the current window, so you can keep working.",
     "manager.layout": "The theme could not recognize the current page layout. Your original interface is unchanged. Open the Chat or Work home page and run Resume.cmd. If this continues, share the theme version, client version and diagnostic code below to help investigate.",
-    "manager.loaderStopped": "The theme connection did not stay ready. Your window and data are unchanged. Try Resume.cmd once. If it happens again, keep the local status and startup trace; there is no need to reinstall or delete data."
+    "manager.loaderStopped": "The theme connection did not stay ready. Your window and data are unchanged. Try Resume.cmd once. If it happens again, keep the local status and startup trace; there is no need to reinstall or delete data.",
+    "discovery.module": "Windows app discovery is unavailable in this shell. Please use Install.cmd or Start.cmd from the package. Your client has not been changed.",
+    "discovery.denied": "Windows denied access to app registration information for this account. Your client is unchanged. Please share the diagnostic code; this does not mean Codex is missing.",
+    "discovery.query": "The client registration could not be queried. Please try again later and keep the diagnostic code below.",
+    "discovery.missing": "No registered official Codex app was found for this Windows account. Please open the official client before installing the theme.",
+    "discovery.distribution": "A Codex registration was found, but it is not a verified Store distribution supported by this theme. The client is unchanged.",
+    "discovery.architecture": "This theme package supports Windows x64. The installed client uses a different architecture and has not been changed.",
+    "discovery.layout": "The client installation layout differs from this adapter. Please use a matching theme version. The client is unchanged.",
+    "discovery.manifest": "The client package manifest could not be read, so its identity could not be verified. Please keep the diagnostic code; reinstalling is not required as a first step.",
+    "install.integrity": "Some package files are missing or have changed. Please download the complete package from the project release page and extract it into a new folder.",
+    "install.unblock": "The files passed verification, but their download markers could not be cleared. Keep the diagnostic details below and follow the installation guide; there is no need to disable security software.",
+    "install.unblocked": "Verified the package and cleared download markers from {0} scripts. Your system execution policy is unchanged."
   }
 }

@@ -842,13 +842,19 @@ function ConvertTo-DreamSkinCodexInstall {
     [Parameter(Mandatory = $true)][object]$Package,
     [AllowNull()][object]$Manifest
   )
+  $script:BocchiPackageDiscoveryFailure = 'CODEX_DISTRIBUTION_UNSUPPORTED'
   if ("$($Package.Name)" -ine 'OpenAI.Codex' -or -not $Package.InstallLocation -or
     -not $Package.PackageFullName -or -not $Package.PackageFamilyName -or
     "$($Package.SignatureKind)" -ine 'Store' -or [bool]$Package.IsDevelopmentMode) {
     return $null
   }
+  if ($Package.PSObject.Properties['Architecture'] -and "$($Package.Architecture)" -ine 'X64') {
+    $script:BocchiPackageDiscoveryFailure = 'CODEX_ARCHITECTURE_UNSUPPORTED'
+    return $null
+  }
   $packageRoot = "$($Package.InstallLocation)"
   $executable = Join-Path $packageRoot 'app\ChatGPT.exe'
+  $script:BocchiPackageDiscoveryFailure = 'CODEX_INSTALL_LAYOUT_CHANGED'
   if (-not (Test-Path -LiteralPath $executable)) { return $null }
   try {
     if (-not $PSBoundParameters.ContainsKey('Manifest')) {
@@ -860,6 +866,7 @@ function ConvertTo-DreamSkinCodexInstall {
     if ($applications.Count -ne 1) { return $null }
     $applicationId = "$($applications[0].Id)"
   } catch {
+    $script:BocchiPackageDiscoveryFailure = 'CODEX_MANIFEST_READ_FAILED: ' + $_.Exception.HResult
     return $null
   }
   $packageFamilyName = "$($Package.PackageFamilyName)"
@@ -867,6 +874,7 @@ function ConvertTo-DreamSkinCodexInstall {
     $applicationId -cnotmatch '^[A-Za-z0-9._-]{1,64}$') {
     return $null
   }
+  $script:BocchiPackageDiscoveryFailure = $null
   return [pscustomobject]@{
     PackageRoot = $packageRoot
     Executable = $executable
@@ -880,7 +888,18 @@ function ConvertTo-DreamSkinCodexInstall {
 }
 
 function Get-DreamSkinRegisteredCodexInstalls {
-  $packages = @(Get-AppxPackage -Name 'OpenAI.Codex' -ErrorAction Stop | Sort-Object Version -Descending)
+  if (-not (Get-Command Get-AppxPackage -ErrorAction SilentlyContinue)) {
+    throw 'CODEX_APPX_MODULE_UNAVAILABLE'
+  }
+  try {
+    $packages = @(Get-AppxPackage -Name 'OpenAI.Codex' -ErrorAction Stop | Sort-Object Version -Descending)
+  } catch {
+    if ($_.Exception -is [UnauthorizedAccessException] -or $_.Exception.HResult -eq -2147024891) {
+      throw ('CODEX_APPX_QUERY_DENIED: ' + $_.Exception.HResult)
+    }
+    throw ('CODEX_APPX_QUERY_FAILED: ' + $_.Exception.HResult)
+  }
+  $script:BocchiPackageDiscoveryFailure = 'CODEX_PACKAGE_NOT_REGISTERED'
   $installs = @()
   foreach ($package in $packages) {
     $install = ConvertTo-DreamSkinCodexInstall -Package $package
@@ -891,7 +910,7 @@ function Get-DreamSkinRegisteredCodexInstalls {
 
 function Get-DreamSkinCodexInstall {
   $installs = @(Get-DreamSkinRegisteredCodexInstalls)
-  if ($installs.Count -eq 0) { throw 'The official OpenAI.Codex Store package is not installed or its identity cannot be validated.' }
+  if ($installs.Count -eq 0) { throw $script:BocchiPackageDiscoveryFailure }
   return $installs[0]
 }
 
@@ -1167,10 +1186,16 @@ function Test-DreamSkinWebSocketUrl {
   }
 }
 
+function Test-BocchiMainPageUrl {
+  param([AllowNull()][string]$Value)
+  if($Value -ceq 'app://-/index.html'){return $true}
+  if(-not $Value -or $Value.Length -gt 512 -or $Value -cnotmatch '^app://-/index\.html\?initialRoute=([^&#]+)$'){return $false}
+  try{return [Uri]::UnescapeDataString($Matches[1]) -match '^/local/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'}catch{return $false}
+}
 function Test-DreamSkinCdpPageTarget {
   param([AllowNull()][object]$Target, [int]$Port)
   if ($null -eq $Target -or "$($Target.type)" -cne 'page' -or
-    "$($Target.url)" -notlike 'app://*') {
+    -not (Test-BocchiMainPageUrl -Value "$($Target.url)")) {
     return $false
   }
   if ($Target.id -isnot [string]) { return $false }

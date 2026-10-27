@@ -19,7 +19,7 @@ const wallpaperStoreHash=createHash('sha256').update(await fs.readFile(new URL('
 process.on('SIGTERM',()=>{running=false;for(const s of sessions.values())invalidate(s);});
 function wsUrl(value,kind,id){const u=new URL(value);if(u.protocol!=='ws:'||u.hostname!=='127.0.0.1'||Number(u.port)!==state.port||u.username||u.password||u.search||u.hash||u.pathname!=='/devtools/'+kind+'/'+id)throw Error('Unexpected endpoint');return value;}
 function transientError(code,message){return Object.assign(Error(message),{code});}
-function isTransientError(error){return new Set(['ENDPOINT_TIMEOUT','ENDPOINT_UNAVAILABLE','CONNECTION_CLOSED','CONNECTION_FAILED','CONNECTION_TIMEOUT','COMMAND_TIMEOUT','CONTEXT_CHANGED','RENDERER_NOT_READY','CONTEXT_NOT_READY']).has(error?.code);}
+function isTransientError(error){return new Set(['ENDPOINT_TIMEOUT','ENDPOINT_UNAVAILABLE','CONNECTION_CLOSED','CONNECTION_FAILED','CONNECTION_TIMEOUT','COMMAND_TIMEOUT','CONTEXT_CHANGED','RENDERER_NOT_READY','CONTEXT_NOT_READY','LOADER_PAUSED']).has(error?.code);}
 async function json(url){
  const signal=AbortSignal.timeout(3000);
  try{
@@ -32,7 +32,12 @@ async function json(url){
   throw error;
  }
 }
-async function getTargets(){const version=await json('http://127.0.0.1:'+state.port+'/json/version');wsUrl(version.webSocketDebuggerUrl,'browser',state.browserId);const list=await json('http://127.0.0.1:'+state.port+'/json/list');return list.filter(x=>x.type==='page'&&x.url==='app://-/index.html').map(x=>({...x,webSocketDebuggerUrl:wsUrl(x.webSocketDebuggerUrl,'page',x.id)}));}
+function isMainPageUrl(value){
+ if(value==='app://-/index.html')return true;
+ if(typeof value!=='string'||value.length>512)return false;
+ try{const u=new URL(value),keys=[...u.searchParams.keys()];return u.protocol==='app:'&&u.hostname==='-'&&u.pathname==='/index.html'&&!u.username&&!u.password&&!u.port&&!u.hash&&keys.length===1&&keys[0]==='initialRoute'&&/^\/local\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(u.searchParams.get('initialRoute'));}catch{return false;}
+}
+async function getTargets(){const version=await json('http://127.0.0.1:'+state.port+'/json/version');wsUrl(version.webSocketDebuggerUrl,'browser',state.browserId);const list=await json('http://127.0.0.1:'+state.port+'/json/list');wsUrl((await json('http://127.0.0.1:'+state.port+'/json/version')).webSocketDebuggerUrl,'browser',state.browserId);if(!Array.isArray(list))throw Error('Invalid target list');const ids=new Set();return list.filter(x=>x?.type==='page'&&isMainPageUrl(x.url)).map(x=>{if(typeof x.id!=='string'||!/^[A-Za-z0-9._-]{1,200}$/.test(x.id)||ids.has(x.id))throw Error('Invalid target identity');ids.add(x.id);return{...x,webSocketDebuggerUrl:wsUrl(x.webSocketDebuggerUrl,'page',x.id)};});}
 function cdpFailure(error){
  const transient=['Cannot find context with specified id','Cannot find default execution context','Execution context was destroyed.','Inspected target navigated or closed'];
  return transient.includes(error?.message)?transientError('CONTEXT_CHANGED','Main context changed'):Error('CDP command rejected');
@@ -62,16 +67,30 @@ async function payload(){
  const hash=createHash('sha256').update(source+JSON.stringify(data)).digest('hex');assetCache={signature,catalog:loaded.catalog,data,source,hash};return{...assetCache,warning:loaded.warning};
 }
 const sessions=new Map();
+// Persist/commit/rollback is one transaction across documents. New installs must
+// read through the same queue so they cannot inherit an uncommitted selection.
+let selectionTail=Promise.resolve();
+function selectionTransaction(task){const pending=selectionTail.then(task);selectionTail=pending.catch(()=>{});return pending;}
+const targetFailures=new Map();
+function startHeartbeat(s){
+ clearInterval(s.heartbeatTimer);
+ s.heartbeatTimer=setInterval(async()=>{
+  if(s.disposed||s.contextId===null||s.heartbeatPending)return;
+  s.heartbeatPending=true;
+  const epoch=s.epoch,contextId=s.contextId;
+  try{const control=JSON.parse(await fs.readFile(controlPath,'utf8'));if(!control.paused&&!control.stop&&!s.disposed&&s.epoch===epoch&&s.contextId===contextId)await evaluate(s.c,'window.__BOCCHI_THEME__?.heartbeat('+(Date.now()+12000)+')',contextId);}catch{}finally{s.heartbeatPending=false;}
+ },3000);
+}
 function cancelExpression(generation){return `(()=>{const i=window.__BOCCHI_INSTALL__;if(i&&i.generation===${JSON.stringify(generation)}){i.cancel('loader-cancelled');return true;}return false;})()`;}
 function loaderCleanupExpression(){return `(()=>{const i=window.__BOCCHI_INSTALL__;if(i&&i.loaderGeneration===${JSON.stringify(state.generation)}){i.cancel('loader-stopped');return true;}return false;})()`;}
 function invalidate(s){s.epoch++;s.contextId=null;s.token=null;if(s.coordinator){s.coordinator.active=false;s.coordinator.latest=null;}}
 async function finishCoordinator(s){if(s.coordinator){await s.coordinator.retire();s.coordinator=null;}}
 async function mainContext(s){
  const tree=await s.c.call('Page.getFrameTree');s.frameId=tree.frameTree.frame.id;
- if(tree.frameTree.frame.url!=='app://-/index.html')throw Error('Main frame URL mismatch');
+ if(!isMainPageUrl(tree.frameTree.frame.url))throw Error('Main frame URL mismatch');
  const candidates=[...s.contexts.values()].filter(x=>x.auxData?.isDefault===true&&x.auxData.frameId===s.frameId);
  if(candidates.length===0)throw transientError('CONTEXT_NOT_READY','Main execution context not ready');if(candidates.length!==1)throw Error('Exactly one default main execution context required');
- const id=candidates[0].id;if(!await evaluate(s.c,'window===window.top && location.href==="app://-/index.html"',id))throw Error('Unverified main execution context');return id;
+ const id=candidates[0].id;if(!await evaluate(s.c,'window===window.top && location.href==='+JSON.stringify(tree.frameTree.frame.url),id))throw Error('Unverified main execution context');return id;
 }
 async function makeSession(target){
  const c=await connect(target.webSocketDebuggerUrl),s={c,targetId:target.id,contexts:new Map(),epoch:0,contextId:null,token:null,coordinator:null,disposed:false};
@@ -84,14 +103,16 @@ async function makeSession(target){
  });
  try{await c.call('Page.enable');await c.call('Runtime.enable');return s;}catch(e){s.off();c.close();throw e;}
 }
+async function assertControlActive(){const control=JSON.parse(await fs.readFile(controlPath,'utf8'));if(control.paused||control.stop||!running)throw transientError('LOADER_PAUSED','Loader paused during installation');}
 async function install(s,p){
  await finishCoordinator(s);const contextId=await mainContext(s),epoch=s.epoch;
- const selection=await readSelection(selectionPath);selectionWarning=selection.warning;const token=randomBytes(16).toString('hex');
+ const selection=await selectionTransaction(()=>readSelection(selectionPath));selectionWarning=selection.warning;const token=randomBytes(16).toString('hex');
+ await assertControlActive();
  await s.c.call('Runtime.removeBinding',{name:BINDING}).catch(()=>{});await s.c.call('Runtime.addBinding',{name:BINDING,executionContextId:contextId});
  if(s.epoch!==epoch||s.disposed)throw transientError('CONTEXT_CHANGED','Main context changed before installation');
  s.installGeneration=token;
  const expression=p.source+'\ninstallBocchiTheme('+JSON.stringify({...p.data,...await readLanguagePreference(path.dirname(statePath)),initialWallpaperId:selection.id,selectionBridge:{binding:BINDING,token},installGeneration:token,loaderGeneration:state.generation,leaseUntil:Date.now()+12000})+')';
- let result;try{result=await evaluate(s.c,expression,contextId);if(s.epoch!==epoch||s.disposed)throw transientError('CONTEXT_CHANGED','Main context changed during installation');}
+ let result;try{await assertControlActive();result=await evaluate(s.c,expression,contextId);await assertControlActive();if(s.epoch!==epoch||s.disposed)throw transientError('CONTEXT_CHANGED','Main context changed during installation');}
  catch(error){await evaluate(s.c,cancelExpression(token),contextId).catch(()=>{});throw error;}
  s.contextId=contextId;s.token=token;
  const evalCurrent=expression=>{if(s.disposed||s.epoch!==epoch||s.contextId!==contextId)throw Error('Stale wallpaper session');return evaluate(s.c,expression,contextId);};
@@ -101,17 +122,43 @@ async function install(s,p){
   commit:r=>evalCurrent(`window.__BOCCHI_THEME__?.commitWallpaper(${JSON.stringify(r.id)},${JSON.stringify(r.requestId)})`),
   reject:(r,message)=>evalCurrent(`window.__BOCCHI_THEME__?.rejectWallpaper(${JSON.stringify(r.requestId)},${JSON.stringify(message)})`),
   save:id=>atomicSelection(selectionPath,id),
-  validate:async()=>{const list=await getTargets();return !s.disposed&&s.epoch===epoch&&list.length===1&&list[0].id===s.targetId;},
+  transaction:selectionTransaction,
+  readSaved:async()=>(await readSelection(selectionPath)).id,
+  validate:async()=>{const list=await getTargets();return !s.disposed&&s.epoch===epoch&&list.some(t=>t.id===s.targetId);},
   onError:()=>{lastSwitchError='wallpaper-selection-failed';}
- });return result;
+ });startHeartbeat(s);return result;
 }
 async function cleanSession(s){
- s.disposed=true;invalidate(s);await finishCoordinator(s);
+ s.disposed=true;clearInterval(s.heartbeatTimer);invalidate(s);await finishCoordinator(s);
  try{if(s.earlyId)await s.c.call('Page.removeScriptToEvaluateOnNewDocument',{identifier:s.earlyId});if(await evaluate(s.c,cancelExpression(s.installGeneration)))await s.c.call('Runtime.removeBinding',{name:BINDING});}
- catch{const list=await getTargets();if(list.length===1&&list[0].id===s.targetId){const fresh=await connect(list[0].webSocketDebuggerUrl);try{if(s.earlyId)await fresh.call('Page.removeScriptToEvaluateOnNewDocument',{identifier:s.earlyId});if(await evaluate(fresh,cancelExpression(s.installGeneration)))await fresh.call('Runtime.removeBinding',{name:BINDING});}finally{fresh.close();}}}
+ catch{const target=(await getTargets()).find(t=>t.id===s.targetId);if(target){const fresh=await connect(target.webSocketDebuggerUrl);try{if(s.earlyId)await fresh.call('Page.removeScriptToEvaluateOnNewDocument',{identifier:s.earlyId});if(await evaluate(fresh,cancelExpression(s.installGeneration)))await fresh.call('Runtime.removeBinding',{name:BINDING});}finally{fresh.close();}}}
  finally{s.off();s.c.close();}
 }
-async function removeAll(){for(const s of sessions.values()){try{await cleanSession(s);}catch{}}sessions.clear();const list=await getTargets();if(list.length>1)throw Error('Exactly one verified main renderer required');for(const target of list){const c=await connect(target.webSocketDebuggerUrl);try{if(await evaluate(c,loaderCleanupExpression()))await c.call('Runtime.removeBinding',{name:BINDING});}finally{c.close();}}}
+async function removeAll(){await Promise.all([...sessions.values()].map(s=>cleanSession(s).catch(()=>{})));sessions.clear();targetFailures.clear();const list=await getTargets();await Promise.all(list.map(async target=>{let c;try{c=await connect(target.webSocketDebuggerUrl);if(await evaluate(c,loaderCleanupExpression()))await c.call('Runtime.removeBinding',{name:BINDING});}catch{/* A closing window must not prevent cleanup of its siblings. */}finally{c?.close();}}));}
+async function refreshTarget(target,p,locale){
+ const prior=targetFailures.get(target.id);
+ if(prior&&(prior.terminal||Date.now()<prior.retryAt))return{targetId:target.id,installed:false,ready:false,reason:prior.reason};
+ let s=sessions.get(target.id);
+ try{
+  let result;
+  if(!s){s=await makeSession(target);sessions.set(target.id,s);result=await install(s,p);}
+  else{
+   const contextId=await mainContext(s);
+   if(s.contextId!==contextId){invalidate(s);result=await install(s,p);}
+   else{
+    if(s.coordinator&&!s.coordinator.active)throw Error('Wallpaper selection persistence blocked');
+    const present=await evaluate(s.c,'!!window.__BOCCHI_THEME__',contextId);
+    result=present?await evaluate(s.c,'(window.__BOCCHI_THEME__.setLanguage('+JSON.stringify(locale.language)+','+JSON.stringify(locale.systemLanguage)+'),window.__BOCCHI_THEME__.heartbeat('+(Date.now()+12000)+'),window.__BOCCHI_THEME__.refresh(),window.__BOCCHI_THEME__?.state ?? {installed:false,reason:"inactive-page"})',contextId):await install(s,p);
+   }
+  }
+  targetFailures.delete(target.id);return{...result,targetId:target.id};
+ }catch(error){
+  if(s){await cleanSession(s).catch(()=>{});sessions.delete(target.id);}
+  const count=(prior?.count??0)+1,reason=isTransientError(error)?'renderer-not-ready':'renderer-validation-failed';
+  targetFailures.set(target.id,{count,reason,terminal:!isTransientError(error),retryAt:Date.now()+Math.min(15000,1500*2**Math.min(count-1,4))});
+  return{targetId:target.id,installed:false,ready:false,reason};
+ }
+}
 if(action==='restore'){
  await removeAll();const c=await connect(wsUrl('ws://127.0.0.1:'+state.port+'/devtools/browser/'+state.browserId,'browser',state.browserId));try{await c.call('Browser.close');}catch(e){if(!/Closed|timeout/i.test(e.message))throw e;}finally{c.close();}console.log('Managed window close requested; original appearance retained');
 }else if(action==='watch'||action==='once'){
@@ -119,17 +166,18 @@ if(action==='restore'){
  const recoveryWindowMs=60000,controlPollMs=250;
  while(running){
   try{
-   const control=JSON.parse(await fs.readFile(controlPath,'utf8'));requestId=typeof control.requestId==='string'?control.requestId:null;
+   const control=JSON.parse(await fs.readFile(controlPath,'utf8')),nextRequestId=typeof control.requestId==='string'?control.requestId:null;
+   if(nextRequestId!==requestId)targetFailures.clear();requestId=nextRequestId;
    if(control.stop){try{await removeAll();}catch{}await status({state:'stopped',at:new Date().toISOString()});break;}
    if(control.paused){if(lastPaused!==true)await removeAll();lastPaused=true;await status({state:'paused',at:new Date().toISOString()});}
    else{
     lastPaused=false;
     if(retryDeadline!==null&&Date.now()>=retryDeadline){await status({state:'stopped',reason:'recovery-window-expired',failureCount,at:new Date().toISOString()});break;}
     if(Date.now()<retryAt){await new Promise(r=>setTimeout(r,Math.min(controlPollMs,retryAt-Date.now())));continue;}
-    const p=await payload(),locale=await readLanguagePreference(path.dirname(statePath)),list=await getTargets();if(list.length===0)throw transientError('RENDERER_NOT_READY','Main renderer not ready');if(list.length!==1)throw Error('Exactly one verified main renderer required');
+    const p=await payload(),locale=await readLanguagePreference(path.dirname(statePath)),list=await getTargets();if(list.length===0)throw transientError('RENDERER_NOT_READY','Main renderer not ready');
     for(const[id,s]of sessions)if(!list.some(t=>t.id===id)||lastHash!==p.hash){try{await cleanSession(s);}catch{}sessions.delete(id);}
-    const result=[];
-    for(const target of list){let s=sessions.get(target.id);if(!s){s=await makeSession(target);sessions.set(target.id,s);result.push(await install(s,p));}else{const contextId=await mainContext(s);if(s.contextId!==contextId){invalidate(s);result.push(await install(s,p));}else{if(s.coordinator&&!s.coordinator.active)throw Error('Wallpaper selection persistence blocked: '+lastSwitchError);const present=await evaluate(s.c,'!!window.__BOCCHI_THEME__',contextId);result.push(present?await evaluate(s.c,'(window.__BOCCHI_THEME__.setLanguage('+JSON.stringify(locale.language)+','+JSON.stringify(locale.systemLanguage)+'),window.__BOCCHI_THEME__.heartbeat('+(Date.now()+12000)+'),window.__BOCCHI_THEME__.refresh(),window.__BOCCHI_THEME__?.state ?? {installed:false,reason:"inactive-page"})',contextId):await install(s,p));}}}
+    for(const id of targetFailures.keys())if(!list.some(t=>t.id===id)||lastHash!==p.hash)targetFailures.delete(id);
+    const result=await Promise.all(list.map(target=>refreshTarget(target,p,locale)));
     lastHash=p.hash;await status({state:result.length&&result.every(x=>x?.installed===true&&x?.ready===true)?'running':'suspended',at:new Date().toISOString(),appVersion:state.appVersion,themeHash:p.hash,catalogWarning:p.warning,wallpaperId:result[0]?.wallpaperId??null,renderers:result});
    }
    failureCount=0;retryDeadline=null;retryAt=0;
@@ -149,5 +197,5 @@ if(action==='restore'){
  }
  if(action==='watch'){try{await removeAll();}catch{}}
  if(!running)await status({state:'stopped',reason:'loader-stopped',at:new Date().toISOString()});
- for(const s of sessions.values()){s.disposed=true;invalidate(s);await finishCoordinator(s);s.off();s.c.close();}
+ for(const s of sessions.values()){s.disposed=true;clearInterval(s.heartbeatTimer);invalidate(s);await finishCoordinator(s);s.off();s.c.close();}
 }else throw Error('Unknown runtime action');

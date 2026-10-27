@@ -1,41 +1,32 @@
-# 2.6.2 validation
-
-Target: Windows x64; Codex 26.1016.51333 / 26.1016.6573.0; theme 2.6.2, loader 1.2.2.
-
-2026-10-22 final-code regressions: Node v24.19.0 x64 passed 36/36 with no skips; Windows PowerShell 5.1.26100.9444 and PowerShell 7.6.5 each passed seven groups. Coverage includes generation cancellation, transport classification, the 60-second recovery limit, Pause/Stop responsiveness, configuration validation, installation ownership, duplicate-start mutexes and mocked process-identity behavior. Artwork validation passed with unchanged assets.
-
-The real installer passed in a separate clean directory with -NoShortcuts, validating runtime, assets and the installed client, and initializing state only under the fixture. No desktop shortcut or client process was changed. PS5.1 used process-only RemoteSigned for acceptance; persistent policies were unchanged.
-
-The first sandboxed Node run failed on blocked loopback HTTP and skipped the directory-junction case; an authorized local rerun passed all 36. Installer discovery was initially denied by the sandbox; the isolated rerun succeeded. Initial failures were retained as evidence rather than counted as passes.
-
-Earlier user confirmation covers startup, Pause/Resume and minimize/restore in the active r3 directory, not a restart of this new 2.6.2 archive. Native repeated-start, real disconnection recovery, first sign-in on a new machine, full English Windows acceptance and native frame rates remain unverified. The current client was not restarted.
-
-CHECKSUMS.sha256 defines the release set; source adds the checksum file itself, and Windows adds only engine/node.exe. Accounts, chats, installation state, logs, caches, test artifacts, Git history and backups are excluded. Local evidence contains per-file hashes for worktree, source snapshot and extracted archives. 
-
-The following 2.6.1 notes are historical, not tests repeated in this run:
-
-# 2.6.1 validation
+# 2.7.0 validation notes
 
 [简体中文](../验证记录.md)
 
-Scope: Windows x64, Codex 26.1016.51333 / package 26.1016.6573.0. Theme 2.6.1; loader 1.2.1.
+Scope as of 2026-10-27: **Windows x64**, Codex app **26.1021.31345**, Windows package **26.1021.3705.0**, theme **2.7.0**, loader **1.3.0**. Evidence sources and unverified scenarios are separated below.
 
-## Native checks
+## Automated checks in this round
 
-- The reported version error came from a legacy Chinese shortcut still pointing to theme 2.4.0. The v2.6.0 installer on GitHub lacked migration for that shortcut. Client-version checks remain enabled.
-- The old shortcut was backed up byte for byte and replaced by the current Bocchi Codex Theme entry. The old installation was preserved.
-- After exiting from the tray, the user manually opened the new desktop shortcut and confirmed the wallpaper. The startup trace confirms a launch without another client, theme 2.6.1 active, image loaded and wallpaper choice retained. This recorded launch took about 18 seconds, not a performance guarantee.
-- On the user-designated Chat image, opening, closing and reopening preserved the same theme instance and backdrop. Chat replaces the conversation composer with a separate image-edit composer. Native main/header corners match and STARRY has no glow.
-- The ordinary-client guard was observed and its process identity verified; no window was forcibly closed. One earlier reported unresponsive click produced no new entry record, so its cause was not independently established. A subsequent user-initiated desktop launch succeeded.
+- Windows source Node regressions: **52/52 passed, none skipped**, including window discovery, per-window recovery, independent heartbeats, shared selection transactions and dynamic Chat identification.
+- **10 isolated suites in each of Windows PowerShell 5.1 and PowerShell 7 passed**: discovery, Unicode shortcuts, instance and readiness guards, startup, duplicate start, installation ownership, termination, package integrity and download-origin boundaries. The two new suites contain 22 and 20 checks.
+- Platform tests allow both platforms in a source tree and monitor actual Windows imports, adapter reads and platform calls. Four negative cases detect static/dynamic Mac dependencies, Mac adapter reads and Mac platform commands. Windows ZIP contents are checked separately for Mac-only files.
+- Assets and manifest checks passed. Renderer, runtime, wallpaper configuration, CSS and images were not changed in this round; their hashes link to earlier acceptance evidence rather than a claimed new full visual run.
 
-## Isolated checks
+## Simulated download-origin checks
 
-- Shortcut creation/update, exact backup, repeated setup, Chinese/space paths, legacy migration, one recognized theme entry, unrelated shortcut preservation, local application-icon copy and executable fallback.
-- 19 image-preview cases cover Chat/Work, moved or replaced composers, native transitions, repeated cycles, pause, navigation, lease expiry and unrelated-dialog guards.
-- Two rounded-edge cases at 100% and 150% scaling cover the separate titlebar, background, panel seams, unchanged art/composer layout and cleanup.
-- 24 startup, 29 duplicate-start and 3 bilingual checks passed. Read-only installer checks passed for the local client version, runtime and six-wallpaper assets.
-- All 23 PNGs match v2.6.0, including the two public screenshots. The previous large matrix was not repeated; historical results are retained under v2.6.0.
+- A harmless marked script was blocked by Windows PowerShell 5.1 under RemoteSigned. After its marker was removed, a Unicode shortcut in the test directory successfully launched the harmless probe. No second real client was launched.
+- The real installer passed five scenarios in an isolated copy: CheckOnly, tampered file rejection, missing dependency rejection, installation and repeat installation. CheckOnly preserves markers and creates no configuration; rejected installs preserve markers. Successful installation clears markers only from 14 necessary production scripts after the full manifest is verified. Unneeded scripts remain marked.
+- The tested ZIP extractor did not propagate the ZIP marker, so files were also marked explicitly. This is a **download-origin simulation**, not verification of a real browser download and first launch.
+- RemoteSigned was applied only to authorized test processes. System, user and organization policies were unchanged. Desktop shortcuts still use RemoteSigned.
 
-## Limits
+## User feedback and earlier evidence
 
-Isolated results are not native frame-rate guarantees. Full English Windows acceptance is not complete. Community reports without machine diagnostics remain unconfirmed. Account/chat data, runtime configuration and test output are excluded from releases. No simulated screenshots are added to public pages.
+- The user installed and tried the earlier candidate ZIP and reported no problems. Its installation has a successful Windows PowerShell 5.1 start record, and its 105 original manifest files matched the reviewed ZIP. This confirms a successful start, not every possible workflow.
+- Earlier native Windows checks covered Chat attachments/replies, scrolling, image viewers, all six wallpapers, composer growth, rounded edges, pause/resume, repeat start and loader cleanup.
+- Earlier native two-window checks covered opening a task in another window, loading both windows, reopening a window, coordinated pause/resume and cleanup after normal or abnormal loader termination. The user's client was not forcibly terminated.
+- Earlier simulations included 108 visual combinations, four scale factors, 23 renderer fixtures, and targeted image-viewer, corner, English-menu and dynamic-DOM checks. These are not native frame-rate guarantees.
+
+## Final artifacts and limits
+
+Use SHA256SUMS.txt beside the final ZIPs to identify them. Local release review separately records archive hashes, counts, CRC checks, extracted-package regressions and installation checks. Earlier packages and evidence are retained. The installer fix produces different bytes from the package previously tried by the user.
+
+Not verified: a real browser download chain, a fresh English Windows installation, other Windows versions, real client crashes or shutdown recovery, arbitrary window-count load, or native macOS. The current final package has not been cold-launched by exiting the active client again; earlier startup and two-window evidence is reused only where unchanged file hashes support it. Remote CI was not triggered. Experimental macOS integration is reviewed separately and is excluded from the Windows release package.

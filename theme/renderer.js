@@ -1,6 +1,6 @@
 async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpaperId, selectionBridge, sticker, bandSticker, appVersion, leaseUntil, installGeneration, loaderGeneration, previewTopMode = "A+++", messages, language = "auto", systemLanguage = "en"}) {
   // This adapter is deliberately tied to the inspected desktop build.
-  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.6.2' || appVersion !== adapter.appVersion)
+  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.7.0' || appVersion !== adapter.appVersion)
     return {installed:false, reason:'version-mismatch'};
   if (!Number.isFinite(leaseUntil) || leaseUntil <= Date.now()) return {installed:false, reason:'expired-loader-lease'};
   if (typeof css !== 'string' || /@import\b|url\s*\(/i.test(css)) return {installed:false, reason:'nonlocal-stylesheet'};
@@ -1014,10 +1014,13 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     }else if(requests.length){
       // A supported native Work request card replaces the editor. Never infer this from labels or old page state.
       if(requests.length!==1)throw new Error('ambiguous-request-card');
-      const card=requests[0],host=card.closest(adapter.workComposerRoot),footer=host?.closest('[data-pip-obstacle="thread-footer"]');
+      // 26.1021 replaces the composer with a dedicated request boundary.
+      // Keep the verified footer/scroll/reader ownership checks for both shells.
+      const card=requests[0],host=(adapter.workRequestHost&&card.closest(adapter.workRequestHost))||card.closest(adapter.workComposerRoot),footer=host?.closest('[data-pip-obstacle="thread-footer"]');
       const footerHost=footer?.closest('[data-thread-scroll-footer="true"]');
       const threadScroll=footerHost?.closest(adapter.workThreadScroll);
-      const readers=threadScroll?[...threadScroll.querySelectorAll(adapter.workReader)].filter(visible):[];
+      const readers=threadScroll?[...threadScroll.querySelectorAll(adapter.workReader)].filter(inMain)
+        .filter(el=>!el.matches(adapter.chatReader)&&!el.closest(adapter.chatReader)&&!el.querySelector(adapter.chatReader)):[];
       if(!host||!footer||!footerHost||!threadScroll||!main.contains(threadScroll)||!host.contains(card)||
         !footer.contains(host)||readers.length!==1||readers[0].contains(card)||editors.filter(el=>!card.contains(el)).length>1||
         editors.some(el=>!host.contains(el)||(!card.contains(el)&&!el.matches(adapter.localWorkComposer)))||
@@ -1027,9 +1030,16 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
       if(editors.length!==1)throw new Error('required-markers-missing');
       editor=editors[0];body=editor.closest(adapter.composerBody);
       if(!body||!main.contains(editor))throw new Error('composer-outside-main');
-      mode=editor.matches(adapter.localWorkComposer)?'work':adapter.chatLabels.includes(editor.getAttribute('aria-label'))?'chat':null;
+      // 26.1021 stores the conversation ID in the Chat selection marker.
+      // Shared navigation/portal markers alone cannot identify a Work reader.
+      const chatReaders=[...main.querySelectorAll(adapter.chatReader)].filter(inMain);
+      const workReaders=[...main.querySelectorAll(adapter.workReader)].filter(inMain)
+        .filter(el=>!el.matches(adapter.chatReader)&&!el.closest(adapter.chatReader)&&!chatReaders.some(chat=>el.contains(chat)));
+      if(chatReaders.length>1||workReaders.length>1||chatReaders.length&&workReaders.length)
+        throw new Error('ambiguous-conversation-reader');
+      mode=chatReaders.length?'chat':editor.matches(adapter.localWorkComposer)?'work':adapter.chatLabels.includes(editor.getAttribute('aria-label'))?'chat':null;
       if(!mode)throw new Error('unknown-mode');
-      reader=[...main.querySelectorAll(adapter.chatReader)].find(inMain)||[...main.querySelectorAll('[data-thread-user-message-navigation-content]')].find(inMain)||null;
+      reader=mode==='chat'?chatReaders[0]||null:workReaders[0]||null;
       scroll=editor.closest('.thread-scroll-container');
     }
     const composerColumn=columnFor(body,main,true),readerColumn=reader?columnFor(reader,main):null;
@@ -1400,7 +1410,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
         }
       }
     });
-    observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['data-app-shell-active-page','aria-label','aria-busy','aria-readonly','data-composer-input-layout','data-composer-input-variant','data-composer-surface-variant','data-codex-composer','data-state','hidden','aria-hidden','contenteditable','inert','data-codex-composer-request-navigation','data-codex-composer-root','data-composer-placement','data-pip-anchor-host']});
+    observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['data-app-shell-active-page','data-chatgpt-conversation-selection-target','aria-label','aria-busy','aria-readonly','data-composer-input-layout','data-composer-input-variant','data-composer-surface-variant','data-codex-composer','data-state','hidden','aria-hidden','contenteditable','inert','data-codex-composer-request-navigation','data-codex-composer-request','data-codex-character-input-boundary','data-codex-composer-root','data-composer-placement','data-pip-anchor-host']});
     observer.observe(root,{attributes:true,attributeFilter:['data-theme','dir','lang','class']});
     resize=new ResizeObserver(entries=>{
       scheduleClip();

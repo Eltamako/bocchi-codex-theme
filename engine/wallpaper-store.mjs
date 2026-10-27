@@ -104,17 +104,18 @@ export function authorizedSelectionEvent(session,event){
 }
 // One coordinator owns a document. Retire and await idle before creating its successor.
 export class SelectionCoordinator {
- constructor({initialId,prepare,commit,reject,getState,save,validate=async()=>true,onError=()=>{}}){Object.assign(this,{displayedId:initialId,prepare,commit,reject,getState,save,validate,onError});this.active=true;this.latest=null;this.worker=null;this.seen=new Set();}
+ constructor({initialId,prepare,commit,reject,getState,save,validate=async()=>true,onError=()=>{},transaction=task=>task(),readSaved=null}){Object.assign(this,{displayedId:initialId,prepare,commit,reject,getState,save,validate,onError,transaction,readSaved});this.active=true;this.latest=null;this.worker=null;this.seen=new Set();}
  request(r){if(!this.active||!r||!WALLPAPER_IDS.includes(r.id)||typeof r.requestId!=='string'||this.seen.has(r.requestId))return false;this.seen.add(r.requestId);this.latest=r;if(!this.worker)this.worker=this.drain().finally(()=>{this.worker=null;});return true;}
  async matches(r){if(!this.active||this.latest!==r)return false;const s=await this.getState();return this.active&&this.latest===r&&s?.selectionRequestId===r.requestId&&s?.requestedWallpaperId===r.id;}
  async drain(){
-  while(this.active&&this.latest){const r=this.latest,previous=this.displayedId;let saved=false,committed=false;
+  while(this.active&&this.latest){const r=this.latest;await this.transaction(async()=>{let previous=this.displayedId,saved=false,committed=false;
    try{
-    if(!await this.matches(r)||!await this.validate())continue;
+    if(!await this.matches(r)||!await this.validate())return;
+    if(this.readSaved)previous=await this.readSaved();
     const prepared=await this.prepare(r);if(!prepared?.ok||prepared.id!==r.id||prepared.requestId!==r.requestId)throw Error('Wallpaper preparation failed');
-    if(!await this.matches(r)||!await this.validate())continue;
+    if(!await this.matches(r)||!await this.validate())return;
     await this.save(r.id);saved=true;
-    if(!await this.matches(r))continue;
+    if(!await this.matches(r))return;
     const result=await this.commit(r);if(result?.ok&&result.id===r.id&&result.requestId===r.requestId){committed=true;this.displayedId=r.id;}
     else throw Error('Wallpaper commit failed');
    }catch(e){
@@ -124,7 +125,7 @@ export class SelectionCoordinator {
    }finally{
     if(saved&&!committed){try{await this.save(previous);}catch(e){this.active=false;this.onError(Error('Preference rollback failed: '+e.message));}}
     if(this.latest===r)this.latest=null;
-   }
+   }});
   }
  }
  async idle(){while(this.worker)await this.worker;}

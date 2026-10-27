@@ -17,7 +17,16 @@ function Test-BocchiReadyStatus([object]$Status,[object]$State,[string]$RequestI
     $Status.generation -cne $State.generation -or $Status.browserId -cne $State.browserId -or
     [int]$Status.daemonPid -ne [int]$State.daemonPid -or $Status.runtimeHash -cne $State.runtimeHash){return $false}
   $renderers=@($Status.renderers)
-  return ($renderers.Count -eq 1 -and $renderers[0].installed -eq $true -and $renderers[0].ready -eq $true -and $renderers[0].version -ceq $ThemeVersion)
+  if($renderers.Count -eq 0){return $false}
+  $ids=@{}
+  foreach($renderer in $renderers){
+    if($renderer.installed -ne $true -or $renderer.ready -ne $true -or $renderer.version -cne $ThemeVersion){return $false}
+    if($renderers.Count -gt 1){
+      if(-not $renderer.targetId -or $ids.ContainsKey([string]$renderer.targetId)){return $false}
+      $ids[[string]$renderer.targetId]=$true
+    }
+  }
+  return $true
 }
 
 # Only attribute a blocked renderer to this exact request and managed session.
@@ -27,7 +36,7 @@ function Get-BocchiBlockedReason([object]$Status,[object]$State,[string]$Request
     $Status.generation -cne $State.generation -or $Status.browserId -cne $State.browserId -or
     [int]$Status.daemonPid -ne [int]$State.daemonPid -or $Status.runtimeHash -cne $State.runtimeHash){return $null}
   $renderers=@($Status.renderers)
-  if($renderers.Count -eq 1 -and $renderers[0].installed -eq $false -and $renderers[0].reason -ceq 'automatic-dark-appearance-failed'){return 'automatic-dark-appearance-failed'}
+  foreach($renderer in $renderers){if($renderer.installed -eq $false -and $renderer.reason -ceq 'automatic-dark-appearance-failed'){return 'automatic-dark-appearance-failed'}}
   return $null
 }
 
@@ -43,12 +52,14 @@ function Get-BocchiReadinessDiagnostic([object]$Status,[object]$State,[string]$R
     return 'loader-unavailable'
   }
   $renderers=@($Status.renderers)
-  if($Status.state -in @('running','suspended') -and $renderers.Count -eq 1 -and $ThemeVersion -and $renderers[0].version -cne $ThemeVersion){return 'version-mismatch'}
-  if($Status.state -in @('running','suspended') -and $renderers.Count -eq 1 -and $renderers[0].installed -eq $true -and $renderers[0].ready -ne $true){return 'renderer-not-ready'}
-  if($Status.state -ceq 'suspended' -and $renderers.Count -eq 1 -and $renderers[0].installed -eq $false){
-    $known=@('automatic-dark-appearance-failed','required-markers-missing','unknown-active-page-or-layout','required-surface-missing','unknown-column-owner','unknown-mode','main-region-too-small','unsupported-request-card-shell','unsupported-submitting-shell','version-mismatch','expired-loader-lease')
-    if($renderers[0].reason -cin $known){return $renderers[0].reason}
-    return 'renderer-unavailable'
+  foreach($renderer in $renderers){
+    if($Status.state -in @('running','suspended') -and $ThemeVersion -and $renderer.version -and $renderer.version -cne $ThemeVersion){return 'version-mismatch'}
+    if($Status.state -in @('running','suspended') -and $renderer.installed -eq $true -and $renderer.ready -ne $true){return 'renderer-not-ready'}
+    if($Status.state -ceq 'suspended' -and $renderer.installed -eq $false){
+      $known=@('automatic-dark-appearance-failed','required-markers-missing','unknown-active-page-or-layout','required-surface-missing','unknown-column-owner','unknown-mode','main-region-too-small','unsupported-request-card-shell','unsupported-submitting-shell','version-mismatch','expired-loader-lease','renderer-not-ready','renderer-validation-failed')
+      if($renderer.reason -cin $known){return $renderer.reason}
+      return 'renderer-unavailable'
+    }
   }
   return $null
 }

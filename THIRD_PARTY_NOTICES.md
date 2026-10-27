@@ -11,3 +11,8 @@ Windows 完整包附带 Node.js v24.19.0，仅用于运行本地加载器。Node
 
 主题未包含官方 Codex 客户端的可执行文件或安装包，使用前需要自行安装官方客户端。壁纸与贴纸的来源、制作方式和许可范围单独见 [ASSETS.md](ASSETS.md)。
 
+## 协作致谢 / Contributor thanks
+
+感谢 [greppro](https://github.com/greppro) 在 [PR #2](https://github.com/Eltamako/bocchi-codex-theme/pull/2) 中投入的实验性 Mac 适配工作，包括独立启动器、身份检查、归档 Chat 和平台打包边界。这次 Windows 整理参考并沿用了相关打包边界与测试思路；Mac 运行时代码仍在独立整合中，PR 尚未合并，不代表 Windows 包已支持 Mac。
+
+Thanks to [greppro](https://github.com/greppro) for the experimental Mac work in [PR #2](https://github.com/Eltamako/bocchi-codex-theme/pull/2), including the separate launcher, identity checks, archived Chat handling and distribution boundaries. This Windows preparation incorporates relevant packaging-boundary work and test ideas. Mac runtime integration remains separate; the PR is not merged, and this Windows package does not provide Mac support.

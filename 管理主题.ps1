@@ -141,7 +141,7 @@ function Test-BocchiCompletedStart([object]$State,[object]$Own){
     $ready=Get-Content -LiteralPath $statusPath -Raw -Encoding utf8|ConvertFrom-Json
     if(-not (Test-BocchiReadyStatus -Status $ready -State $State -RequestId $control.requestId -ThemeVersion $install.themeVersion)){return $false}
     $age=([DateTime]::UtcNow-[DateTime]::Parse((ConvertTo-UtcStamp $ready.at)).ToUniversalTime()).TotalSeconds
-    if($age -lt 0 -or $age -gt 10 -or $ready.renderers[0].imageLoaded -ne $true){return $false}
+    if($age -lt 0 -or $age -gt 10 -or @($ready.renderers|Where-Object {$_.imageLoaded -ne $true}).Count -gt 0){return $false}
     $window=Get-Process -Id $Own.pid -ErrorAction Stop
     return ($window.MainWindowHandle -ne 0)
   } catch {return $false}

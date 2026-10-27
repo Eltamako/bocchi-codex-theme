@@ -44,6 +44,14 @@ function Get-BocchiErrorText([object]$Record){
   $key=[string]$exception.Data['BocchiMessageKey']
   if(-not $key){
     $key=switch -Regex ($exception.Message){
+      '^CODEX_APPX_MODULE_UNAVAILABLE' {'discovery.module';break}
+      '^CODEX_APPX_QUERY_DENIED' {'discovery.denied';break}
+      '^CODEX_APPX_QUERY_FAILED' {'discovery.query';break}
+      '^CODEX_PACKAGE_NOT_REGISTERED' {'discovery.missing';break}
+      '^CODEX_DISTRIBUTION_UNSUPPORTED' {'discovery.distribution';break}
+      '^CODEX_ARCHITECTURE_UNSUPPORTED' {'discovery.architecture';break}
+      '^CODEX_INSTALL_LAYOUT_CHANGED' {'discovery.layout';break}
+      '^CODEX_MANIFEST_READ_FAILED' {'discovery.manifest';break}
       'Client version changed' {'manager.updated';break}
       'Current theme renderer did not confirm' {'manager.waiting';break}
       default {'manager.generic'}

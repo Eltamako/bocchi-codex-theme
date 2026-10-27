@@ -4,9 +4,12 @@
 
 Bring a little of Kessoku Band’s backstage world into your everyday chats and work. This unofficial **Bocchi the Rock! anime theme for OpenAI Codex Desktop on Windows** includes six wallpapers, a STARRY wallpaper picker and character stickers, with space to keep your conversations readable.
 
-**[Download for Windows](https://github.com/Eltamako/bocchi-codex-theme/releases/latest)** · [Install guide](docs/en/install.md) · [Troubleshooting](docs/en/troubleshooting.md) · [Upgrade or restore](docs/en/upgrade-restore.md)
+**[GitHub releases and downloads](https://github.com/Eltamako/bocchi-codex-theme/releases)** · [Install guide](docs/en/install.md) · [Troubleshooting](docs/en/troubleshooting.md) · [Upgrade or restore](docs/en/upgrade-restore.md)
 
-> **2.6.2 supports Windows x64, Codex app 26.1016.51333 / package 26.1016.6573.0.** Setup checks the version. The theme temporarily uses dark appearance when active, whether your preference is Light, Dark or System. Other client versions, macOS and Linux are outside this release’s supported scope.
+> **2.7.0: Windows x64, Codex 26.1021.31345 / package 26.1021.3705.0.** Check your client version before choosing a theme package; older theme packages do not support this build.
+
+
+Version 2.7.0 keeps the six confirmed visuals, supports local tasks in additional windows, and verifies downloaded package files before installation. Windows is packaged independently; macOS development remains experimental. See [platform and validation boundaries](docs/2.7-integration-notes.md).
 
 ## See it in the app
 
@@ -20,7 +23,7 @@ Bring a little of Kessoku Band’s backstage world into your everyday chats and 
 
 ## Get started in three steps
 
-1. Download the **windows-x64.zip** file from the [latest release](https://github.com/Eltamako/bocchi-codex-theme/releases/latest). Extract the whole archive into a writable folder you plan to keep.
+1. Choose **Bocchi-Codex-Theme-2.7.0-windows-x64.zip** and extract it into a writable folder you will keep.
 2. Run **Install.cmd**. Setup checks the files and creates a **Bocchi Codex Theme** desktop shortcut.
 3. Save your drafts, let active work finish and exit any ordinary Codex window. Open the desktop shortcut or **Start.cmd**, sign in if needed, and enter Chat or Work. Dark appearance is applied automatically while the theme is active. Choose a wallpaper from **STARRY** in the top-right corner.
 
@@ -29,6 +32,16 @@ The Windows package includes its runtime; you don’t need to install Node.js se
 If first-time sign-in takes longer than the launcher’s wait, finish signing in and run **Resume.cmd**. Pausing the theme restores the window’s original appearance without overwriting your saved preference.
 
 Choose the Windows package for everyday use. **source.zip** and GitHub’s automatic **Source code** downloads are for development and do not include the runtime binary. [Full installation guide](docs/en/install.md)
+
+## 2.7.0 · Updated Windows adapter
+
+- Local tasks opened in a new window now load the theme automatically. Each window keeps its current choice; new windows use the last successfully saved wallpaper. Pause and Resume apply to all managed windows.
+
+- Targets Codex 26.1021.31345 / package 26.1021.3705.0. Theme 2.7.0; loader 1.3.0.
+- Updates Chat reader detection while preserving all six wallpapers and existing visual and lifecycle safeguards.
+- Fixes corrupted Unicode shortcut arguments under an English ANSI code page; verifies saved links against the original values.
+- Separates app discovery, manifest, architecture and version errors without changing the ordinary client.
+- Setup verifies the release manifest before clearing download markers only from listed scripts. System execution policy is unchanged. Experimental macOS support is not included.
 
 ## 2.6.2 · Recovery and installation ownership fixes
 
@@ -98,3 +111,5 @@ Original image references: the official Bocchi the Rock! anime account [@BTR_ani
 
 
 2.6.2 startup tip: after choosing Exit from the tray, open the theme shortcut directly. The launcher waits for exit to complete, and repeated clicks wait for the operation already in progress. Extract upgrades into a separate folder and keep the old package for rollback.
+
+Thanks to greppro for the Mac adaptation, packaging boundaries and test work. See the [contributor notes](THIRD_PARTY_NOTICES.md). Mac support continues as a separate experimental effort.
