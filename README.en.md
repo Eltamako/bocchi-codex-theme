@@ -6,10 +6,10 @@ Bring a little of Kessoku Band’s backstage world into your everyday chats and 
 
 **[GitHub releases and downloads](https://github.com/Eltamako/bocchi-codex-theme/releases)** · [Install guide](docs/en/install.md) · [Troubleshooting](docs/en/troubleshooting.md) · [Upgrade or restore](docs/en/upgrade-restore.md)
 
-> **2.7.0: Windows x64, Codex 26.1021.31345 / package 26.1021.3705.0.** Check your client version before choosing a theme package; older theme packages do not support this build.
+> **2.8.0: Windows x64, Codex 26.1023.51421 / package 26.1023.6621.0.** Check your client version before choosing a theme package; older theme packages do not support this build.
 
 
-Version 2.7.0 keeps the six confirmed visuals, supports local tasks in additional windows, and verifies downloaded package files before installation. Windows is packaged independently; macOS development remains experimental. See [platform and validation boundaries](docs/2.7-integration-notes.md).
+Version 2.8.0 keeps the six confirmed visuals, supports local tasks in additional windows, and verifies downloaded package files before installation. Windows is packaged independently; macOS development remains experimental. See [platform and validation boundaries](docs/2.8-integration-notes.md).
 
 ## See it in the app
 
@@ -23,7 +23,7 @@ Version 2.7.0 keeps the six confirmed visuals, supports local tasks in additiona
 
 ## Get started in three steps
 
-1. Choose **Bocchi-Codex-Theme-2.7.0-windows-x64.zip** and extract it into a writable folder you will keep.
+1. Choose **Bocchi-Codex-Theme-2.8.0-windows-x64.zip** and extract it into a writable folder you will keep.
 2. Run **Install.cmd**. Setup checks the files and creates a **Bocchi Codex Theme** desktop shortcut.
 3. Save your drafts, let active work finish and exit any ordinary Codex window. Open the desktop shortcut or **Start.cmd**, sign in if needed, and enter Chat or Work. Dark appearance is applied automatically while the theme is active. Choose a wallpaper from **STARRY** in the top-right corner.
 
@@ -32,6 +32,13 @@ The Windows package includes its runtime; you don’t need to install Node.js se
 If first-time sign-in takes longer than the launcher’s wait, finish signing in and run **Resume.cmd**. Pausing the theme restores the window’s original appearance without overwriting your saved preference.
 
 Choose the Windows package for everyday use. **source.zip** and GitHub’s automatic **Source code** downloads are for development and do not include the runtime binary. [Full installation guide](docs/en/install.md)
+
+## 2.8.0 — Updated client compatibility
+
+- Targets Codex 26.1023.51421 / Windows package 26.1023.6621.0; loader 1.3.0 is unchanged.
+- Keeps the six visuals, task multiwindow support, dynamic Chat readers, composer clipping, image previews, bilingual menus and installation guards from 2.7.0.
+- Restores alignment of home greetings, mode controls and the box Bocchi sticker, clears the opaque footer beside the composer, and fixes right-shifted Chat tables. Wallpaper colors, framing and gradients remain unchanged. Mac runtime work remains separate.
+- See [validation](docs/en/validation.md) for checks and native acceptance limits. Use 2.7.0 for the previous client.
 
 ## 2.7.0 · Updated Windows adapter
 

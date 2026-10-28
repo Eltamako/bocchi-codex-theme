@@ -8,7 +8,7 @@ Download **windows-x64.zip** from Releases and extract it completely. GitHub’s
 
 ## My client version doesn’t match
 
-This release supports app 26.1021.31345 / package 26.1021.3705.0 only. Client updates can change the interface structure. Use the ordinary client while waiting for a matching theme release; editing the expected version number does not adapt the theme.
+This release supports app 26.1023.51421 / package 26.1023.6621.0 only. Client updates can change the interface structure. Use the ordinary client while waiting for a matching theme release; editing the expected version number does not adapt the theme.
 
 ## Setup succeeded, but startup says the renderer did not confirm
 

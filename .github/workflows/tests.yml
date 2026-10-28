@@ -1,4 +1,4 @@
-name: Windows 2.7 regression tests
+name: Windows 2.8 regression tests
 on:
   push:
   pull_request:
@@ -54,4 +54,4 @@ jobs:
         if: always()
         with:
           name: windows-renderer-fixtures
-          path: .test-output/renderer-windows-270/
+          path: .test-output/renderer-windows-280/

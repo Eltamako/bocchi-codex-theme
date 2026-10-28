@@ -1,32 +1,30 @@
-# 2.7.0 validation notes
+# 2.8.0 validation
 
 [简体中文](../验证记录.md)
 
-Scope as of 2026-10-27: **Windows x64**, Codex app **26.1021.31345**, Windows package **26.1021.3705.0**, theme **2.7.0**, loader **1.3.0**. Evidence sources and unverified scenarios are separated below.
+Target: Windows x64, Codex **26.1023.51421 / package 26.1023.6621.0**, theme **2.8.0**, loader **1.3.0**. Updated October 29, 2026.
 
-## Automated checks in this round
+## Automated checks and independent review
 
-- Windows source Node regressions: **52/52 passed, none skipped**, including window discovery, per-window recovery, independent heartbeats, shared selection transactions and dynamic Chat identification.
-- **10 isolated suites in each of Windows PowerShell 5.1 and PowerShell 7 passed**: discovery, Unicode shortcuts, instance and readiness guards, startup, duplicate start, installation ownership, termination, package integrity and download-origin boundaries. The two new suites contain 22 and 20 checks.
-- Platform tests allow both platforms in a source tree and monitor actual Windows imports, adapter reads and platform calls. Four negative cases detect static/dynamic Mac dependencies, Mac adapter reads and Mac platform commands. Windows ZIP contents are checked separately for Mac-only files.
-- Assets and manifest checks passed. Renderer, runtime, wallpaper configuration, CSS and images were not changed in this round; their hashes link to earlier acceptance evidence rather than a claimed new full visual run.
+- Registered metadata, the manifest, owl-app.ini and archived package.json agree. Work continues from the October 28 candidate with its home, footer and table fixes.
+- Reviewed actual official structures for Chat, Work, home controls, DIL tables, image viewers, sidebars and window routes. Six shared CSS assets are identical. Native testing subsequently exposed a missed footer fade outside the composer host; its exact lookup scope has now been corrected.
+- **52/52 Node regressions passed without skips**, including multiwindow recovery, independent heartbeats, shared selection transactions, dynamic Chat, asset fallback, identity and platform boundaries.
+- **47/47 headless checks passed** for six wallpapers, Chat/Work, home alignment/stickers, table scrolling, reader clipping, preview portals, request/submission states, cleanup and baseline comparisons. Two added cases reproduce sibling footer paint, composer growth, unrelated gradients and native-style restoration. Home fixtures cover 800, 1280 and 1920 pixel widths.
+- Five relevant suites passed under each of PowerShell 5.1 and 7: discovery, Unicode shortcuts, startup, readiness and duplicate starts. System execution policy was unchanged.
 
-## Simulated download-origin checks
+## Native Windows checks
 
-- A harmless marked script was blocked by Windows PowerShell 5.1 under RemoteSigned. After its marker was removed, a Unicode shortcut in the test directory successfully launched the harmless probe. No second real client was launched.
-- The real installer passed five scenarios in an isolated copy: CheckOnly, tampered file rejection, missing dependency rejection, installation and repeat installation. CheckOnly preserves markers and creates no configuration; rejected installs preserve markers. Successful installation clears markers only from 14 necessary production scripts after the full manifest is verified. Unneeded scripts remain marked.
-- The tested ZIP extractor did not propagate the ZIP marker, so files were also marked explicitly. This is a **download-origin simulation**, not verification of a real browser download and first launch.
-- RemoteSigned was applied only to authorized test processes. System, user and organization policies were unchanged. Desktop shortcuts still use RemoteSigned.
+- Installed through the original entry from the complete ZIP. The user exited via the tray and successfully opened the desktop shortcut; logs confirm PowerShell 5.1, the expected build and a verified themed process.
+- Six Work wallpaper choices, persistence, bilingual menus, both sidebars, rounded clipping, no STARRY halo and reader clipping passed. Chat/Work home headings, mode controls and the box sticker aligned correctly.
+- A new task window loaded its wallpaper and saved a choice; closing it left the main window healthy. Existing behavior is retained: windows render independently and share the last successfully saved preference.
+- The real Chat generated-image viewer retained its backdrop through opening, reopening and dismissal; all 656 sampled frames kept it. Rapid consecutive close-button automation did not always dismiss the viewer; Escape closed it successfully. Viewer code was not changed on that basis.
+- Work image attachments were checked in the side panel. Every kind of Work generated-image fullscreen preview was not repeated this time.
+- The horizontal seam above the composer was reproduced and removed by handling the missed empty native paint node. Pause, resume and starting the already-running theme passed without replacing the browser or loader. The original wallpaper and conversation were restored.
 
-## User feedback and earlier evidence
+## Changes and limits
 
-- The user installed and tried the earlier candidate ZIP and reported no problems. Its installation has a successful Windows PowerShell 5.1 start record, and its 105 original manifest files matched the reviewed ZIP. This confirms a successful start, not every possible workflow.
-- Earlier native Windows checks covered Chat attachments/replies, scrolling, image viewers, all six wallpapers, composer growth, rounded edges, pause/resume, repeat start and loader cleanup.
-- Earlier native two-window checks covered opening a task in another window, loading both windows, reopening a window, coordinated pause/resume and cleanup after normal or abnormal loader termination. The user's client was not forcibly terminated.
-- Earlier simulations included 108 visual combinations, four scale factors, 23 renderer fixtures, and targeted image-viewer, corner, English-menu and dynamic-DOM checks. These are not native frame-rate guarantees.
+Compared with the repaired October 28 candidate, the only shared-core change is the renderer footer-paint lookup. CSS, runtime, launch scripts, artwork, dimming strength and framing are unchanged. No public interfaces or configuration fields were added. Mac development remains separate and PR #2 was not modified.
 
-## Final artifacts and limits
+Packages use the same source manifest, with CRC, path, platform-boundary and hash checks. Extracted-package regressions and installation checks are recorded against the final artifacts. Earlier packages and installations are retained.
 
-Use SHA256SUMS.txt beside the final ZIPs to identify them. Local release review separately records archive hashes, counts, CRC checks, extracted-package regressions and installation checks. Earlier packages and evidence are retained. The installer fix produces different bytes from the package previously tried by the user.
-
-Not verified: a real browser download chain, a fresh English Windows installation, other Windows versions, real client crashes or shutdown recovery, arbitrary window-count load, or native macOS. The current final package has not been cold-launched by exiting the active client again; earlier startup and two-window evidence is reused only where unchanged file hashes support it. Remote CI was not triggered. Experimental macOS integration is reviewed separately and is excluded from the Windows release package.
+No new test messages were sent, active tasks were not terminated, and crash-exit behavior was not retested. Every attachment/request-card combination was not repeated. Real browser downloads, a fresh English Windows system, native Mac acceptance and remote CI remain untested. Older native results are historical evidence only for unchanged files. The two approved public screenshots are unchanged.

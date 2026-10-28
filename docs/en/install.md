@@ -8,7 +8,7 @@ After launching through the theme shortcut, choose **Open in new window** on a l
 
 Pause.cmd pauses all managed theme windows. Resume.cmd reloads them with the saved wallpaper. Closing one window leaves the others running. Native checks cover local task windows and Chat/Work pages inside them; avatar overlays and browser utility windows keep their original appearance.
 
-Install and open the official Codex client once before setting up the theme. Use the 2.7.0 Windows x64 package with Codex app 26.1021.31345 / package 26.1021.3705.0 ; dark appearance is applied automatically while the theme is active.
+Install and open the official Codex client once before setting up the theme. Use the 2.8.0 Windows x64 package with Codex app 26.1023.51421 / package 26.1023.6621.0 ; dark appearance is applied automatically while the theme is active.
 
 Extract the whole archive into a writable, permanent folder. Avoid WindowsApps, Program Files and temporary extraction folders. Run **Install.cmd**. It creates an installation record, a local data folder and one desktop shortcut named **Bocchi Codex Theme**. Setup does not close your current client or immediately switch its appearance. If a same-name shortcut points elsewhere, it is backed up before being updated; other shortcuts are left alone.
 

@@ -30,6 +30,12 @@ html[data-bocchi-active="true"] [data-bocchi-reader] [data-d-component="table"]{
   box-sizing:border-box!important;width:100%!important;max-width:100%!important;
   margin-inline:0!important;padding-inline:0!important;overflow-x:auto!important;
 }
+/* DIL also applies the native full-bleed inset inside its scroll viewport.
+   The frame already fits the reading column; retaining that inset shifts cells. */
+html[data-bocchi-active="true"] [data-bocchi-reader] [data-d-component="table"] > [data-d-table-viewport]{
+  box-sizing:border-box!important;max-width:100%!important;min-width:0!important;
+  padding-inline:0!important;scroll-padding-inline:0!important;
+}
 html[data-bocchi-active="true"] [data-app-shell-active-page="true"] :is([data-markdown-text-style="assistant-message"] a,[data-markdown-text-style="assistant-message"] strong){color:#efc4d6}
 html[data-bocchi-active="true"] [data-app-shell-active-page="true"] button[aria-label="发送"]{background-color:#f3a5c5!important;color:#271e29!important}
 /* The native image viewer owns its transparent/animated surface. Giving its

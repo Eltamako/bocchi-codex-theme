@@ -1,6 +1,6 @@
 async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpaperId, selectionBridge, sticker, bandSticker, appVersion, leaseUntil, installGeneration, loaderGeneration, previewTopMode = "A+++", messages, language = "auto", systemLanguage = "en"}) {
   // This adapter is deliberately tied to the inspected desktop build.
-  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.7.0' || appVersion !== adapter.appVersion)
+  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.8.0' || appVersion !== adapter.appVersion)
     return {installed:false, reason:'version-mismatch'};
   if (!Number.isFinite(leaseUntil) || leaseUntil <= Date.now()) return {installed:false, reason:'expired-loader-lease'};
   if (typeof css !== 'string' || /@import\b|url\s*\(/i.test(css)) return {installed:false, reason:'nonlocal-stylesheet'};
@@ -1044,10 +1044,16 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     }
     const composerColumn=columnFor(body,main,true),readerColumn=reader?columnFor(reader,main):null;
     if(!composerColumn||(reader&&!readerColumn))throw new Error('unknown-column-owner');
-    const homeModes=!reader?[...main.querySelectorAll('[class*="@container/home-mode-toggle"]')].filter(inMain):[];
-    const homeMode=homeModes.length===1?homeModes[0]:null;
-    const greetings=homeMode?[...main.querySelectorAll('[class*="thread-content-max-width"]')].filter(el=>
-      visible(el)&&typeof el.className==='string'&&el.className.includes('mx-auto')&&
+    // 26.1023 portals the home mode control into the active page titlebar,
+    // outside main. Move only its control group, never the rest of the header.
+    const homeModes=!reader?[...page.querySelectorAll('[class*="@container/home-mode-toggle"]')].filter(inMain):[];
+    const modeHost=homeModes.length===1?homeModes[0]:null;
+    const modeGroups=modeHost?[...modeHost.querySelectorAll('[role="group"]')].filter(el=>
+      visible(el)&&el.querySelectorAll('button[aria-pressed]').length===2):[];
+    const homeMode=modeGroups.length===1?modeGroups[0]:modeHost&&main.contains(modeHost)?modeHost:null;
+    // A project home and a new Chat can have a greeting without a mode toggle.
+    const greetings=!reader?[...main.querySelectorAll('[class*="thread-content-max-width"]')].filter(el=>
+      inMain(el)&&typeof el.className==='string'&&el.className.includes('mx-auto')&&
       el.className.includes('w-[min(100%,var(--thread-content-max-width))]')&&
       el.querySelector('h1,[data-feature="game-source"].heading-xl')&&!el.contains(editor)):[];
     const homeGreeting=greetings.length===1?greetings[0]:null;
@@ -1156,9 +1162,11 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
         const s=getComputedStyle(el);
         if(['rgb(24, 24, 24)','rgb(23, 23, 30)'].includes(s.backgroundColor)||el.hasAttribute('data-bocchi-native-fill'))mark(el,'data-bocchi-native-fill');
       }
-      // Current desktop footer paints its two empty backdrop divs as nested siblings.
-      // Restrict this to observed paint-only nodes next to the composer, never arbitrary gradients.
-      for(const el of main.querySelectorAll('div.pointer-events-none.absolute.inset-x-0.z-0')){
+      // Native footer paint may live in the transcript's sticky spacer, beside
+      // the composer host. Only expand the exact native paint selector there.
+      const scroll=footer.closest('.thread-scroll-container')||host;
+      const paints=new Set([...host.querySelectorAll('div.pointer-events-none.absolute.inset-x-0.z-0'),...scroll.querySelectorAll('div._background_18hic_2.pointer-events-none.absolute.z-0')]);
+      for(const el of paints){
         if(!visible(el)||el.childElementCount||el.textContent.trim()||el.closest('[data-bocchi-owned]'))continue;
         const s=getComputedStyle(el),r=box(el),b=box(body);
         if(r.width<width*.8||r.top<b.top-160||r.bottom< b.top-48||r.bottom>area.bottom+2)continue;

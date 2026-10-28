@@ -9,9 +9,9 @@ A fan-made **Bocchi the Rock! anime theme for OpenAI Codex Desktop on Windows**:
 **[GitHub 发行页与下载](https://github.com/Eltamako/bocchi-codex-theme/releases)** · [安装说明](docs/使用说明.md) · [常见问题](docs/常见问题.md) · [恢复与回退](docs/恢复与回退.md)
 
 
-2.7.0 保留已确认的六款画面，支持本地任务新窗口，并加强下载后安装检查。Windows 完整包独立发行；macOS 开发仍处于实验阶段。[平台与验证边界](docs/2.7-integration-notes.md)。
+2.8.0 保留已确认的六款画面，支持本地任务新窗口，并加强下载后安装检查。Windows 完整包独立发行；macOS 开发仍处于实验阶段。[平台与验证边界](docs/2.8-integration-notes.md)。
 
-> **2.7.0适配：Windows x64 · Codex 26.1021.31345（安装包 26.1021.3705.0）。** 请核对客户端版本，再选择对应主题包；旧版主题包不适用于此构建。
+> **2.8.0适配：Windows x64 · Codex 26.1023.51421（安装包 26.1023.6621.0）。** 请核对客户端版本，再选择对应主题包；旧版主题包不适用于此构建。
 
 ## 先看看实机效果
 
@@ -25,7 +25,7 @@ A fan-made **Bocchi the Rock! anime theme for OpenAI Codex Desktop on Windows**:
 
 ## 三步开始
 
-1. 从发行页选择与客户端匹配的 **Bocchi-Codex-Theme-2.7.0-windows-x64.zip** 完整包，完整解压到准备长期保留、自己可以写入的文件夹。
+1. 从发行页选择与客户端匹配的 **Bocchi-Codex-Theme-2.8.0-windows-x64.zip** 完整包，完整解压到准备长期保留、自己可以写入的文件夹。
 2. 双击 **01-安装.cmd** 或 **Install.cmd**。检查通过后，桌面会出现 **Bocchi Codex Theme**。
 3. 先保存草稿、等正在处理的工作结束并退出普通 Codex 窗口，再双击桌面入口或 **02-启动主题.cmd / Start.cmd**。完成登录、进入 Chat 或 Work，主题会自动使用深色显示；点右上角 **STARRY** 挑选壁纸。
 
@@ -34,6 +34,13 @@ A fan-made **Bocchi the Rock! anime theme for OpenAI Codex Desktop on Windows**:
 如果首次登录耗时较长，完成登录后运行 **04-恢复主题.cmd / Resume.cmd** 即可。暂停主题后，窗口会恢复原外观；不会覆盖长期外观偏好。
 
 GitHub 的 **Source code** 和发行页的 **source.zip** 用于查看源码与开发，不是完整安装包。详细步骤见 [使用说明](docs/使用说明.md)。
+
+## 2.8.0 — 新版客户端适配
+
+- 对应 Codex 26.1023.51421／Windows 安装包 26.1023.6621.0，加载器继续使用 1.3.0。
+- 保留 2.7.0 的六款画面、多窗口、动态 Chat、输入框防漏、图片预览、双语菜单和安装保护。
+- 恢复首页标题、模式切换和纸箱波奇贴纸的对齐，清除输入框旁的底栏黑块，并修正 Chat 表格偏右；壁纸配色、取景和渐变保持不变。Mac 运行时继续独立开发。
+- 检查范围和实机待办见 [验证记录](docs/验证记录.md)；旧客户端请使用 2.7.0。
 
 ## 2.7.0 · 新版 Windows 适配
 

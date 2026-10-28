@@ -1,5 +1,22 @@
 # 更新记录 / Changelog
 
+## 2.8.0 — 新版客户端适配
+
+- 对应 Codex 26.1023.51421／Windows 安装包 26.1023.6621.0，加载器继续使用 1.3.0。
+- 保留 2.7.0 的六款画面、多窗口、动态 Chat、输入框防漏、图片预览、双语菜单和安装保护。
+- 恢复新版首页标题、Chat／Work 切换和纸箱波奇贴纸与输入框的对齐；移除新版底栏挡住壁纸的纯色背景及输入框上沿的横向黑边；修正 Chat 表格内层多余缩进，保留宽表横向滚动。
+- 仅局部调整页面识别与样式，加载流程和画面配色、取景、渐变保持不变。Mac 运行时继续独立开发。
+- 检查范围和实机待办见 [验证记录](docs/验证记录.md)；旧客户端请使用 2.7.0。
+
+## 2.8.0 — Updated client compatibility
+
+- Targets Codex 26.1023.51421 / Windows package 26.1023.6621.0; loader 1.3.0 is unchanged.
+- Keeps the six visuals, task multiwindow support, dynamic Chat readers, composer clipping, image previews, bilingual menus and installation guards from 2.7.0.
+- Realigns home greetings, Chat/Work controls and the box Bocchi sticker with the composer. Clears the new footer's opaque wallpaper obstruction and the dark seam above the composer and the dark seam above the composer and removes excess padding inside Chat tables while preserving horizontal scrolling.
+- Limits changes to page recognition and styles. Loading, artwork framing, colors and gradients remain unchanged. Mac runtime work remains separate.
+- See [validation](docs/en/validation.md) for checks and native acceptance limits. Use 2.7.0 for the previous client.
+
+
 ## 2.7.0 · 新版 Windows 适配
 
 - 保留已确认的 Windows 运行核心与画面；完善平台包边界、源码共存依赖测试及可靠截图检查。安装器在完整清单验证后处理脚本下载标记。
