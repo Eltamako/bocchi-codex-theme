@@ -4,15 +4,15 @@
 
 ## Using another window
 
-After launching through the theme shortcut, choose **Open in new window** on a local task. The theme loads with that task page. Use STARRY in either window; other open windows keep their current wallpaper, and future windows inherit the last successfully saved choice.
+If the theme is already open, the desktop shortcut brings its window back, restoring it if minimized. For another task window, choose **Open in new window** on a local task. The theme loads with that task page. Use STARRY in either window; other open windows keep their current wallpaper, and future windows inherit the last successfully saved choice.
 
 Pause.cmd pauses all managed theme windows. Resume.cmd reloads them with the saved wallpaper. Closing one window leaves the others running. Native checks cover local task windows and Chat/Work pages inside them; avatar overlays and browser utility windows keep their original appearance.
 
-Install and open the official Codex client once before setting up the theme. Use the 2.8.0 Windows x64 package with Codex app 26.1023.51421 / package 26.1023.6621.0 ; dark appearance is applied automatically while the theme is active.
+Install and open the official Codex client once before setting up the theme. Use the 2.8.1 Windows x64 package with Codex app 26.1023.51421 / package 26.1023.6621.0 ; dark appearance is applied automatically while the theme is active.
 
 Extract the whole archive into a writable, permanent folder. Avoid WindowsApps, Program Files and temporary extraction folders. Run **Install.cmd**. It creates an installation record, a local data folder and one desktop shortcut named **Bocchi Codex Theme**. Setup does not close your current client or immediately switch its appearance. If a same-name shortcut points elsewhere, it is backed up before being updated; other shortcuts are left alone.
 
-Save drafts, let active tasks finish and exit the ordinary Codex window. Open the theme shortcut or **Start.cmd**. The dedicated theme window may need its own sign-in; enter credentials only in the official client. Open Chat or Work. The theme temporarily uses dark appearance and restores the window’s original appearance when paused. Your saved Light, Dark or System preference is unchanged. If the launcher times out during sign-in, finish signing in and run **Resume.cmd**.
+Save drafts, let active tasks finish and choose Exit from the tray to close the ordinary Codex client. Open the theme shortcut or **Start.cmd**. The dedicated theme window may need its own sign-in; enter credentials only in the official client. Open Chat or Work. The theme temporarily uses dark appearance and restores the window’s original appearance when paused. Your saved Light, Dark or System preference is unchanged. If the launcher times out during sign-in, finish signing in and run **Resume.cmd**.
 
 ## Picking a wallpaper
 

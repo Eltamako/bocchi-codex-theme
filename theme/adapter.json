@@ -1,6 +1,6 @@
 {
   "schema": "bocchi-codex-adapter/1",
-  "themeVersion": "2.8.0",
+  "themeVersion": "2.8.1",
   "appVersion": "26.1023.51421",
   "packageVersion": "26.1023.6621.0",
   "activePage": "[data-app-shell-active-page=\"true\"]",
@@ -14,7 +14,7 @@
     "Ask ChatGPT",
     "Message ChatGPT"
   ],
-  "status": "candidate-validation-in-progress",
+  "status": "release-with-documented-validation-limits",
   "validationScope": "See docs/验证记录.md and docs/en/validation.md for release checks and limits.",
   "visualDesign": "six-wallpapers-matched-scenes-and-poster-r1",
   "assetPolicy": "Approved native main images preserved; registered winter floor and quiet poster plate; uniform framing and CSS masks",

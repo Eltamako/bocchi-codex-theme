@@ -42,9 +42,9 @@ function Write-BocchiStartupTrace {param($Stage,$Own)}
 $blocked=$false
 try{Assert-BocchiNoParallelDesktop -Codex $codex}catch{$blocked=($_.Exception.Data['BocchiMessageKey'] -eq 'manager.parallelVisible')}
 Check 'fresh theme launch refuses a parallel client' $blocked
-$warning=@()
-Assert-BocchiNoParallelDesktop -Codex $codex -Own ([pscustomobject]@{pid=10}) -WarningAction SilentlyContinue -WarningVariable warning
-Check 'existing owner stays running with a clear warning' ($warning.Count -eq 1)
+$blocked=$false
+try{Assert-BocchiNoParallelDesktop -Codex $codex -Own ([pscustomobject]@{pid=10})}catch{$blocked=($_.Exception.Data['BocchiMessageKey'] -eq 'manager.parallelVisible')}
+Check 'existing owner also refuses a parallel desktop without stopping it' $blocked
 $out=[pscustomobject]@{at=(Get-Date).ToUniversalTime().ToString('o');passed=$results.Count;checks=$results}
 [IO.File]::WriteAllText((Join-Path $stage '.test-output/guard-checks.json'),($out|ConvertTo-Json -Depth 5),[Text.UTF8Encoding]::new($false))
 $out|ConvertTo-Json -Depth 5

@@ -5,7 +5,16 @@ import {createHash,randomBytes} from 'node:crypto';
 import {WallpaperCatalog,SelectionCoordinator,atomicSelection,readSelection,authorizedSelectionEvent,BINDING,validatePng} from './wallpaper-store.mjs';
 const args=process.argv.slice(2),action=args[0],statePath=args[1];
 const root=path.resolve(import.meta.dirname,'..');
-const state=JSON.parse(await fs.readFile(statePath,'utf8'));
+async function readLauncherState(file){
+ // Windows replaces the initial identity and subsequent control files.
+ // The replacement gap can report missing or delete-pending (EPERM) on Windows.
+ // Retry for at most one second; malformed state and other I/O errors still fail immediately.
+ for(let attempt=0;;attempt++){
+  try{return JSON.parse(await fs.readFile(file,'utf8'));}
+  catch(error){if(!['ENOENT','EPERM'].includes(error?.code)||attempt>=40)throw error;await new Promise(resolve=>setTimeout(resolve,25));}
+ }
+}
+const state=await readLauncherState(statePath);
 if(state.schema!=='bocchi-runtime/1'||path.resolve(statePath).toLowerCase()!==path.join(root,'.local','runtime-state.json').toLowerCase())throw Error('Invalid runtime state ownership');
 const installation=JSON.parse(await fs.readFile(path.join(root,'installation.json'),'utf8'));
 if(installation.schema!=='bocchi-local-install/1'||typeof installation.stateRoot!=='string'||!path.isAbsolute(installation.stateRoot)||path.resolve(installation.stateRoot).toLowerCase()!==path.join(root,'.local').toLowerCase()||(await fs.lstat(path.join(root,'.local'))).isSymbolicLink())throw Error('Invalid installation ownership');
@@ -103,7 +112,7 @@ async function makeSession(target){
  });
  try{await c.call('Page.enable');await c.call('Runtime.enable');return s;}catch(e){s.off();c.close();throw e;}
 }
-async function assertControlActive(){const control=JSON.parse(await fs.readFile(controlPath,'utf8'));if(control.paused||control.stop||!running)throw transientError('LOADER_PAUSED','Loader paused during installation');}
+async function assertControlActive(){const control=await readLauncherState(controlPath);if(control.paused||control.stop||!running)throw transientError('LOADER_PAUSED','Loader paused during installation');}
 async function install(s,p){
  await finishCoordinator(s);const contextId=await mainContext(s),epoch=s.epoch;
  const selection=await selectionTransaction(()=>readSelection(selectionPath));selectionWarning=selection.warning;const token=randomBytes(16).toString('hex');
@@ -166,7 +175,7 @@ if(action==='restore'){
  const recoveryWindowMs=60000,controlPollMs=250;
  while(running){
   try{
-   const control=JSON.parse(await fs.readFile(controlPath,'utf8')),nextRequestId=typeof control.requestId==='string'?control.requestId:null;
+   const control=await readLauncherState(controlPath),nextRequestId=typeof control.requestId==='string'?control.requestId:null;
    if(nextRequestId!==requestId)targetFailures.clear();requestId=nextRequestId;
    if(control.stop){try{await removeAll();}catch{}await status({state:'stopped',at:new Date().toISOString()});break;}
    if(control.paused){if(lastPaused!==true)await removeAll();lastPaused=true;await status({state:'paused',at:new Date().toISOString()});}

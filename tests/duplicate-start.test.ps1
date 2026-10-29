@@ -144,6 +144,21 @@ Check 'failed first start continues through recovery' (-not (Can-Reuse))
 Reset-Fixture
 [IO.File]::WriteAllText($statusPath,'{broken')
 Check 'incomplete status does not bypass normal recovery' (-not (Test-BocchiCompletedStart $saved $own))
+# Execute the actual queued-start branch with only activation and tracing stubbed.
+# Replace its terminal exit with return so the isolated test process can continue.
+Reset-Fixture
+$null=Can-Reuse
+$queued=$ast.Find({param($n)$n -is [Management.Automation.Language.IfStatementAst] -and $n.Extent.Text.StartsWith('if($gate.waited -and')},$true)
+Check 'queued-start branch is available for behavior test' ($null -ne $queued)
+$queuedBlock=[scriptblock]::Create($queued.Extent.Text.Replace('exit 0','return'))
+$gate=[pscustomobject]@{waited=$true};$Action='Start';$script:queuedRestores=0;$script:minimized=$true;$script:queuedTrace=''
+function Open-BocchiOwnedWindow {param($Codex,$Own)$script:queuedRestores++;$script:minimized=$false;return $Own}
+function Write-BocchiStartupTrace {param($Stage,$Own)$script:queuedTrace=$Stage}
+& $queuedBlock|Out-Null
+Check 'queued ready start reaches window restoration before success' ($script:queuedRestores -eq 1 -and -not $script:minimized -and $script:queuedTrace -ceq 'reused-completed-start')
+$gate.waited=$false;$script:minimized=$true
+& $queuedBlock|Out-Null
+Check 'nonqueued request does not activate through the fast path' ($script:queuedRestores -eq 1 -and $script:minimized)
 $source=Get-Content -LiteralPath $target -Raw -Encoding utf8
 Check 'coalescing limited to queued start or resume' ($source.Contains('$gate.waited -and $Action -in @(''Start'',''Resume'')'))
 Check 'normal readiness and recovery preserved' ($source.Contains('if(-not (Wait-ThemeReady -State $state -RequestId $requestId))'))

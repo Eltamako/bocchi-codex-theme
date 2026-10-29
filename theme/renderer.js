@@ -1,6 +1,6 @@
 async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpaperId, selectionBridge, sticker, bandSticker, appVersion, leaseUntil, installGeneration, loaderGeneration, previewTopMode = "A+++", messages, language = "auto", systemLanguage = "en"}) {
   // This adapter is deliberately tied to the inspected desktop build.
-  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.8.0' || appVersion !== adapter.appVersion)
+  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.8.1' || appVersion !== adapter.appVersion)
     return {installed:false, reason:'version-mismatch'};
   if (!Number.isFinite(leaseUntil) || leaseUntil <= Date.now()) return {installed:false, reason:'expired-loader-lease'};
   if (typeof css !== 'string' || /@import\b|url\s*\(/i.test(css)) return {installed:false, reason:'nonlocal-stylesheet'};
@@ -1201,16 +1201,24 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     const isHome=!!homeGreeting&&!reader&&!hasMessages;
     // Actual free space decides visibility; a width breakpoint alone must not remove the strip.
     const canDecorate=!blocked&&!panels.length;
-    // The greeting moves upward; composer position and size remain native. Draft typing does not move the mascot.
+    // Lift low home groups together; centered homes and conversations stay put.
     let homeSpot=null;
-    if(isHome&&!blocked&&!panels.length&&area.width>=520){
+    // Keep the native controls stationary while their project/environment menu
+    // is open. Popovers hide decorative stickers, not the home layout itself.
+    if(isHome&&!panels.length&&area.width>=520){
       const b=box(body),g=box(homeGreeting),prior=parseFloat(homeGreeting.style.getPropertyValue('--bocchi-home-rise'))||0;
+      // Codex can put project/computer controls above the body, outside its
+      // root. Use the verified width owner so the mascot clears that toolbar.
+      const composerTop=Math.min(b.top,box(ctx.composerColumn).top);
       const nativeBottom=g.bottom-prior;
       const modeControls=homeMode?[...homeMode.querySelectorAll('button,[role="button"]')].filter(visible):[];
       const topLimit=Math.max(area.top+12,...modeControls.map(el=>box(el).bottom+12));
       for(const size of [96,72]){
-        const r=rect(b.left+b.width/2-size/2,b.top-size-16,size,size),targetBottom=r.top-16;
+        const lift=Math.max(0,Math.min(96,area.height*.1,composerTop-area.top-area.height*.65,
+          composerTop-size-32-g.height-topLimit));
+        const r=rect(b.left+b.width/2-size/2,composerTop-lift-size-16,size,size),targetBottom=r.top-16;
         if(targetBottom-g.height<topLimit||r.left<area.left+12||r.right>area.right-12)continue;
+        if(lift>0)property(ctx.composerColumn,'translate','0 -'+lift.toFixed(3)+'px');
         const delta=targetBottom-nativeBottom;
         property(homeGreeting,'--bocchi-home-rise',delta+'px');mark(homeGreeting,'data-bocchi-home-raised');
         homeSpot=r;break;
@@ -1224,7 +1232,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     const relative=r=>rect(r.left-area.left,r.top-area.top,r.width,r.height);
     function fits(r){return r.left>=area.left+12&&r.top>=area.top+12&&r.right<=area.right-12&&r.bottom<=area.bottom-12&&![...obstacles,...reserved].some(o=>overlap(r,o,11.8));}
     function put(el,candidates){el.hidden=true;if(!canDecorate)return null;for(const r of candidates){if(!fits(r))continue;el.hidden=false;place(el,relative(r));reserved.push(r);return r;}return null;}
-    if(homeSpot&&!fits(homeSpot))homeSpot=null;
+    if(homeSpot&&(!canDecorate||!fits(homeSpot)))homeSpot=null;
     if(homeSpot)reserved.push(homeSpot);
     const bandCandidates=[],ratio=state.bandStickerHeight/state.bandStickerWidth;
     // Keep the lower-left anchor, then shrink around the conversation navigator.
@@ -1324,8 +1332,10 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
         const nativeCenter=r.left+r.width/2-shift,targetCenter=area.left+left+width/2;
         property(ctx.homeMode,'--bocchi-home-shift',(Math.round((targetCenter-nativeCenter)*100)/100)+'px');
       }
-      updateReaderClip(ctx);
-      reconcile();updatePicker(ctx,left,width);updateEnvironmentCap(ctx);updateDecor(ctx,left,width);reconcile();
+      reconcile();updatePicker(ctx,left,width);updateEnvironmentCap(ctx);updateDecor(ctx,left,width);
+      // Home-to-conversation navigation may reuse the column. Restore its home
+      // offset before measuring the conversation footer's clipping boundary.
+      updateReaderClip(ctx);reconcile();
       const targets=new Set([root,main,ctx.focus||ctx.scroll||main,ctx.composerColumn,ctx.body,ctx.reader,ctx.homeGreeting,ctx.homeMode,...page.querySelectorAll('[data-app-shell-focus-area="right-panel"]')].filter(Boolean));
       for(const el of observed)if(!targets.has(el)){resize?.unobserve(el);observed.delete(el);}
       for(const el of targets)if(!observed.has(el)){resize?.observe(el);observed.add(el);}

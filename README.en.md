@@ -6,10 +6,10 @@ Bring a little of Kessoku Band’s backstage world into your everyday chats and 
 
 **[GitHub releases and downloads](https://github.com/Eltamako/bocchi-codex-theme/releases)** · [Install guide](docs/en/install.md) · [Troubleshooting](docs/en/troubleshooting.md) · [Upgrade or restore](docs/en/upgrade-restore.md)
 
-> **2.8.0: Windows x64, Codex 26.1023.51421 / package 26.1023.6621.0.** Check your client version before choosing a theme package; older theme packages do not support this build.
+> **2.8.1: Windows x64, Codex 26.1023.51421 / package 26.1023.6621.0.** Check your client version before choosing a theme package. Version 2.8.0 also supports this build but does not include these startup fixes.
 
 
-Version 2.8.0 keeps the six confirmed visuals, supports local tasks in additional windows, and verifies downloaded package files before installation. Windows is packaged independently; macOS development remains experimental. See [platform and validation boundaries](docs/2.8-integration-notes.md).
+Version 2.8.1 fixes an intermittent desktop startup failure and brings an existing themed window back into view. It keeps all six visuals, local-task multiwindow support, and downloaded-package verification. Windows is packaged independently; macOS development remains experimental. See [platform and validation boundaries](docs/2.8-integration-notes.md).
 
 ## See it in the app
 
@@ -23,9 +23,9 @@ Version 2.8.0 keeps the six confirmed visuals, supports local tasks in additiona
 
 ## Get started in three steps
 
-1. Choose **Bocchi-Codex-Theme-2.8.0-windows-x64.zip** and extract it into a writable folder you will keep.
+1. Choose **Bocchi-Codex-Theme-2.8.1-windows-x64.zip** from the [2.8.1 release page](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.8.1). Extract it into a writable folder you will keep.
 2. Run **Install.cmd**. Setup checks the files and creates a **Bocchi Codex Theme** desktop shortcut.
-3. Save your drafts, let active work finish and exit any ordinary Codex window. Open the desktop shortcut or **Start.cmd**, sign in if needed, and enter Chat or Work. Dark appearance is applied automatically while the theme is active. Choose a wallpaper from **STARRY** in the top-right corner.
+3. Save your drafts, let active work finish and choose Exit from the tray to close the ordinary Codex client. Open the desktop shortcut or **Start.cmd**, sign in if needed, and enter Chat or Work. Dark appearance is applied automatically while the theme is active. Choose a wallpaper from **STARRY** in the top-right corner.
 
 The Windows package includes its runtime; you don’t need to install Node.js separately. First use of the dedicated theme window may ask you to sign in to your own account. Keep the extracted folder in place. Administrator access is normally unnecessary, and setup adds no startup task.
 
@@ -33,9 +33,18 @@ If first-time sign-in takes longer than the launcher’s wait, finish signing in
 
 Choose the Windows package for everyday use. **source.zip** and GitHub’s automatic **Source code** downloads are for development and do not include the runtime binary. [Full installation guide](docs/en/install.md)
 
-## 2.8.0 — Updated client compatibility
+## 2.8.1 · Desktop startup and home layout
 
-- Targets Codex 26.1023.51421 / Windows package 26.1023.6621.0; loader 1.3.0 is unchanged.
+- Handles brief read races while startup and control files are replaced, reducing intermittent launch failures. Theme 2.8.1; loader 1.3.1.
+- Opening the shortcut again brings back the verified themed window, restoring it if minimized without launching another client.
+- If another independent Codex main process is detected, the launcher waits for it to exit and explains what to do. **Open in new window** within the themed client remains supported.
+- Keeps the box Bocchi sticker clear of the Codex home toolbar and gently raises low-positioned home content as a group, with a smaller lift when space is limited. The native Codex icon remains visible.
+- Opening or closing native project and environment menus keeps the home layout steady. Decorative stickers hide while a menu is open and return when it closes.
+- Artwork, colors, framing, entry points and supported client builds are unchanged. Mobile task conflicts still need a post-fix multiwindow check; see [validation](docs/en/validation.md).
+
+## Historical 2.8.0 — Updated client compatibility
+
+- Targets Codex 26.1023.51421 / Windows package 26.1023.6621.0; that release used loader 1.3.0.
 - Keeps the six visuals, task multiwindow support, dynamic Chat readers, composer clipping, image previews, bilingual menus and installation guards from 2.7.0.
 - Restores alignment of home greetings, mode controls and the box Bocchi sticker, clears the opaque footer beside the composer, and fixes right-shifted Chat tables. Wallpaper colors, framing and gradients remain unchanged. Mac runtime work remains separate.
 - See [validation](docs/en/validation.md) for checks and native acceptance limits. Use 2.7.0 for the previous client.

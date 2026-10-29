@@ -53,6 +53,7 @@ function Get-BocchiErrorText([object]$Record){
       '^CODEX_INSTALL_LAYOUT_CHANGED' {'discovery.layout';break}
       '^CODEX_MANIFEST_READ_FAILED' {'discovery.manifest';break}
       'Client version changed' {'manager.updated';break}
+      '^Listener is not the theme profile' {'manager.otherThemeProfile';break}
       'Current theme renderer did not confirm' {'manager.waiting';break}
       default {'manager.generic'}
     }

@@ -182,6 +182,94 @@ try{
   assert.equal(await page.locator('[data-bocchi-home-mode],[data-bocchi-home-raised]').count(),0);
   results.push({test:`${mode} ${project?'project':'global'} home greeting, mode group, mascot alignment and cleanup`,passed:true});
  }
+ // Codex home has a project/computer toolbar above the editor. It belongs to
+ // the same width owner, but can sit outside the composer body/root.
+ for(const project of [false,true]){
+  let html=homeLayout('work',true)
+   .replace('<h1>What should we do in this project?</h1>',`<svg id="native-codex-icon" width="44" height="44" aria-hidden="true"><circle cx="22" cy="22" r="18" fill="none" stroke="currentColor"/></svg><h1>${project?'What should we build in this project?':'What should we build?'}</h1>`)
+   .replace('<div data-codex-composer-root', '<div id="home-tools"><button>Select project</button><button>This computer</button></div><div data-codex-composer-root')
+   .replace('</style>','#home-tools{height:40px;background:#262626;border-radius:16px 16px 0 0;padding:8px}#home-tools button{margin-right:12px}</style>');
+  await setFixture(page,html);
+  if(project)await page.locator('[data-pip-obstacle]').evaluate(el=>el.removeAttribute('data-pip-obstacle'));
+  const bodyBefore=await page.locator('[data-composer-body]').boundingBox();
+  const s=await install(page);assert(s.emptySticker);assert.equal(s.homeModeAligned,false);
+  const assertCodexHome=async()=>{
+   const geometry=await page.evaluate(()=>{
+    const bounds=s=>document.querySelector(s).getBoundingClientRect();
+    const sticker=bounds('.bocchi-empty-sticker'),tools=bounds('#home-tools'),body=bounds('[data-composer-body]'),icon=document.querySelector('#native-codex-icon');
+    return {gap:tools.top-sticker.bottom,centerDelta:sticker.x+sticker.width/2-body.x-body.width/2,iconVisible:getComputedStyle(icon).visibility!=='hidden'&&icon.getBoundingClientRect().height===44};
+   });
+   assert(geometry.gap>=12,'Box Bocchi must clear the project/computer toolbar');
+   assert(Math.abs(geometry.centerDelta)<1);assert(geometry.iconVisible,'Keep the native Codex icon');
+  };
+  await assertCodexHome();
+  assert.equal((await page.locator('[data-composer-body]').boundingBox()).y,bodyBefore.y,'Do not move the composer');
+  await page.screenshot({path:path.join(out,`codex-home-${project?'project':'global'}.png`)});
+  await page.locator('#home-tools').evaluate(el=>el.style.height='76px');
+  await page.evaluate(()=>window.__BOCCHI_THEME__.refresh());await settle(page);await assertCodexHome();
+  await page.evaluate(()=>window.__BOCCHI_THEME__.remove());
+  assert.equal(await page.locator('#native-codex-icon').count(),1);
+  assert.equal(await page.locator('[data-bocchi-home-raised]').count(),0);
+  results.push({test:`Codex ${project?'project':'global'} home mascot clears toolbar; native icon preserved`,passed:true});
+ }
+ for(const viewport of [{width:1280,height:560},{width:1280,height:800},{width:1920,height:1080},{width:800,height:600}]){
+  await page.setViewportSize(viewport);
+  const html=homeLayout('work',true)
+   .replace('<div data-codex-composer-root','<div id="home-tools"><button>Select project</button><button>This computer</button></div><div data-codex-composer-root')
+   .replace('</style>','main{height:100vh}section{height:calc(100% - 56px)}footer{top:auto;bottom:24px}#home-tools{height:40px;padding:8px;background:#262626}</style>');
+  await setFixture(page,html);
+  const native=await page.locator('[data-composer-body]').boundingBox();
+  const s=await install(page);assert(s.emptySticker);
+  const geometry=await page.evaluate(()=>{
+   const b=s=>document.querySelector(s).getBoundingClientRect();
+   return{body:b('[data-composer-body]').toJSON(),greeting:b('.home-greeting').toJSON(),sticker:b('.bocchi-empty-sticker').toJSON(),toolbar:b('#home-tools').toJSON()};
+  });
+  const lift=native.y-geometry.body.y;
+  assert(lift>0&&lift<=96.1,'Lift the low home by a bounded amount');
+  assert(Math.abs(geometry.body.height-native.height)<.1,'Keep composer size');
+  assert(geometry.toolbar.top-geometry.sticker.bottom>=12);
+  assert(geometry.sticker.top-geometry.greeting.bottom>=12);
+  assert(geometry.greeting.top>=68,'Small-window header clearance');
+  await page.evaluate(()=>window.__BOCCHI_THEME__.refresh());await settle(page);
+  assert(Math.abs((await page.locator('[data-composer-body]').boundingBox()).y-geometry.body.y)<.1,'Repeated refresh must not accumulate the lift');
+  assert.deepEqual((await page.evaluate(()=>window.__BOCCHI_THEME__.state.artBounds)),s.artBounds,'Keep wallpaper framing');
+  // Opening the native project/environment menu must not move its anchor.
+  // Decorations still yield to the menu, and return in the same place on close.
+  await page.evaluate(()=>{
+   const menu=document.createElement('div');menu.id='native-project-menu';menu.role='menu';menu.textContent='Fixture project menu';
+   Object.assign(menu.style,{position:'fixed',left:'10px',top:'80px',width:'180px',height:'80px'});
+   document.body.append(menu);window.__BOCCHI_THEME__.refresh();
+  });await settle(page);
+  assert.equal(await page.locator('.bocchi-empty-sticker').count(),0,'Hide the decorative mascot while a native menu is open');
+  for(const [selector,before] of [['[data-composer-body]',geometry.body],['.home-greeting',geometry.greeting],['#home-tools',geometry.toolbar]]){
+   const now=await page.locator(selector).boundingBox();
+   assert(Math.abs(now.y-before.y)<.1&&Math.abs(now.x-before.x)<.1,selector+' moved when the native menu opened');
+  }
+  assert.deepEqual((await page.evaluate(()=>window.__BOCCHI_THEME__.state.artBounds)),s.artBounds,'Menu must not move wallpaper characters');
+  await page.evaluate(()=>{document.querySelector('#native-project-menu').remove();window.__BOCCHI_THEME__.refresh();});await settle(page);
+  assert.equal(await page.locator('.bocchi-empty-sticker').count(),1);
+  for(const [selector,before] of [['[data-composer-body]',geometry.body],['.home-greeting',geometry.greeting],['#home-tools',geometry.toolbar],['.bocchi-empty-sticker',geometry.sticker]]){
+   const now=await page.locator(selector).boundingBox();
+   assert(Math.abs(now.y-before.y)<.1&&Math.abs(now.x-before.x)<.1,selector+' moved after the native menu closed');
+  }
+  await page.screenshot({path:path.join(out,`home-lift-${viewport.width}x${viewport.height}.png`)});
+  // Native navigation can keep the same composer column and add a reader.
+  await page.evaluate(()=>{
+   document.querySelector('.home-hero').remove();
+   const reader=document.createElement('div');reader.className='reader mx-auto max-w-chat';
+   reader.setAttribute('data-thread-user-message-navigation-content','true');reader.setAttribute('data-mcp-app-portal-target','true');
+   reader.innerHTML='<p data-markdown-text-style="assistant-message">Fixture response</p>';
+   document.querySelector('.thread-scroll-container').prepend(reader);window.__BOCCHI_THEME__.refresh();
+  });await settle(page);
+  assert.equal((await page.locator('[data-composer-body]').boundingBox()).y,native.y,'Conversation restores the native footer position');
+  assert.equal(await page.locator('.bocchi-empty-sticker').count(),0);
+  const clip=await page.evaluate(()=>({boundary:window.__BOCCHI_THEME__.state.readerClip.boundary,footer:document.querySelector('[data-thread-scroll-footer]').getBoundingClientRect().top}));
+  assert(Math.abs(clip.boundary-clip.footer)<1,'Conversation clipping follows the restored footer');
+  await page.evaluate(()=>window.__BOCCHI_THEME__.remove());
+  assert.equal(await page.locator('[data-pip-obstacle]').evaluate(el=>el.style.translate),'');
+  results.push({test:`low home group lifted at ${viewport.width}x${viewport.height}; native menu stable; navigation and cleanup restore composer`,passed:true});
+ }
+ await page.setViewportSize({width:1440,height:900});
  for(const mode of ['chat','work']){
   let html=fixture(mode).replace('<footer data-thread-scroll-footer="true">','<footer data-thread-scroll-footer="true"><div id="footer-paint" class="_background_18hic_2 _surface_18hic_2 pointer-events-none absolute z-0 bottom-0 bg-surface"></div>')
    .replace('</style>','#footer-paint{position:absolute;bottom:-32px;left:0;right:0;height:132px;background:rgb(24,24,24);pointer-events:none;z-index:0}.max-w-chat{position:relative}.table-viewport{overflow:auto;padding-inline-start:152px;scroll-padding-inline-start:152px}.table-viewport table{min-width:900px}#unrelated-paint{position:absolute;top:70px;height:80px;width:100%;background:#181818}</style>')

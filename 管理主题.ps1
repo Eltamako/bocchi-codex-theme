@@ -152,10 +152,6 @@ function Assert-BocchiNoParallelDesktop {
   $allowed=if($Own){[int]$Own.pid}else{0}
   $others=@(Get-BocchiOtherDesktopClients -Codex $Codex -AllowedOwnerPid $allowed)
   if($others.Count -eq 0){return}
-  if($Own){
-    Write-Warning (Get-BocchiText 'manager.parallelWarning')
-    return
-  }
   # Tray Exit is asynchronous. Allow the exact application to finish quitting.
   $deadline=(Get-Date).AddSeconds(20)
   do{
@@ -173,6 +169,54 @@ function Assert-BocchiNoParallelDesktop {
     Throw-BocchiError -Key 'manager.parallelVisible' -Diagnostic ('CODEX_WINDOW_STILL_RUNNING: '+$ids)
   }
   Throw-BocchiError -Key 'manager.parallelUnknown' -Diagnostic ('CODEX_EXIT_STATE_UNVERIFIED: '+$ids)
+}
+function Restore-BocchiMinimizedWindow([IntPtr]$WindowHandle){
+  if($WindowHandle -eq [IntPtr]::Zero){return}
+  if(-not ('BocchiWindowActivation.NativeMethods' -as [type])){
+    Add-Type -Namespace BocchiWindowActivation -Name NativeMethods -MemberDefinition @'
+[DllImport("user32.dll")]
+[return: MarshalAs(UnmanagedType.Bool)]
+public static extern bool IsIconic(IntPtr hWnd);
+[DllImport("user32.dll")]
+[return: MarshalAs(UnmanagedType.Bool)]
+public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+'@
+  }
+  if([BocchiWindowActivation.NativeMethods]::IsIconic($WindowHandle)){
+    $null=[BocchiWindowActivation.NativeMethods]::ShowWindowAsync($WindowHandle,9)
+  }
+}
+function Open-BocchiOwnedWindow([object]$Codex,[object]$Own){
+  # Reuse an existing window without another package activation. All task windows
+  # continue sharing this one verified Desktop process and its local app-server.
+  Assert-BocchiNoParallelDesktop -Codex $Codex -Own $Own
+  $current=Get-BocchiLaunchOwner $Codex
+  if(-not $current -or $current.pid -ne $Own.pid -or $current.created -cne $Own.created -or $current.identity.BrowserId -cne $Own.identity.BrowserId){throw 'Managed session identity changed; no window activated'}
+  $visibleOwner=Get-Process -Id $Own.pid -ErrorAction Stop
+  if($visibleOwner.MainWindowHandle -ne 0){
+    # SW_RESTORE only when minimized; normal and maximized window bounds stay intact.
+    try{Restore-BocchiMinimizedWindow -WindowHandle $visibleOwner.MainWindowHandle}catch{}
+    # Windows may decline focus stealing; that does not justify a second launch.
+    try{$shell=New-Object -ComObject WScript.Shell;$null=$shell.AppActivate([int]$Own.pid)}catch{}
+  }else{
+    $null=Start-DreamSkinCodex -Codex $Codex -Arguments @('--remote-debugging-address=127.0.0.1',"--remote-debugging-port=$port","--user-data-dir=$profile")
+  }
+  # A native window can appear before its page target. Wait for both in the
+  # same bounded activation attempt, without launching the package again.
+  $deadline=(Get-Date).AddSeconds(15)
+  $current=$null
+  do{
+    $verified=Get-BocchiLaunchOwner $Codex
+    if($verified -and ($verified.pid -ne $Own.pid -or $verified.created -cne $Own.created -or $verified.identity.BrowserId -cne $Own.identity.BrowserId)){throw 'Managed session identity changed; no window activated'}
+    $visibleOwner=Get-Process -Id $Own.pid -ErrorAction Stop
+    if($verified -and $visibleOwner.MainWindowHandle -ne 0){
+      $current=Get-OwnIdentity $Codex
+      if($current){break}
+    }
+    Start-Sleep -Milliseconds 300
+  }while((Get-Date)-lt $deadline)
+  if(-not $current -or $current.pid -ne $Own.pid -or $current.created -cne $Own.created -or $current.identity.BrowserId -cne $Own.identity.BrowserId -or $visibleOwner.MainWindowHandle -eq 0){throw 'Dedicated window did not reopen with its verified identity'}
+  return $current
 }
 function Stop-OwnDaemon([object]$State){
   if(-not (Test-OwnDaemon $State)){return}
@@ -293,6 +337,7 @@ try{
   Write-BocchiStartupTrace 'before-parallel-check' $own
   Assert-BocchiNoParallelDesktop -Codex $codex -Own $own
   if($gate.waited -and $Action -in @('Start','Resume') -and (Test-BocchiCompletedStart -State $saved -Own $own)){
+    $own=Open-BocchiOwnedWindow -Codex $codex -Own $own
     Write-BocchiStartupTrace 'reused-completed-start' $own
     Write-Output (Get-BocchiText 'manager.reused')
     exit 0
@@ -308,20 +353,10 @@ try{
     Write-BocchiStartupTrace 'after-package-launch' $own
     if(-not $own){Throw-BocchiError -Key 'manager.connectionWaiting' -Diagnostic 'THEME_ENDPOINT_NOT_READY: startup trace recorded'}
   }
-  # A dedicated Electron process can survive after its window is closed.
-  # Re-activate the same verified profile when its desktop Start entry is used.
   if($Action -in @('Start','Resume') -and $reusingOwn){
-    $priorOwn=$own
-    $null=Start-DreamSkinCodex -Codex $codex -Arguments @('--remote-debugging-address=127.0.0.1',"--remote-debugging-port=$port","--user-data-dir=$profile")
-    $deadline=(Get-Date).AddSeconds(15)
-    do{
-      $visibleOwner=Get-Process -Id $priorOwn.pid -ErrorAction Stop
-      if($visibleOwner.MainWindowHandle -ne 0){break}
-      Start-Sleep -Milliseconds 300
-    }while((Get-Date)-lt $deadline)
-    $own=Get-OwnIdentity $codex
-    if(-not $own -or $own.pid -ne $priorOwn.pid -or $own.created -cne $priorOwn.created -or $own.identity.BrowserId -cne $priorOwn.identity.BrowserId -or $visibleOwner.MainWindowHandle -eq 0){throw 'Dedicated window did not reopen with its verified identity'}
+    $own=Open-BocchiOwnedWindow -Codex $codex -Own $own
   }
+  Assert-BocchiNoParallelDesktop -Codex $codex -Own $own
   Write-BocchiStartupTrace 'verified-window-ready' $own
   $requestId=[Guid]::NewGuid().ToString('N')
   if($saved -and (Test-OwnDaemon $saved)){

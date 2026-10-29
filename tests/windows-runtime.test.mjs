@@ -52,9 +52,9 @@ test('Windows discovery rejects browser swaps, duplicate targets and substituted
  }
 });
 
-test('Windows payload uses the current 2.8.0 adapter, six real wallpapers and bounded renderer assets',async()=>{
+test('Windows payload uses the current 2.8.1 adapter, six real wallpapers and bounded renderer assets',async()=>{
  const release=JSON.parse(await fs.readFile(path.join(root,'release.json'),'utf8'));
- assert.equal(release.releaseVersion,'2.8.0');assert.equal(release.themeVersion,'2.8.0');assert.equal(release.launcherVersion,'1.3.0');
+ assert.equal(release.releaseVersion,'2.8.1');assert.equal(release.themeVersion,'2.8.1');assert.equal(release.launcherVersion,'1.3.1');
  assert.equal(release.appVersion,'26.1023.51421');assert.equal(release.packageVersion,'26.1023.6621.0');
  const context={root,fs,path,state:{platform:'win32',appVersion:release.appVersion,packageVersion:release.packageVersion},process:{platform:'win32'},catalogReader:new WallpaperCatalog(path.join(root,'theme')),assetCache:null,createHash,validatePng};
  // The shared integration has an additional exact platform validator. Exercise

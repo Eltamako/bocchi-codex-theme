@@ -11,6 +11,7 @@ async function run(options={}){
  class Clock extends Date{constructor(...args){super(...(args.length?args:[clock]));}static now(){return clock;}}
  const context={running:true,action:'watch',requestId:null,controlPath:'control',statePath:'state',path:{dirname:()=>'.'},fs:{readFile:async()=>JSON.stringify({paused:false,stop:writes.some(s=>s.state==='running'),requestId:'q',...options.control?.({clock,probes,writes})})},payload:async()=>({hash:'h'}),readLanguagePreference:async()=>({}),getTargets:async()=>{probes++;if(options.error)throw options.error;if(options.forever||options.failAfterRecovery&&probes>4)return [];return probes<=3?[]:[{id:'one'}];},sessions:new Map(),removeAll:async()=>{},makeSession:async()=>({}),install:async()=>({installed:true,ready:true}),status:async s=>writes.push(s),setTimeout:(fn,ms)=>{sleeps.push(ms);clock+=ms;queueMicrotask(fn);},Date:Clock,state:{appVersion:'test'}};
  vm.runInNewContext(policy,context);
+ vm.runInNewContext(source.slice(source.indexOf('async function readLauncherState('),source.indexOf('const state=await readLauncherState')),context);
  context.targetFailures=new Map();context.refreshTarget=async()=>({installed:true,ready:true});
  await vm.runInNewContext('(async()=>{'+source.slice(start,end)+'})()',context);
  return {writes,sleeps,probes,clock};

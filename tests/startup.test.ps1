@@ -56,9 +56,12 @@ Check 'background blocker explained and not killed' (($caught -eq 'manager.paral
 $script:window=[IntPtr]1
 try{Assert-BocchiNoParallelDesktop $codex}catch{$caught=$_.Exception.Data['BocchiMessageKey']}
 Check 'visible blocker explained' (($caught -eq 'manager.parallelVisible'))
-$script:sleeps=0;$warning=@()
-Assert-BocchiNoParallelDesktop $codex ([pscustomobject]@{pid=10}) -WarningAction SilentlyContinue -WarningVariable warning
-Check 'existing own client reuses without a wait or stop' ($warning.Count -eq 1 -and $script:sleeps -eq 0)
+$script:sleeps=0;$caught=''
+try{Assert-BocchiNoParallelDesktop $codex ([pscustomobject]@{pid=10})}catch{$caught=$_.Exception.Data['BocchiMessageKey']}
+Check 'existing own client cannot bypass another desktop' ($caught -eq 'manager.parallelVisible' -and $script:sleeps -gt 0 -and $script:clients.Count -eq 1)
+$script:clients=@($owner,$child);$script:sleeps=0
+Assert-BocchiNoParallelDesktop $codex ([pscustomobject]@{pid=10})
+Check 'multiple renderer windows of the same owner remain allowed' ($script:sleeps -eq 0 -and $script:clients.Count -eq 2)
 $port=9347;$profile='D:\中文 空格\managed-profile';$script:verifiedPort=$true
 function Test-DreamSkinCodexPortOwner {param($Port,$Codex)$script:verifiedPort}
 function Get-DreamSkinVerifiedCdpIdentity {param($Port,$Codex)$null}
@@ -75,6 +78,78 @@ $caught='';try{Get-BocchiLaunchOwner $codex}catch{$caught=$_.Exception.Message}
 Check 'renderer cannot impersonate main owner' ($caught.Contains('Unexpected managed client process'))
 $script:verifiedPort=$false
 Check 'unverified listener never attached' ($null -eq (Get-BocchiLaunchOwner $codex))
+# Exercise activation with a verified identity and fake OS boundaries only.
+# The P/Invoke boundary is replaced by a harmless fixture type in this process.
+Add-Type -TypeDefinition @'
+using System;
+namespace BocchiWindowActivation {
+  public static class NativeMethods {
+    public static bool Minimized;
+    public static int RestoreCalls;
+    public static IntPtr RestoredHandle;
+    public static int Command;
+    public static bool IsIconic(IntPtr handle) { return Minimized; }
+    public static bool ShowWindowAsync(IntPtr handle, int command) {
+      RestoreCalls++; RestoredHandle=handle; Command=command; Minimized=false; return true;
+    }
+  }
+}
+'@
+$def=$ast.Find({param($node)$node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Restore-BocchiMinimizedWindow'},$true)
+. ([scriptblock]::Create($def.Extent.Text))
+Restore-BocchiMinimizedWindow -WindowHandle ([IntPtr]::Zero)
+Check 'missing window handle is not restored' ([BocchiWindowActivation.NativeMethods]::RestoreCalls -eq 0)
+$def=$ast.Find({param($node)$node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Open-BocchiOwnedWindow'},$true)
+. ([scriptblock]::Create($def.Extent.Text))
+$verified=[pscustomobject]@{pid=10;created=$when.ToUniversalTime().ToString('o');identity=[pscustomobject]@{BrowserId='test-owned-browser'}}
+$script:currentOwner=$verified;$script:packageCalls=0;$script:activationCalls=0;$script:focusAllowed=$true;$script:openWindow=$true;$script:blockParallel=$false;$script:replaceOwner=$false;$script:pageProbes=0;$script:pageDelay=0
+function Assert-BocchiNoParallelDesktop {param($Codex,$Own)if($script:blockParallel){throw 'test parallel desktop'}}
+function Get-BocchiLaunchOwner {param($Codex)$script:currentOwner}
+function Get-OwnIdentity {param($Codex)$script:pageProbes++;if($script:pageProbes -gt $script:pageDelay){$script:currentOwner}}
+function Start-DreamSkinCodex {
+ param($Codex,$Arguments)
+ $script:packageCalls++
+ if($script:openWindow){$script:window=[IntPtr]1}
+ if($script:replaceOwner){$script:currentOwner=[pscustomobject]@{pid=20;created=$verified.created;identity=[pscustomobject]@{BrowserId='replacement'}}}
+}
+function New-Object {
+ param($ComObject)
+ if($ComObject -ne 'WScript.Shell'){throw 'Unexpected COM object in activation test'}
+ $mock=[pscustomobject]@{}
+ Add-Member -InputObject $mock -MemberType ScriptMethod -Name AppActivate -Value {param($TargetPid)$script:activationCalls++;if($TargetPid -ne 10){throw 'Wrong activation target'};return $script:focusAllowed}
+ return $mock
+}
+$script:window=[IntPtr]1
+$result=Open-BocchiOwnedWindow $codex $verified
+Check 'visible owner is activated without package launch' ($result.pid -eq 10 -and $script:packageCalls -eq 0 -and $script:activationCalls -eq 1)
+Check 'normal or maximized window is not sent SW_RESTORE' ([BocchiWindowActivation.NativeMethods]::RestoreCalls -eq 0)
+[BocchiWindowActivation.NativeMethods]::Minimized=$true
+$script:focusAllowed=$false
+$result=Open-BocchiOwnedWindow $codex $verified
+Check 'focus denial does not trigger another client' ($result.pid -eq 10 -and $script:packageCalls -eq 0 -and $script:activationCalls -eq 2)
+Check 'minimized verified owner is restored before activation' ([BocchiWindowActivation.NativeMethods]::RestoreCalls -eq 1 -and [BocchiWindowActivation.NativeMethods]::RestoredHandle -eq [IntPtr]1 -and [BocchiWindowActivation.NativeMethods]::Command -eq 9)
+$script:window=[IntPtr]0
+$result=Open-BocchiOwnedWindow $codex $verified
+Check 'windowless owner is reactivated exactly once' ($result.pid -eq 10 -and $script:packageCalls -eq 1 -and $script:activationCalls -eq 2)
+$script:window=[IntPtr]0;$script:pageProbes=0;$script:pageDelay=1
+$result=Open-BocchiOwnedWindow $codex $verified
+Check 'window appearing before its page waits for page readiness without another launch' ($result.pid -eq 10 -and $script:pageProbes -eq 2 -and $script:packageCalls -eq 2)
+$script:pageProbes=0;$script:pageDelay=100
+$caught='';try{Open-BocchiOwnedWindow $codex $verified}catch{$caught=$_.Exception.Message}
+Check 'a visible window without a ready page has a bounded failure' ($caught.Contains('verified identity') -and $script:pageProbes -lt 100 -and $script:packageCalls -eq 2)
+$script:pageDelay=0
+$script:currentOwner=[pscustomobject]@{pid=20;created=$verified.created;identity=[pscustomobject]@{BrowserId='replacement'}}
+$caught='';try{Open-BocchiOwnedWindow $codex $verified}catch{$caught=$_.Exception.Message}
+Check 'changed identity cannot activate or relaunch' ($caught.Contains('identity changed') -and $script:packageCalls -eq 2 -and $script:activationCalls -eq 3)
+$script:currentOwner=$verified;$script:blockParallel=$true
+$caught='';try{Open-BocchiOwnedWindow $codex $verified}catch{$caught=$_.Exception.Message}
+Check 'parallel main client prevents package activation' ($caught -eq 'test parallel desktop' -and $script:packageCalls -eq 2 -and $script:activationCalls -eq 3)
+$script:blockParallel=$false;$script:window=[IntPtr]0;$script:replaceOwner=$true
+$caught='';try{Open-BocchiOwnedWindow $codex $verified}catch{$caught=$_.Exception.Message}
+Check 'reopened window must retain the same browser identity' ($caught.Contains('identity changed') -and $script:packageCalls -eq 3)
+$script:replaceOwner=$false;$script:currentOwner=$verified;$script:openWindow=$false;$script:window=[IntPtr]0
+$caught='';try{Open-BocchiOwnedWindow $codex $verified}catch{$caught=$_.Exception.Message}
+Check 'failed reopen has no second launch or false success' ($caught.Contains('verified identity') -and $script:packageCalls -eq 4)
 $src=Get-Content -LiteralPath $target -Raw -Encoding utf8
 Check 'launcher probes owned browser before parallel guard' ($src.Contains('$own=Get-BocchiLaunchOwner $codex'))
 Check 'normal page readiness remains after window activation' ($src.Contains('$own=Get-OwnIdentity $codex') -and $src.Contains("Dedicated window did not reopen with its verified identity"))

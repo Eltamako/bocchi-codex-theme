@@ -1,4 +1,35 @@
-# 2.8.0 validation
+# 2.8.1 validation
+
+[简体中文](../验证记录.md)
+
+Target: Windows x64, Codex **26.1023.51421 / package 26.1023.6621.0**, theme **2.8.1**, loader **1.3.1**. Updated October 30, 2026.
+
+## Automated checks for this update
+
+- **60/60 Node regressions passed with no skips**, rerun from the final release working copy, including the junction test. Coverage includes briefly missing startup/control files, Windows delete-pending errors, bounded retries, and immediate rejection of malformed data or other errors. Identity, port and installation ownership checks remain in place.
+- Windows PowerShell **5.1 and 7** each passed **36 startup**, **31 duplicate-start** and **9 instance-guard** cases. Coverage includes verified-window reuse, minimized-window restoration, no extra launch after a denied focus request, reopened-window identity/readiness checks, queued-start activation and rejection of another independent main instance. Minimized-window checks use mocked handles rather than live minimized windows.
+- **48/48 renderer simulations passed**. The Codex home box sticker now anchors to `ctx.composerColumn.top`, allowing room for the toolbar while preserving the native Codex icon. Coverage includes global/project home, toolbar growth and pause cleanup. New fixtures reproduced hidden or obstructed stickers with the previous positioning code.
+- Low home layouts move up by at most **96 CSS pixels**, reduced to fit available space. Centered homes and conversations stay put. Four viewport cases check spacing, repeated-refresh stability and restoration before conversation clipping is measured.
+- Opening and closing native menus in the same viewport leaves the heading, composer and toolbar coordinates unchanged. Stickers hide temporarily and return as before, with unchanged artwork bounds. This latest fix passed simulations; native home visual acceptance remains pending.
+- Artwork, CSS, colors and character framing are unchanged. Runtime-file hashes link unchanged files to earlier evidence. Source tests do not replace final-ZIP manifest, extraction and installation checks; artifact identities and package checks are recorded separately.
+
+## Native checks for this update
+
+Pause and Resume were exercised with two existing themed windows on the 2.8.1 installation. Both confirmed loading again without replacing the client or loader. Composer and artwork bounds in the current conversations, saved selection, language and desktop shortcut were retained. This is evidence for recovery within an existing session, not a fresh final-ZIP cold start or native acceptance of the latest home-menu fix.
+
+## Mobile conflict and remaining native checks
+
+A limited log review found two independent Desktop main instances running concurrently in the past, alongside an official active-writer conflict. That differs from multiple task windows within one client. The evidence does not establish that it explains every mobile conflict.
+
+This update removes the exception that allowed a second independent client while a themed owner already existed. Windows within one main process remain supported. It does not edit official task locks or force any client to exit.
+
+Not completed in this round: a fresh desktop cold start and minimized-window restoration from the final ZIP; mobile Remote access with multiple task windows in one main process; final native Codex home visuals; the complete real-browser-download-to-first-install path; a fresh English Windows environment; and native Mac acceptance. Whether all mobile conflicts are resolved still needs that targeted check. Remote CI must be verified against the release commit; local tests are not presented as remote CI results.
+
+The historical 2.8.0 results below apply only as evidence for unchanged parts.
+
+---
+
+# Historical 2.8.0 validation
 
 [简体中文](../验证记录.md)
 

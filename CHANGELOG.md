@@ -1,18 +1,38 @@
 # 更新记录 / Changelog
 
-## 2.8.0 — 新版客户端适配
+## 2.8.1 · 桌面启动与首页布局
 
-- 对应 Codex 26.1023.51421／Windows 安装包 26.1023.6621.0，加载器继续使用 1.3.0。
+- 修复启动和控制文件更新时的短暂读取竞态，减少偶发启动失败；主题 2.8.1，加载器 1.3.1。
+- 再次打开桌面入口会唤回已验证的主题窗口；最小化时先恢复窗口，不重复启动客户端。
+- 检测到另一份独立 Codex 主实例时，会等待退出并提示。主题内“在新窗口中打开”继续可用。
+- 修正 Codex 首页纸箱波奇与输入框上方工具栏的避让，保留原生 Codex 图标。
+- 首页内容偏低时，将标题、纸箱贴纸及输入区域一起适度上移；小窗口自动缩减位移，居中首页与对话页保持原位。
+- 打开或关闭原生项目、环境菜单时，标题和输入区域不再跳动；贴纸仍按原有规则暂时隐藏并恢复。
+- 六款壁纸、配色、取景、操作入口与客户端适配范围不变。手机任务占用仍需修复后的多窗口实测确认，详见 [验证记录](docs/验证记录.md)。
+
+## 2.8.1 · Desktop startup and home layout
+
+- Handles brief read races while startup and control files are replaced, reducing intermittent launch failures. Theme 2.8.1; loader 1.3.1.
+- Opening the shortcut again brings back the verified themed window, restoring it if minimized without launching another client.
+- If another independent Codex main process is detected, the launcher waits for it to exit and explains what to do. **Open in new window** within the themed client remains supported.
+- Fixes the box Bocchi sticker placement around the toolbar above the Codex home composer, keeping the native Codex icon.
+- Low-positioned home content moves up as a group: heading, box sticker and composer. The lift shrinks in smaller windows; centered home layouts and conversations stay in place.
+- Native project and environment menus no longer move the heading or composer when opened or closed. Stickers still hide temporarily and return as before.
+- Artwork, colors, framing, entry points and supported client builds are unchanged. Mobile task conflicts still need a post-fix multiwindow check; see [validation](docs/en/validation.md).
+
+## 2.8.0 历史更新 — 新版客户端适配
+
+- 对应 Codex 26.1023.51421／Windows 安装包 26.1023.6621.0，该版本加载器为 1.3.0。
 - 保留 2.7.0 的六款画面、多窗口、动态 Chat、输入框防漏、图片预览、双语菜单和安装保护。
 - 恢复新版首页标题、Chat／Work 切换和纸箱波奇贴纸与输入框的对齐；移除新版底栏挡住壁纸的纯色背景及输入框上沿的横向黑边；修正 Chat 表格内层多余缩进，保留宽表横向滚动。
 - 仅局部调整页面识别与样式，加载流程和画面配色、取景、渐变保持不变。Mac 运行时继续独立开发。
 - 检查范围和实机待办见 [验证记录](docs/验证记录.md)；旧客户端请使用 2.7.0。
 
-## 2.8.0 — Updated client compatibility
+## Historical 2.8.0 — Updated client compatibility
 
-- Targets Codex 26.1023.51421 / Windows package 26.1023.6621.0; loader 1.3.0 is unchanged.
+- Targets Codex 26.1023.51421 / Windows package 26.1023.6621.0; that release used loader 1.3.0.
 - Keeps the six visuals, task multiwindow support, dynamic Chat readers, composer clipping, image previews, bilingual menus and installation guards from 2.7.0.
-- Realigns home greetings, Chat/Work controls and the box Bocchi sticker with the composer. Clears the new footer's opaque wallpaper obstruction and the dark seam above the composer and the dark seam above the composer and removes excess padding inside Chat tables while preserving horizontal scrolling.
+- Realigns home greetings, Chat/Work controls and the box Bocchi sticker with the composer. Clears the new footer's opaque wallpaper obstruction and the dark seam above the composer, and removes excess padding inside Chat tables while preserving horizontal scrolling.
 - Limits changes to page recognition and styles. Loading, artwork framing, colors and gradients remain unchanged. Mac runtime work remains separate.
 - See [validation](docs/en/validation.md) for checks and native acceptance limits. Use 2.7.0 for the previous client.
 
