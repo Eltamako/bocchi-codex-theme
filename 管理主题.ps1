@@ -48,8 +48,10 @@ function Get-OwnIdentity([object]$Codex,[switch]$AllowEmptyTargets){
   }else{$identity=Get-DreamSkinVerifiedCdpIdentity -Port $port -Codex $Codex}
   if($null -eq $identity){return $null}
   $owners=@(Get-DreamSkinPortListeners -Port $port|Select-Object -ExpandProperty OwningProcess -Unique)
+  if($owners.Count -eq 0){return $null}
   if($owners.Count -ne 1){throw 'Unexpected listener owner count'}
   $process=Get-CimInstance Win32_Process -Filter "ProcessId = $($owners[0])"
+  if(-not $process){return $null}
   $profileArg='(?:^|\s)(?:"--user-data-dir='+[regex]::Escape($profile)+'"|--user-data-dir="'+[regex]::Escape($profile)+'"|--user-data-dir='+[regex]::Escape($profile)+')(?=\s|$)'
   if($process.CommandLine -notmatch $profileArg){throw 'Listener is not the theme profile; refusing to attach'}
   if($process.CommandLine -match '--type='){throw 'Unexpected managed client process'}
@@ -218,6 +220,16 @@ function Open-BocchiOwnedWindow([object]$Codex,[object]$Own){
   if(-not $current -or $current.pid -ne $Own.pid -or $current.created -cne $Own.created -or $current.identity.BrowserId -cne $Own.identity.BrowserId -or $visibleOwner.MainWindowHandle -eq 0){throw 'Dedicated window did not reopen with its verified identity'}
   return $current
 }
+function Open-BocchiPreviousWindow([object]$Codex,[object]$Own){
+  try {return Open-BocchiOwnedWindow $Codex $Own}
+  catch {
+    $activationError=$_
+    $oldProcess=Get-CimInstance Win32_Process -Filter ("ProcessId = "+[int]$Own.pid) -ErrorAction Stop
+    if($oldProcess -or -not (Test-DreamSkinPortAvailable -Port $port)){throw $activationError}
+    Write-BocchiStartupTrace 'previous-owner-exited' $null
+    return $null
+  }
+}
 function Stop-OwnDaemon([object]$State){
   if(-not (Test-OwnDaemon $State)){return}
   Write-LocalJson $controlPath @{paused=$true;stop=$true;requestId=[Guid]::NewGuid().ToString('N')}
@@ -239,21 +251,27 @@ function Stop-OwnDaemon([object]$State){
   }
   if(Test-OwnDaemon $State){throw 'Previous loader did not exit; refusing a duplicate loader'}
 }
-function Throw-BocchiNotReady {
+function Complete-BocchiNotReady {
+  if($script:BocchiReadinessReason -ceq 'watching-for-page'){
+    Write-BocchiStartupTrace 'watching-for-page' $null
+    Write-Output (Get-BocchiText 'manager.watching')
+    exit 3
+  }
   $key=switch($script:BocchiReadinessReason){
     'automatic-dark-appearance-failed' {'manager.dark';break}
     'theme-connection-unavailable' {'manager.connectionWaiting';break}
     'loader-stopped' {'manager.loaderStopped';break}
     'loader-unavailable' {'manager.loaderStopped';break}
     'version-mismatch' {'manager.updated';break}
-    {$_ -in @('required-surface-missing','unknown-column-owner','unknown-mode','main-region-too-small','unsupported-request-card-shell','unsupported-submitting-shell')} {'manager.layout';break}
+    {$_ -in @('ambiguous-active-pages','unsupported-page-direction','unsupported-page-appearance','required-surface-missing','unknown-column-owner','unknown-mode','main-region-too-small','unsupported-request-card-shell','unsupported-submitting-shell')} {'manager.layout';break}
     default {'manager.waiting'}
   }
   Throw-BocchiError -Key $key -Diagnostic ('Current theme renderer did not confirm this request; inspect local status. '+$script:BocchiReadinessReason)
 }
-function Wait-ThemeReady([object]$State,[string]$RequestId){
+function Wait-ThemeReady([object]$State,[string]$RequestId,[switch]$ColdStart){
   $script:BocchiReadinessReason=$null
-  $deadline=(Get-Date).AddSeconds(15)
+  $started=Get-Date
+  $deadline=$started.AddSeconds(15)
   do {
     Start-Sleep -Milliseconds 400
     if(-not (Test-OwnDaemon $State)){$script:BocchiReadinessReason='loader-stopped';return $false}
@@ -261,6 +279,10 @@ function Wait-ThemeReady([object]$State,[string]$RequestId){
       $ready=Get-Content -LiteralPath $statusPath -Raw -Encoding utf8|ConvertFrom-Json
       $diagnostic=Get-BocchiReadinessDiagnostic -Status $ready -State $State -RequestId $RequestId -ThemeVersion $install.themeVersion
       if($diagnostic){$script:BocchiReadinessReason=$diagnostic}
+      # A cold window can expose its endpoint before the app mounts its first page.
+      # The diagnostic is scoped to this request. Never move the cap on each poll.
+      if($ColdStart -and $diagnostic -ceq 'unknown-active-page-or-layout'){$deadline=$started.AddSeconds(60)}
+      if($ColdStart -and $diagnostic -cin @('version-mismatch','loader-stopped','renderer-validation-failed')){return $false}
       $reason=Get-BocchiBlockedReason -Status $ready -State $State -RequestId $RequestId
       if($reason){$script:BocchiReadinessReason=$reason;return $false}
       if(Test-BocchiReadyStatus -Status $ready -State $State -RequestId $RequestId -ThemeVersion $install.themeVersion){
@@ -270,6 +292,23 @@ function Wait-ThemeReady([object]$State,[string]$RequestId){
       }
     } catch { }
   } while((Get-Date)-lt $deadline)
+  # Only a fresh report from this request and live owner can hand off to the watcher.
+  try {
+    $ready=Get-Content -LiteralPath $statusPath -Raw -Encoding utf8|ConvertFrom-Json
+    $isReady=Test-BocchiReadyStatus $ready $State $RequestId $install.themeVersion
+    $lastDiagnostic=Get-BocchiReadinessDiagnostic $ready $State $RequestId $install.themeVersion
+    if($lastDiagnostic){$script:BocchiReadinessReason=$lastDiagnostic}
+    if($isReady -or $lastDiagnostic -ceq 'awaiting-active-page'){
+      $age=((Get-Date).ToUniversalTime()-([datetimeoffset]$ready.at).UtcDateTime).TotalSeconds
+      if($age -ge 0 -and $age -le 8 -and (Test-OwnDaemon $State)){
+        $current=Get-OwnIdentity $codex
+        if(Test-BocchiSessionMatch -Saved $State -Own $current -Profile $profile -AppVersion $appVersion -PackageVersion $codex.Version -PackageRoot $codex.PackageRoot -RuntimeHash $runtimeHash){
+          if($isReady){return $true}
+          $script:BocchiReadinessReason='watching-for-page'
+        }
+      }
+    }
+  }catch{}
   return $false
 }
 New-Item -ItemType Directory -Path $stateRoot -Force|Out-Null
@@ -337,13 +376,17 @@ try{
   Write-BocchiStartupTrace 'before-parallel-check' $own
   Assert-BocchiNoParallelDesktop -Codex $codex -Own $own
   if($gate.waited -and $Action -in @('Start','Resume') -and (Test-BocchiCompletedStart -State $saved -Own $own)){
-    $own=Open-BocchiOwnedWindow -Codex $codex -Own $own
-    Write-BocchiStartupTrace 'reused-completed-start' $own
-    Write-Output (Get-BocchiText 'manager.reused')
-    exit 0
+    $own=Open-BocchiPreviousWindow -Codex $codex -Own $own
+    if($own){
+      Write-BocchiStartupTrace 'reused-completed-start' $own
+      Write-Output (Get-BocchiText 'manager.reused')
+      exit 0
+    }
   }
+  if($own){$own=Open-BocchiPreviousWindow -Codex $codex -Own $own}
   $reusingOwn=[bool]$own
   if(-not $own){
+    Assert-BocchiNoParallelDesktop -Codex $codex -Own $null
     if(-not (Test-DreamSkinPortAvailable -Port $port)){throw 'Theme port is occupied by an unverified process'}
     New-Item -ItemType Directory -Path $profile -Force|Out-Null
     Write-BocchiStartupTrace 'before-package-launch' $own
@@ -353,9 +396,6 @@ try{
     Write-BocchiStartupTrace 'after-package-launch' $own
     if(-not $own){Throw-BocchiError -Key 'manager.connectionWaiting' -Diagnostic 'THEME_ENDPOINT_NOT_READY: startup trace recorded'}
   }
-  if($Action -in @('Start','Resume') -and $reusingOwn){
-    $own=Open-BocchiOwnedWindow -Codex $codex -Own $own
-  }
   Assert-BocchiNoParallelDesktop -Codex $codex -Own $own
   Write-BocchiStartupTrace 'verified-window-ready' $own
   $requestId=[Guid]::NewGuid().ToString('N')
@@ -364,7 +404,7 @@ try{
     if($sameSession){
       Write-LocalJson $controlPath @{paused=$false;stop=$false;requestId=$requestId}
       if(Wait-ThemeReady -State $saved -RequestId $requestId){Write-Output (Get-BocchiText 'manager.resumed');exit 0}
-      if($script:BocchiReadinessReason){Throw-BocchiNotReady}
+      if($script:BocchiReadinessReason){Complete-BocchiNotReady}
     }
     Stop-OwnDaemon $saved
     $own=Get-OwnIdentity $codex
@@ -378,7 +418,7 @@ try{
   $daemon=Start-Process -FilePath $node -ArgumentList $arguments -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $stateRoot 'runtime.log') -RedirectStandardError (Join-Path $stateRoot 'runtime-error.log')
   $created=(Get-CimInstance Win32_Process -Filter "ProcessId = $($daemon.Id)").CreationDate.ToUniversalTime().ToString('o')
   $state.daemonPid=$daemon.Id;$state.daemonCreated=$created;Write-LocalJson $statePath $state
-  if(-not (Wait-ThemeReady -State $state -RequestId $requestId)){Throw-BocchiNotReady}
+  if(-not (Wait-ThemeReady -State $state -RequestId $requestId -ColdStart:(-not $reusingOwn))){Complete-BocchiNotReady}
   Write-Output (Get-BocchiText 'manager.running')
 }catch{
   Write-LocalJson (Join-Path $stateRoot 'last-operation-error.json') @{action=$Action;message=$_.Exception.Message;at=(Get-Date).ToUniversalTime().ToString('o')}

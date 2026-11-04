@@ -4,15 +4,15 @@ import fs from 'node:fs/promises';
 import vm from 'node:vm';
 const source=await fs.readFile(new URL('../engine/runtime.mjs',import.meta.url),'utf8');
 const helpers=source.slice(source.indexOf('function cancelExpression'),source.indexOf('function invalidate'));
-const install=source.slice(source.indexOf('async function install('),source.indexOf('async function cleanSession('));
+const install=source.slice(source.indexOf('function initialPageStatus('),source.indexOf('async function cleanSession('));
 const clean=source.slice(source.indexOf('async function cleanSession('),source.indexOf('async function removeAll('));
 test('host install timeout cancels the registered generation before returning failure',async()=>{
  const expressions=[];let cancelled=false;
  const renderer={window:{__BOCCHI_INSTALL__:{generation:'a'.repeat(32),cancel:()=>{cancelled=true;}}}};
- const context={selectionTransaction:task=>task(),finishCoordinator:async()=>{},mainContext:async()=>7,readSelection:async()=>({id:'night-stage'}),selectionPath:'selection',selectionWarning:null,randomBytes:()=>({toString:()=> 'a'.repeat(32)}),BINDING:'binding',path:{dirname:()=>'.'},statePath:'state',readLanguagePreference:async()=>({}),state:{generation:'loader'},Date,evaluate:async(c,expression)=>{expressions.push(expression);if(expressions.length===1)throw Error('Command timeout: Runtime.evaluate');return vm.runInNewContext(expression,renderer);}};
+ const context={selectionTransaction:task=>task(),finishCoordinator:async()=>{},mainContext:async()=>7,readSelection:async()=>({id:'night-stage'}),selectionPath:'selection',selectionWarning:null,randomBytes:()=>({toString:()=> 'a'.repeat(32)}),BINDING:'binding',path:{dirname:()=>'.'},statePath:'state',readLanguagePreference:async()=>({}),state:{generation:'loader'},Date,evaluate:async(c,expression)=>{if(expression.startsWith('(function initialPageStatus('))return null;expressions.push(expression);if(expressions.length===1)throw Error('Command timeout: Runtime.evaluate');return vm.runInNewContext(expression,renderer);}};
  vm.runInNewContext(helpers+install,context);
  context.assertControlActive=async()=>{};
- await assert.rejects(context.install({c:{call:async()=>{}},epoch:0,disposed:false},{source:'',data:{}}),/Command timeout/);
+ await assert.rejects(context.install({c:{call:async()=>{}},epoch:0,disposed:false},{source:'',data:{adapter:{activePage:'[active]',themeVersion:'2.9.0'}}}),/Command timeout/);
  assert.equal(cancelled,true);assert.equal(expressions.length,2);
 });
 test('retired session cleanup does not remove a successor API or binding',async()=>{
@@ -42,9 +42,9 @@ test('closed CDP connection rejects cancellation immediately instead of adding a
 test('pause received while installation is awaiting a renderer cancels the late generation',async()=>{
  let controls=0,cancelled=false;
  const renderer={window:{__BOCCHI_INSTALL__:{generation:'a'.repeat(32),cancel:()=>{cancelled=true;}}}};
- const context={selectionTransaction:task=>task(),assertControlActive:async()=>{if(++controls===3)throw Object.assign(Error('Paused'),{code:'LOADER_PAUSED'});},finishCoordinator:async()=>{},mainContext:async()=>7,readSelection:async()=>({id:'night-stage'}),selectionPath:'selection',selectionWarning:null,randomBytes:()=>({toString:()=> 'a'.repeat(32)}),BINDING:'binding',path:{dirname:()=>'.'},statePath:'state',readLanguagePreference:async()=>({}),state:{generation:'loader'},Date,evaluate:async(c,expression)=>expression.startsWith('(()=>')?vm.runInNewContext(expression,renderer):{installed:true,ready:true}};
+ const context={selectionTransaction:task=>task(),assertControlActive:async()=>{if(++controls===3)throw Object.assign(Error('Paused'),{code:'LOADER_PAUSED'});},finishCoordinator:async()=>{},mainContext:async()=>7,readSelection:async()=>({id:'night-stage'}),selectionPath:'selection',selectionWarning:null,randomBytes:()=>({toString:()=> 'a'.repeat(32)}),BINDING:'binding',path:{dirname:()=>'.'},statePath:'state',readLanguagePreference:async()=>({}),state:{generation:'loader'},Date,evaluate:async(c,expression)=>expression.startsWith('(function initialPageStatus(')?null:expression.startsWith('(()=>')?vm.runInNewContext(expression,renderer):{installed:true,ready:true}};
  vm.runInNewContext(helpers+install,context);
- await assert.rejects(context.install({c:{call:async()=>{}},epoch:0,disposed:false},{source:'',data:{}}),e=>e.code==='LOADER_PAUSED');
+ await assert.rejects(context.install({c:{call:async()=>{}},epoch:0,disposed:false},{source:'',data:{adapter:{activePage:'[active]',themeVersion:'2.9.0'}}}),e=>e.code==='LOADER_PAUSED');
  assert(cancelled);assert.equal(controls,3);
 });
 

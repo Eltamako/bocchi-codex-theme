@@ -22,6 +22,10 @@ try {
   Write-EntryResult 'started'
   $options=@{Action=$Action};if($Language){$options.Language=$Language}
   & ([IO.Path]::Combine($PSScriptRoot,'管理主题.ps1')) @options
+  if($LASTEXITCODE -eq 3 -and $Action -in @('Start','Resume')){
+    Write-EntryResult 'waiting-for-page'
+    exit 0
+  }
   if($LASTEXITCODE -and $LASTEXITCODE -ne 0){throw ('Theme operation returned exit code '+$LASTEXITCODE)}
   Write-EntryResult 'succeeded'
 } catch {

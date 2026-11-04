@@ -1,5 +1,11 @@
 # 更新记录 / Changelog
 
+## 2.9.0 · Windows 26.1029
+
+适配 Codex 26.1029.61003／安装包 26.1029.7803.0。更新图片查看器、顶部渐变、正文底栏和输入框装饰对应的原生样式定位。修正从托盘退出后立即重开时可能找不到旧进程的问题。登录或加载较慢时，主题会等到 Chat／Work 就绪后自动显示。加载器沿用 1.3.1。
+
+Updated the image viewer, top fade, composer decoration and footer for Codex 26.1029.61003. The desktop shortcut now handles a previous process exiting mid-launch and waits for Chat or Work when the first page takes longer to load.
+
 ## 2.8.1 · 桌面启动与首页布局
 
 - 修复启动和控制文件更新时的短暂读取竞态，减少偶发启动失败；主题 2.8.1，加载器 1.3.1。

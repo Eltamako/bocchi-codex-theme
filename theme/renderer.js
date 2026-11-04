@@ -1,6 +1,6 @@
 async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpaperId, selectionBridge, sticker, bandSticker, appVersion, leaseUntil, installGeneration, loaderGeneration, previewTopMode = "A+++", messages, language = "auto", systemLanguage = "en"}) {
   // This adapter is deliberately tied to the inspected desktop build.
-  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.8.1' || appVersion !== adapter.appVersion)
+  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.9.0' || appVersion !== adapter.appVersion)
     return {installed:false, reason:'version-mismatch'};
   if (!Number.isFinite(leaseUntil) || leaseUntil <= Date.now()) return {installed:false, reason:'expired-loader-lease'};
   if (typeof css !== 'string' || /@import\b|url\s*\(/i.test(css)) return {installed:false, reason:'nonlocal-stylesheet'};
@@ -1146,7 +1146,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     state.palette=currentAssets.tone;state.visualRevision='R17.4';state.performanceRevision='R18';
     property(main,'isolation','isolate');
     // Recolor only observed background fades. Native text/scroll masks remain intact.
-    for(const el of main.querySelectorAll('[class*="_MainContentTopFade_"]'))if(visible(el))mark(el,'data-bocchi-native-fade','top');
+    for(const el of main.querySelectorAll('.MainContentTopFade-T6W4RS'))if(visible(el))mark(el,'data-bocchi-native-fade','top');
     const footer=body.closest('[data-pip-obstacle="thread-footer"]');
     if(footer){
       const host=footer.parentElement;
@@ -1165,7 +1165,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
       // Native footer paint may live in the transcript's sticky spacer, beside
       // the composer host. Only expand the exact native paint selector there.
       const scroll=footer.closest('.thread-scroll-container')||host;
-      const paints=new Set([...host.querySelectorAll('div.pointer-events-none.absolute.inset-x-0.z-0'),...scroll.querySelectorAll('div._background_18hic_2.pointer-events-none.absolute.z-0')]);
+      const paints=new Set([...host.querySelectorAll('div.pointer-events-none.absolute.inset-x-0.z-0'),...scroll.querySelectorAll('div.background-uNUrfY.pointer-events-none.absolute.z-0')]);
       for(const el of paints){
         if(!visible(el)||el.childElementCount||el.textContent.trim()||el.closest('[data-bocchi-owned]'))continue;
         const s=getComputedStyle(el),r=box(el),b=box(body);
@@ -1250,7 +1250,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     for(const sidebar of document.querySelectorAll('[data-app-shell-left-panel-appearance]')){
       const owner=sidebar.closest('[data-app-shell-active-page]');if(visible(sidebar)&&(!owner||owner===page))mark(sidebar,'data-bocchi-sidebar');
     }
-    const inputRoot=body.closest('[class*="_ComposerLayoutRoot_"]')||body;
+    const inputRoot=body.closest('.ComposerLayoutRoot-XCKS7O')||body;
     let detailHost=inputRoot.parentElement;
     while(detailHost&&getComputedStyle(detailHost).display==='contents')detailHost=detailHost.parentElement;
     if(!detailHost)throw new Error('composer-decoration-host-missing');
@@ -1279,7 +1279,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     if(surfaces.length!==1||surfaces[0]!==prior.main)return false;
     const viewers=[...document.querySelectorAll('[role="dialog"]')].filter(el=>visible(el)&&
       (el.querySelector('[data-testid="image-preview-dismiss-area"]')||
-       el.matches('._chrome_vhnt9_2')&&el.querySelector('[data-image-preview-toolbar]')));
+       el.matches('.chrome-cYKtGk')&&el.querySelector('[data-image-preview-toolbar]')));
     // The native editable preview portals this SAME composer out of main.
     // Its original page and reader stay mounted. Verify node identity and the
     // inspected viewer markers, rather than treating it as missing input.
@@ -1288,15 +1288,15 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     // unlike Work's same-node portal. Retain only the verified conversation and
     // reader under the inspected native editable viewer, not an arbitrary dialog.
     const chatReplacement=prior.mode==='chat'&&!prior.body.isConnected&&prior.reader?.matches(adapter.chatReader)&&
-      (viewers.some(el=>el.matches('._chrome_vhnt9_2')&&el.querySelector('[data-image-preview-toolbar]')&&
+      (viewers.some(el=>el.matches('.chrome-cYKtGk')&&el.querySelector('[data-image-preview-toolbar]')&&
         [...el.querySelectorAll(adapter.composerBody)].some(body=>visible(body)&&body.querySelector(adapter.composer)))||
-       state.imagePreview&&root.classList.contains('_active_vhnt9_2')&&root.classList.contains('_closing_vhnt9_2'));
+       state.imagePreview&&root.classList.contains('active-ylqTkR')&&root.classList.contains('closing-fIQWrc'));
     if(!sameComposer&&!chatReplacement)return false;
     // Verified 26.1016 image lightbox marker and its opening/closing View
     // Transition class. These are not a generic dialog/failed-inspection grace.
     // Keep the complete scene while native preview snapshots temporarily lock
     // the composer; never replace it with a partial frame or reinstall assets.
-    return root.classList.contains('_active_vhnt9_2')||viewers.length>0;
+    return root.classList.contains('active-ylqTkR')||viewers.length>0;
   }
   function refresh() {
     if(stopped)return state;

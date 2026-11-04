@@ -4,12 +4,11 @@
 
 Bring a little of Kessoku Band’s backstage world into your everyday chats and work. This unofficial **Bocchi the Rock! anime theme for OpenAI Codex Desktop on Windows** includes six wallpapers, a STARRY wallpaper picker and character stickers, with space to keep your conversations readable.
 
-**[GitHub releases and downloads](https://github.com/Eltamako/bocchi-codex-theme/releases)** · [Install guide](docs/en/install.md) · [Troubleshooting](docs/en/troubleshooting.md) · [Upgrade or restore](docs/en/upgrade-restore.md)
+**[Download for Windows x64](https://github.com/Eltamako/bocchi-codex-theme/releases/download/v2.9.0/Bocchi-Codex-Theme-2.9.0-windows-x64.zip)** · [Release notes](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.9.0) · [Install guide](docs/en/install.md) · [Upgrade or restore](docs/en/upgrade-restore.md)
 
-> **2.8.1: Windows x64, Codex 26.1023.51421 / package 26.1023.6621.0.** Check your client version before choosing a theme package. Version 2.8.0 also supports this build but does not include these startup fixes.
+Version 2.9.0 brings all six wallpapers to the updated Codex Desktop. The shortcut handles the previous instance finishing its exit and loads your wallpaper when Chat or Work is ready.
 
-
-Version 2.8.1 fixes an intermittent desktop startup failure and brings an existing themed window back into view. It keeps all six visuals, local-task multiwindow support, and downloaded-package verification. Windows is packaged independently; macOS development remains experimental. See [platform and validation boundaries](docs/2.8-integration-notes.md).
+**Supported client** · Codex **26.1029.61003** / Windows package **26.1029.7803.0**. For Codex 26.1023.51421, use [2.8.1](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.8.1).
 
 ## See it in the app
 
@@ -19,17 +18,17 @@ Version 2.8.1 fixes an intermittent desktop startup failure and brings an existi
 
 ![Bocchi in Orbit Codex wallpaper: floating instruments beside a Work conversation](docs/screenshots/v2.4-live-work-floating-bocchi.png)
 
-*Bocchi in Orbit · Work conversation. These are user-approved, unaltered screenshots captured on 2.4, with a Chinese client interface. They are not screenshots of the new English interface or simulated previews.*
+*Bocchi in Orbit · Work conversation. Both screenshots were captured in the 2.4 Chinese interface and are shared with permission.*
 
 ## Get started in three steps
 
-1. Choose **Bocchi-Codex-Theme-2.8.1-windows-x64.zip** from the [2.8.1 release page](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.8.1). Extract it into a writable folder you will keep.
+1. Extract **Bocchi-Codex-Theme-2.9.0-windows-x64.zip** into a writable folder you will keep.
 2. Run **Install.cmd**. Setup checks the files and creates a **Bocchi Codex Theme** desktop shortcut.
 3. Save your drafts, let active work finish and choose Exit from the tray to close the ordinary Codex client. Open the desktop shortcut or **Start.cmd**, sign in if needed, and enter Chat or Work. Dark appearance is applied automatically while the theme is active. Choose a wallpaper from **STARRY** in the top-right corner.
 
 The Windows package includes its runtime; you don’t need to install Node.js separately. First use of the dedicated theme window may ask you to sign in to your own account. Keep the extracted folder in place. Administrator access is normally unnecessary, and setup adds no startup task.
 
-If first-time sign-in takes longer than the launcher’s wait, finish signing in and run **Resume.cmd**. Pausing the theme restores the window’s original appearance without overwriting your saved preference.
+After first-time sign-in, enter Chat or Work and the wallpaper will load automatically. Pausing the theme restores the window’s original appearance without overwriting your saved preference.
 
 Choose the Windows package for everyday use. **source.zip** and GitHub’s automatic **Source code** downloads are for development and do not include the runtime binary. [Full installation guide](docs/en/install.md)
 

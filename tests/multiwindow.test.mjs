@@ -84,3 +84,20 @@ test('a rejected shared transaction cannot block a later selection or installati
  const r=sharedRig();await assert.rejects(r.transaction(()=>{throw Error('injected');}),/injected/);
  const a=r.window();a.click('backstage','a1');await a.c.idle();assert.equal(await r.transaction(async()=>r.disk),'backstage');
 });
+
+test('a verified startup shell waits before transferring assets and retries when the page mounts',async()=>{
+ const doc={documentElement:{dir:'ltr',dataset:{theme:'dark'}},count:0,querySelectorAll(){return Array(this.count)}};
+ let reads=0;
+ const ctx={finishCoordinator:async()=>{},mainContext:async()=>7,evaluate:async(c,expr)=>vm.runInNewContext(expr,{document:doc}),selectionTransaction:async()=>{reads++;throw Error('selection-stage')}};
+ vm.runInNewContext(between('function initialPageStatus(', 'async function cleanSession('),ctx);
+ const payload={data:{adapter:{activePage:'[active]',themeVersion:'2.9.0'}}};
+ const probe=()=>ctx.install({epoch:1},payload);
+ assert.equal((await probe()).reason,'awaiting-active-page');
+ doc.count=2;assert.equal((await probe()).reason,'ambiguous-active-pages');
+ doc.count=1;doc.documentElement.dataset.theme='';assert.equal((await probe()).reason,'awaiting-active-page');
+ doc.documentElement.dir='rtl';assert.equal((await probe()).reason,'unsupported-page-direction');
+ doc.documentElement.dir='ltr';doc.documentElement.dataset.theme='invalid';assert.equal((await probe()).reason,'unsupported-page-appearance');
+ assert.equal(reads,0);
+ doc.documentElement.dataset.theme='light';await assert.rejects(probe(),/selection-stage/);assert.equal(reads,1);
+});
+

@@ -150,10 +150,41 @@ Check 'reopened window must retain the same browser identity' ($caught.Contains(
 $script:replaceOwner=$false;$script:currentOwner=$verified;$script:openWindow=$false;$script:window=[IntPtr]0
 $caught='';try{Open-BocchiOwnedWindow $codex $verified}catch{$caught=$_.Exception.Message}
 Check 'failed reopen has no second launch or false success' ($caught.Contains('verified identity') -and $script:packageCalls -eq 4)
+& {
+  $d=$ast.Find({param($n)$n -is [Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq 'Open-BocchiPreviousWindow'},$true)
+  . ([scriptblock]::Create($d.Extent.Text))
+  $f=@{alive=$false;free=$true;calls=0;lost='';parallel=$false}
+  function Open-BocchiOwnedWindow {throw 'previous owner vanished during activation'}
+  function Get-CimInstance {param($ClassName,$Filter,$ErrorAction)if($f.alive){@{ProcessId=10}}}
+  function Test-DreamSkinPortAvailable {param($Port)$f.free}
+  function Write-BocchiStartupTrace {param($Stage,$Own)$f.lost=$Stage}
+  function Assert-BocchiNoParallelDesktop {param($Codex,$Own)if($f.parallel){throw 'ordinary client still running'}}
+  function Get-OwnIdentity {$verified}
+  function Start-DreamSkinCodex {$f.calls++}
+  function New-Item {}
+  function Throw-BocchiError {throw 'unexpected endpoint failure'}
+  $profile='unused'
+  $port=9347
+  $cold=$ast.Find({param($n)$n -is [Management.Automation.Language.IfStatementAst] -and $n.Extent.Text.StartsWith('if(-not $own){') -and $n.Extent.Text.Contains("'before-package-launch'")},$true)
+  $coldBranch=[scriptblock]::Create($cold.Extent.Text)
+  $own=Open-BocchiPreviousWindow $codex $verified
+  Check 'absent PID and free endpoint allow a fresh attempt' ($null -eq $own -and $f.lost -eq 'previous-owner-exited')
+  & $coldBranch
+  Check 'same click launches the verified replacement once' ($f.calls -eq 1)
+  $f.parallel=$true
+  $caught='';try{& $coldBranch}catch{$caught=$_.Exception.Message}
+  Check 'arrival of another ordinary client blocks replacement launch' ($caught -eq 'ordinary client still running' -and $f.calls -eq 1)
+  foreach($case in @(@{alive=$true;free=$true},@{alive=$false;free=$false})){
+    $f.alive=$case.alive;$f.free=$case.free
+    $caught='';try{Open-BocchiPreviousWindow $codex $verified}catch{$caught=$_.Exception.Message}
+    Check 'PID still present or occupied endpoint refuses cold fallback' ($caught -eq 'previous owner vanished during activation')
+  }
+}
+
 $src=Get-Content -LiteralPath $target -Raw -Encoding utf8
 Check 'launcher probes owned browser before parallel guard' ($src.Contains('$own=Get-BocchiLaunchOwner $codex'))
 Check 'normal page readiness remains after window activation' ($src.Contains('$own=Get-OwnIdentity $codex') -and $src.Contains("Dedicated window did not reopen with its verified identity"))
-Check 'resume can also reactivate the exact theme window' ($src.Contains("if(`$Action -in @('Start','Resume') -and `$reusingOwn)"))
+Check 'resume can also reactivate the exact theme window' ($src.Contains('if($own){$own=Open-BocchiPreviousWindow -Codex $codex -Own $own}'))
 . (Join-Path $PSScriptRoot 'termination-contract.ps1')
 Assert-BocchiTerminationContract $ast
 $out=@{passed=$true;count=$checks.Count;checks=$checks;scope='isolated PowerShell logic; no client launched or terminated'}

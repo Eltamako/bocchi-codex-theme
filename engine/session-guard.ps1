@@ -46,6 +46,18 @@ function Get-BocchiReadinessDiagnostic([object]$Status,[object]$State,[string]$R
   if($Status.requestId -cne $RequestId -or $Status.generation -cne $State.generation -or
     $Status.browserId -cne $State.browserId -or [int]$Status.daemonPid -ne [int]$State.daemonPid -or
     $Status.runtimeHash -cne $State.runtimeHash){return $null}
+  if($Status.state -ceq 'suspended' -and $ThemeVersion){
+    $waiting=0
+    $seen=@{}
+    foreach($r in @($Status.renderers)){
+      if(-not $r.targetId -or $seen.ContainsKey([string]$r.targetId) -or $r.version -cne $ThemeVersion){$waiting=0;break}
+      $seen[[string]$r.targetId]=$true
+      if($r.installed -eq $true -and $r.ready -eq $true){continue}
+      if($r.installed -eq $false -and $r.ready -eq $false -and $r.reason -ceq 'awaiting-active-page'){$waiting++;continue}
+      $waiting=0;break
+    }
+    if($waiting -gt 0){return 'awaiting-active-page'}
+  }
   if($Status.state -in @('blocked','stopped')){return 'loader-stopped'}
   if($Status.state -in @('retrying','waiting-or-blocked')){
     if($Status.reason -in @('theme-connection-unavailable','fetch failed','Endpoint unavailable','Connection closed','Connection failed','Connection timeout')){return 'theme-connection-unavailable'}
@@ -56,7 +68,8 @@ function Get-BocchiReadinessDiagnostic([object]$Status,[object]$State,[string]$R
     if($Status.state -in @('running','suspended') -and $ThemeVersion -and $renderer.version -and $renderer.version -cne $ThemeVersion){return 'version-mismatch'}
     if($Status.state -in @('running','suspended') -and $renderer.installed -eq $true -and $renderer.ready -ne $true){return 'renderer-not-ready'}
     if($Status.state -ceq 'suspended' -and $renderer.installed -eq $false){
-      $known=@('automatic-dark-appearance-failed','required-markers-missing','unknown-active-page-or-layout','required-surface-missing','unknown-column-owner','unknown-mode','main-region-too-small','unsupported-request-card-shell','unsupported-submitting-shell','version-mismatch','expired-loader-lease','renderer-not-ready','renderer-validation-failed')
+      if($renderer.reason -ceq 'awaiting-active-page'){continue}
+      $known=@('automatic-dark-appearance-failed','required-markers-missing','unknown-active-page-or-layout','ambiguous-active-pages','unsupported-page-direction','unsupported-page-appearance','required-surface-missing','unknown-column-owner','unknown-mode','main-region-too-small','unsupported-request-card-shell','unsupported-submitting-shell','version-mismatch','expired-loader-lease','renderer-not-ready','renderer-validation-failed')
       if($renderer.reason -cin $known){return $renderer.reason}
       return 'renderer-unavailable'
     }

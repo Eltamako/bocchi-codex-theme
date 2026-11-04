@@ -152,7 +152,7 @@ $queued=$ast.Find({param($n)$n -is [Management.Automation.Language.IfStatementAs
 Check 'queued-start branch is available for behavior test' ($null -ne $queued)
 $queuedBlock=[scriptblock]::Create($queued.Extent.Text.Replace('exit 0','return'))
 $gate=[pscustomobject]@{waited=$true};$Action='Start';$script:queuedRestores=0;$script:minimized=$true;$script:queuedTrace=''
-function Open-BocchiOwnedWindow {param($Codex,$Own)$script:queuedRestores++;$script:minimized=$false;return $Own}
+function Open-BocchiPreviousWindow {param($Codex,$Own)$script:queuedRestores++;$script:minimized=$false;return $Own}
 function Write-BocchiStartupTrace {param($Stage,$Own)$script:queuedTrace=$Stage}
 & $queuedBlock|Out-Null
 Check 'queued ready start reaches window restoration before success' ($script:queuedRestores -eq 1 -and -not $script:minimized -and $script:queuedTrace -ceq 'reused-completed-start')
@@ -161,7 +161,7 @@ $gate.waited=$false;$script:minimized=$true
 Check 'nonqueued request does not activate through the fast path' ($script:queuedRestores -eq 1 -and $script:minimized)
 $source=Get-Content -LiteralPath $target -Raw -Encoding utf8
 Check 'coalescing limited to queued start or resume' ($source.Contains('$gate.waited -and $Action -in @(''Start'',''Resume'')'))
-Check 'normal readiness and recovery preserved' ($source.Contains('if(-not (Wait-ThemeReady -State $state -RequestId $requestId))'))
+Check 'normal readiness and recovery preserved' ($source.Contains('if(-not (Wait-ThemeReady -State $state -RequestId $requestId -ColdStart:(-not $reusingOwn)))'))
 . (Join-Path $PSScriptRoot 'termination-contract.ps1')
 Assert-BocchiTerminationContract $ast
 $report=@{passed=$true;count=$checks.Count;checks=$checks;scope='isolated named-mutex process tests and fixture session checks; actual client untouched'}

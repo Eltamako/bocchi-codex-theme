@@ -113,8 +113,21 @@ async function makeSession(target){
  try{await c.call('Page.enable');await c.call('Runtime.enable');return s;}catch(e){s.off();c.close();throw e;}
 }
 async function assertControlActive(){const control=await readLauncherState(controlPath);if(control.paused||control.stop||!running)throw transientError('LOADER_PAUSED','Loader paused during installation');}
+// This read-only check runs in the verified main frame. A boot/sign-in shell
+// can live longer than the launcher; the watch loop will revisit that same page.
+function initialPageStatus(selector){
+ const root=document.documentElement;
+ const pageCount=document.querySelectorAll(selector).length;
+ const appearance=root?.dataset.theme;
+ if(root?.dir==='rtl')return 'unsupported-page-direction';
+ if(pageCount>1)return 'ambiguous-active-pages';
+ if(appearance&&appearance!=='light'&&appearance!=='dark')return 'unsupported-page-appearance';
+ return pageCount===0||!appearance?'awaiting-active-page':null;
+}
 async function install(s,p){
  await finishCoordinator(s);const contextId=await mainContext(s),epoch=s.epoch;
+ const pageReason=await evaluate(s.c,'('+initialPageStatus.toString()+')('+JSON.stringify(p.data.adapter.activePage)+')',contextId);
+ if(pageReason)return {installed:false,ready:false,version:p.data.adapter.themeVersion,reason:pageReason};
  const selection=await selectionTransaction(()=>readSelection(selectionPath));selectionWarning=selection.warning;const token=randomBytes(16).toString('hex');
  await assertControlActive();
  await s.c.call('Runtime.removeBinding',{name:BINDING}).catch(()=>{});await s.c.call('Runtime.addBinding',{name:BINDING,executionContextId:contextId});

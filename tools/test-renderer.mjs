@@ -87,6 +87,15 @@ try{
  const removed=await page.evaluate(()=>{window.__BOCCHI_THEME__.remove();return{nodes:document.querySelectorAll('[data-bocchi-owned]').length,style:!!document.querySelector('#bocchi-theme-style-v2'),theme:document.documentElement.dataset.theme,attrs:document.querySelectorAll('[data-bocchi-active],[data-bocchi-reader],[data-bocchi-column]').length};});
  assert.deepEqual(removed,{nodes:0,style:false,theme:'light',attrs:0});results.push({test:'owned nodes/styles/attributes and native palette restore',passed:true});
  await page.setViewportSize({width:1440,height:900});
+ const nativeShell = fixture('work')
+  .replace('<header data-app-shell-titlebar="true">','<div class="MainContentTopFade-T6W4RS" style="height:12px"></div><header data-app-shell-titlebar="true">')
+  .replace('data-codex-composer-root data-composer-placement="thread"', 'class="ComposerLayoutRoot-XCKS7O" data-codex-composer-root data-composer-placement="thread"');
+ await setFixture(page,nativeShell); await install(page);
+ assert.equal(await page.locator('.MainContentTopFade-T6W4RS').getAttribute('data-bocchi-native-fade'),'top');
+ assert.equal(await page.locator('.ComposerLayoutRoot-XCKS7O[data-bocchi-composer]').count(),1);
+ await page.evaluate(()=>window.__BOCCHI_THEME__.remove());
+ assert.equal(await page.locator('[data-bocchi-native-fade],[data-bocchi-composer]').count(),0);
+ results.push({test:'26.1029 native top fade and composer decoration attach and restore',passed:true});
  for(const kind of ['composer','request-card','submitting']){await setFixture(page,fixture('work',kind));const s=await install(page);assert(s.installed,s.reason);assert.equal(s.reader,true);assert.equal(s.inputKind,kind);results.push({test:'Work '+kind,passed:true});await page.evaluate(()=>window.__BOCCHI_THEME__.remove());}
  await setFixture(page,fixture());const rejected=await install(page,{appVersion:'26.1021.99999'});assert.equal(rejected.reason,'version-mismatch');assert.equal(await page.locator('[data-bocchi-owned]').count(),0);results.push({test:'unsupported version rejected before mutation',passed:true});
  await setFixture(page,fixture());await page.locator('.reader').evaluate(el=>el.after(el.cloneNode(true)));const ambiguous=await install(page);assert.equal(ambiguous.reason,'ambiguous-conversation-reader');assert.equal(await page.locator('[data-bocchi-owned]').count(),0);results.push({test:'ambiguous reader rejected and cleaned',passed:true});
@@ -125,16 +134,27 @@ try{
    const s=await settle(page);assert.equal(s.mode,'chat');assert.equal(s.reader,true);
    results.push({test:'26.1023 Chat dynamic reader inside shared transcript column',passed:true});
   }
-  await page.evaluate(()=>{
+  await page.evaluate(mode=>{
    window.fixtureTheme=window.__BOCCHI_THEME__;window.fixturePlate=document.querySelector('.bocchi-backdrop');
    window.fixtureBody=document.querySelector('[data-composer-body]');window.fixtureParent=fixtureBody.parentElement;
-   const preview=document.createElement('div');preview.id='fixture-preview';preview.className='_chrome_vhnt9_2';preview.role='dialog';
+   const preview=document.createElement('div');preview.id='fixture-preview';preview.className='chrome-cYKtGk';preview.role='dialog';
    preview.style.cssText='position:fixed;inset:0;z-index:100;background:transparent';preview.innerHTML='<div data-image-preview-toolbar></div>';
-   preview.append(fixtureBody);document.body.append(preview);document.documentElement.classList.add('_active_vhnt9_2','_opening_vhnt9_2');fixtureTheme.refresh();
-  });
+   if(mode==='chat'){
+    preview.append(fixtureBody.cloneNode(true));fixtureBody.remove();
+   }else preview.append(fixtureBody);
+   document.body.append(preview);document.documentElement.classList.add('active-ylqTkR','opening-aO53eV');fixtureTheme.refresh();
+  },mode);
   await page.waitForTimeout(1200);
   assert.deepEqual(await page.evaluate(()=>({installed:fixtureTheme.state.installed,preview:fixtureTheme.state.imagePreview,same:fixturePlate===document.querySelector('.bocchi-backdrop')})),{installed:true,preview:true,same:true});
-  await page.evaluate(()=>{fixtureParent.append(fixtureBody);document.querySelector('#fixture-preview').remove();document.documentElement.classList.remove('_active_vhnt9_2','_opening_vhnt9_2');fixtureTheme.refresh();});
+  if(mode==='chat'){
+   await page.evaluate(()=>{
+    document.documentElement.classList.replace('opening-aO53eV','closing-fIQWrc');
+    document.querySelector('#fixture-preview').remove();fixtureTheme.refresh();
+   });
+   assert.deepEqual(await page.evaluate(()=>[fixtureTheme.state.imagePreview,fixturePlate===document.querySelector('.bocchi-backdrop')]),[true,true]);
+   results.push({test:'26.1029 Chat replacement composer and closing image transition retain the same wallpaper',passed:true});
+  }
+  await page.evaluate(()=>{fixtureParent.append(fixtureBody);document.querySelector('#fixture-preview')?.remove();document.documentElement.classList.remove('closing-fIQWrc');document.documentElement.classList.remove('active-ylqTkR','opening-aO53eV');fixtureTheme.refresh();});
   await settle(page);assert.equal(await page.evaluate(()=>fixtureTheme.state.imagePreview),false);
   results.push({test:'26.1023 '+mode+' image-preview portal preserves scene and restores composer',passed:true});
   await page.evaluate(()=>{const body=document.querySelector('[data-composer-body]');body.style.height='220px';window.__BOCCHI_THEME__.refresh();});
@@ -271,7 +291,7 @@ try{
  }
  await page.setViewportSize({width:1440,height:900});
  for(const mode of ['chat','work']){
-  let html=fixture(mode).replace('<footer data-thread-scroll-footer="true">','<footer data-thread-scroll-footer="true"><div id="footer-paint" class="_background_18hic_2 _surface_18hic_2 pointer-events-none absolute z-0 bottom-0 bg-surface"></div>')
+  let html=fixture(mode).replace('<footer data-thread-scroll-footer="true">','<footer data-thread-scroll-footer="true"><div id="footer-paint" class="background-uNUrfY surface-nr8PSS pointer-events-none absolute z-0 bottom-0 bg-surface"></div>')
    .replace('</style>','#footer-paint{position:absolute;bottom:-32px;left:0;right:0;height:132px;background:rgb(24,24,24);pointer-events:none;z-index:0}.max-w-chat{position:relative}.table-viewport{overflow:auto;padding-inline-start:152px;scroll-padding-inline-start:152px}.table-viewport table{min-width:900px}#unrelated-paint{position:absolute;top:70px;height:80px;width:100%;background:#181818}</style>')
    .replace('<p>阅读区与输入框布局验证。这里不包含用户聊天内容。</p>','<p>Reading column</p><div data-d-component="table"><div class="table-viewport" data-d-table-viewport="true"><table><tbody><tr><td>Wide table</td><td>Second column</td></tr></tbody></table></div></div><div id="unrelated-paint"></div>');
   await setFixture(page,html);await install(page);
@@ -291,7 +311,7 @@ try{
  // Native footer backgrounds also live outside the composer host, inside a
  // sibling transcript spacer. Their fade must not leave a dark horizontal edge.
  for(const mode of ['chat','work']){
-  const html=fixture(mode).replace('<footer data-thread-scroll-footer="true">','<div id="transcript-paint-spacer"><div id="sibling-fade" class="_background_18hic_2 _fade_18hic_2 pointer-events-none absolute z-0"></div><div id="sibling-surface" class="_background_18hic_2 _surface_18hic_2 pointer-events-none absolute z-0"></div><div id="unrelated-sibling" class="pointer-events-none absolute inset-x-0 z-0"></div></div><footer data-thread-scroll-footer="true">')
+  const html=fixture(mode).replace('<footer data-thread-scroll-footer="true">','<div id="transcript-paint-spacer"><div id="sibling-fade" class="background-uNUrfY fade-AcMqqj pointer-events-none absolute z-0"></div><div id="sibling-surface" class="background-uNUrfY surface-nr8PSS pointer-events-none absolute z-0"></div><div id="unrelated-sibling" class="pointer-events-none absolute inset-x-0 z-0"></div></div><footer data-thread-scroll-footer="true">')
    .replace('</style>','#transcript-paint-spacer{position:absolute;left:0;right:0;bottom:32px;height:112px}#sibling-fade,#sibling-surface,#unrelated-sibling{position:absolute;left:0;right:0;pointer-events:none;z-index:0}#sibling-fade,#unrelated-sibling{top:-32px;height:32px;background:linear-gradient(to top,rgb(24,24,24),transparent)}#sibling-surface{top:0;bottom:-32px;background:rgb(24,24,24)}</style>');
   await setFixture(page,html.replace('<div id="transcript-paint-spacer">','<div class="transcript-paint-branch"><div id="transcript-paint-spacer">').replace('</div></div><footer data-thread-scroll-footer','</div></div></div><footer data-thread-scroll-footer'));await install(page);
   const before=await page.locator('[data-composer-body]').boundingBox();

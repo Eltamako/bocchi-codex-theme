@@ -6,12 +6,11 @@
 
 A fan-made **Bocchi the Rock! anime theme for OpenAI Codex Desktop on Windows**: six wallpapers, a STARRY picker and comfortable Chat / Work reading. [Read the English guide →](README.en.md)
 
-**[GitHub 发行页与下载](https://github.com/Eltamako/bocchi-codex-theme/releases)** · [安装说明](docs/使用说明.md) · [常见问题](docs/常见问题.md) · [恢复与回退](docs/恢复与回退.md)
+**[下载 Windows x64 完整包](https://github.com/Eltamako/bocchi-codex-theme/releases/download/v2.9.0/Bocchi-Codex-Theme-2.9.0-windows-x64.zip)** · [发行说明](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.9.0) · [安装指南](docs/使用说明.md) · [升级与恢复](docs/恢复与回退.md)
 
+2.9.0 适配新版 Codex Desktop。退出后再打开桌面快捷方式时，启动器会接手正在退出的旧进程，等待聊天或工作页面就绪后自动加载壁纸。
 
-2.8.1 修复桌面启动时的偶发失败，已打开的主题窗口可以直接唤回。六款画面、本地任务多窗口和下载后安装检查继续保留。Windows 完整包独立发行；macOS 开发仍处于实验阶段。[平台与验证边界](docs/2.8-integration-notes.md)。
-
-> **2.8.1 适配：Windows x64 · Codex 26.1023.51421（安装包 26.1023.6621.0）。** 请核对客户端版本，再选择对应主题包；2.8.0 也适配此构建，但不包含本次启动修复。
+**适配版本** · Codex **26.1029.61003**／Windows 安装包 **26.1029.7803.0**。使用 Codex 26.1023.51421 的朋友，请下载 [2.8.1](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.8.1)。
 
 ## 先看看实机效果
 
@@ -21,17 +20,17 @@ A fan-made **Bocchi the Rock! anime theme for OpenAI Codex Desktop on Windows**:
 
 ![波奇 Codex 壁纸实机：漂浮乐器与 Work 对话阅读区](docs/screenshots/v2.4-live-work-floating-bocchi.png)
 
-*波奇失重 · Work 对话 / Bocchi in Orbit · Work conversation。两张都是用户授权公开的 2.4 实机截图，保留原始像素；不是 2.5 英文界面的截图，也不是模拟预览。*
+*波奇失重 · Work 对话 / Bocchi in Orbit · Work conversation。两张实机图均摄于 2.4 中文界面，已获授权公开。*
 
 ## 三步开始
 
-1. 从 [2.8.1 发行页](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.8.1) 选择 **Bocchi-Codex-Theme-2.8.1-windows-x64.zip** 完整包，完整解压到准备长期保留、自己可以写入的文件夹。
+1. 将 **Bocchi-Codex-Theme-2.9.0-windows-x64.zip** 完整解压到自己可写、准备长期保留的文件夹。
 2. 双击 **01-安装.cmd** 或 **Install.cmd**。检查通过后，桌面会出现 **Bocchi Codex Theme**。
 3. 先保存草稿、等正在处理的工作结束，再从托盘选择 Exit 退出普通 Codex，再双击桌面入口或 **02-启动主题.cmd / Start.cmd**。完成登录、进入 Chat 或 Work，主题会自动使用深色显示；点右上角 **STARRY** 挑选壁纸。
 
 运行环境已经包含在完整包里，无需另装 Node.js。首次使用主题专用窗口可能需要登录自己的账号。请保留解压目录；通常无需管理员权限，也不会添加开机启动。
 
-如果首次登录耗时较长，完成登录后运行 **04-恢复主题.cmd / Resume.cmd** 即可。暂停主题后，窗口会恢复原外观；不会覆盖长期外观偏好。
+第一次使用时，完成登录并进入 Chat 或 Work，壁纸会自动出现。暂停主题后，窗口会恢复原外观；不会覆盖长期外观偏好。
 
 GitHub 的 **Source code** 和发行页的 **source.zip** 用于查看源码与开发，不是完整安装包。详细步骤见 [使用说明](docs/使用说明.md)。
 

@@ -1,6 +1,13 @@
-# 2.8.1 validation
+# Windows 2.9.0 validation
 
 [简体中文](../验证记录.md)
+
+Windows x64, Codex 26.1029.61003 / package 26.1029.7803.0, loader 1.3.1.
+
+- On Windows, the first desktop shortcut launch after a tray exit loaded Winter Lights in Work. The shortcut also brought an existing themed window back into view.
+- All 61 Node regressions passed from the unpacked package. Simulated pages covered the six wallpapers, Chat and Work, image previews and the composer footer. Startup tests covered a disappearing process and a delayed first page.
+
+## Earlier results · 2.8.1
 
 Target: Windows x64, Codex **26.1023.51421 / package 26.1023.6621.0**, theme **2.8.1**, loader **1.3.1**. Updated October 30, 2026.
 

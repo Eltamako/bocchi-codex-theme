@@ -40,7 +40,7 @@ html[data-bocchi-active="true"] [data-app-shell-active-page="true"] :is([data-ma
 html[data-bocchi-active="true"] [data-app-shell-active-page="true"] button[aria-label="发送"]{background-color:#f3a5c5!important;color:#271e29!important}
 /* The native image viewer owns its transparent/animated surface. Giving its
    full-window dialog the generic opaque menu paint hides the wallpaper. */
-html[data-bocchi-active="true"] :is([role="menu"],[role="dialog"],[role="alertdialog"],[data-radix-popper-content-wrapper]>*):not(:has([data-testid="image-preview-dismiss-area"])):not(._chrome_vhnt9_2:has([data-image-preview-toolbar])){background-color:#24222c!important}
+html[data-bocchi-active="true"] :is([role="menu"],[role="dialog"],[role="alertdialog"],[data-radix-popper-content-wrapper]>*):not(:has([data-testid="image-preview-dismiss-area"])):not(.chrome-cYKtGk:has([data-image-preview-toolbar])){background-color:#24222c!important}
 html[data-bocchi-active="true"] [data-bocchi-sidebar]{background-color:#19181f!important}
 /* 26.1016 paints the rounded sidebar on its inner native surface. Keep the
    outer resize host transparent instead of filling the cut-out corners. */
