@@ -1,6 +1,6 @@
 async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpaperId, selectionBridge, sticker, bandSticker, appVersion, leaseUntil, installGeneration, loaderGeneration, previewTopMode = "A+++", messages, language = "auto", systemLanguage = "en"}) {
   // This adapter is deliberately tied to the inspected desktop build.
-  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.9.0' || appVersion !== adapter.appVersion)
+  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.10.0' || appVersion !== adapter.appVersion)
     return {installed:false, reason:'version-mismatch'};
   if (!Number.isFinite(leaseUntil) || leaseUntil <= Date.now()) return {installed:false, reason:'expired-loader-lease'};
   if (typeof css !== 'string' || /@import\b|url\s*\(/i.test(css)) return {installed:false, reason:'nonlocal-stylesheet'};

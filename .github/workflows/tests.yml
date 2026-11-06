@@ -1,4 +1,4 @@
-name: Windows 2.8 regression tests
+name: Windows regression tests
 on:
   push:
   pull_request:

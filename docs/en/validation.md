@@ -1,4 +1,18 @@
-# Windows 2.9.0 validation
+# Windows 2.10.0 validation
+
+Target: Codex 26.1103.31037 / package 26.1103.3517.0, Windows x64; theme 2.10.0, loader 1.3.1.
+
+### Current checks
+
+- Official bundle: 34 page/style markers and 7 structural relationships inspected; 9 native style groups match the previous build.
+- Simulated pages: 50 checks passed, covering six wallpapers, Chat/Work, image previews, footer, tables, home layout and menu restoration.
+- Windows PowerShell 5.1/7: 10 suites passed on each; RemoteSigned is process-scoped for tests only.
+- Startup, identity and multiwindow runtime files retain their previous hashes. The renderer only changes its exact version gate; artwork and rendering algorithms are unchanged.
+- The Windows PowerShell 5.1 desktop launch recorded success. Winter Lights, the reading area and composer loaded in the new client, and the user confirmed successful startup.
+- All 61 Node regressions passed from the unpacked candidate ZIP, with no skips; installation CheckOnly passed. Windows package checks passed, including rejection of 12 mixed-platform manifests. The formal package only updates documentation, the CI name and adapter release status; runtime behavior matches the accepted candidate.
+- A full two-window lifecycle, mobile end-to-end behavior and a real browser download chain have not been rechecked on this new client. No native Mac acceptance was performed.
+
+## Historical evidence: 2.9.0 and earlier
 
 [简体中文](../验证记录.md)
 
