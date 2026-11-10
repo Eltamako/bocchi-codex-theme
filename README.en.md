@@ -4,13 +4,13 @@
 
 Bring a little of Kessoku Band’s backstage world into your everyday chats and work. This unofficial **Bocchi the Rock! anime theme for OpenAI Codex Desktop on Windows** includes six wallpapers, a STARRY wallpaper picker and character stickers, with space to keep your conversations readable.
 
-**[Download the Windows x64 package](https://github.com/Eltamako/bocchi-codex-theme/releases/download/v2.10.0/Bocchi-Codex-Theme-2.10.0-windows-x64.zip)** · [2.10.0 release notes](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.10.0) · [Installation](docs/en/install.md) · [Upgrade and restore](docs/en/upgrade-restore.md)
+**[Download the Windows x64 package](https://github.com/Eltamako/bocchi-codex-theme/releases/download/v2.11.0/Bocchi-Codex-Theme-2.11.0-windows-x64.zip)** · [2.11.0 release notes](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.11.0) · [Installation](docs/en/install.md) · [Upgrade and restore](docs/en/upgrade-restore.md)
 
-Version 2.10.0 brings all six wallpapers to the updated Codex Desktop. The shortcut handles the previous instance finishing its exit and loads your wallpaper when Chat or Work is ready.
+Version 2.11.0 supports the Codex build below. On first launch, the theme waits for a Chat or Work page before showing your wallpaper.
 
-**Supported client** · Codex **26.1103.31037** / Windows package **26.1103.3517.0**. For Codex 26.1023.51421, use [2.8.1](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.8.1).
+**Supported client** · Codex **26.1103.60933** / Windows package **26.1103.7773.0**. For Codex 26.1023.51421, use [2.8.1](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.8.1).
 
-This build retains the 2.9.0 startup fixes and all six wallpapers. See the [update regression checklist](docs/en/update-regressions.md). Use [2.9.0](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.9.0) for Codex 26.1029.61003.
+This build retains the 2.9.0 startup fixes and all six wallpapers. See the [update regression checklist](docs/en/update-regressions.md). Use [2.10.0](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.10.0) for the previous build, 26.1103.31037. Use [2.9.0](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.9.0) for Codex 26.1029.61003.
 
 ## See it in the app
 
@@ -24,7 +24,7 @@ This build retains the 2.9.0 startup fixes and all six wallpapers. See the [upda
 
 ## Get started in three steps
 
-1. Extract **Bocchi-Codex-Theme-2.10.0-windows-x64.zip** into a writable folder you will keep.
+1. Extract **Bocchi-Codex-Theme-2.11.0-windows-x64.zip** into a writable folder you will keep.
 2. Run **Install.cmd**. Setup checks the files and creates a **Bocchi Codex Theme** desktop shortcut.
 3. Save your drafts, let active work finish and choose Exit from the tray to close the ordinary Codex client. Open the desktop shortcut or **Start.cmd**, sign in if needed, and enter Chat or Work. Dark appearance is applied automatically while the theme is active. Choose a wallpaper from **STARRY** in the top-right corner.
 

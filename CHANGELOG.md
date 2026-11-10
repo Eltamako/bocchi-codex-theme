@@ -1,5 +1,13 @@
 # 更新记录 / Changelog
 
+## 2.11.0 · Windows 26.1103
+
+- 适配 Codex 26.1103.60933／安装包 26.1103.7773.0，Windows x64。
+- 重新核对首页、正文、底栏和图片查看器，沿用原有壁纸渲染、窗口布局和快捷方式。
+- 首次启动检查覆盖托盘退出、首屏延迟和重复打开。
+
+Supports Codex 26.1103.60933 / Windows package 26.1103.7773.0. The update rechecks the existing wallpaper layout and the desktop shortcut’s first launch, including a delayed first page and repeated clicks.
+
 ## 2.10.0 · Windows 26.1103
 
 - 适配 Codex 26.1103.31037／安装包 26.1103.3517.0，Windows x64。加载器沿用 1.3.1。

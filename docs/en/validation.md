@@ -1,4 +1,15 @@
-# Windows 2.10.0 validation
+# Windows theme validation
+
+## 2.11.0
+
+- Windows x64, Codex 26.1103.60933 / package 26.1103.7773.0, loader 1.3.1.
+- The new build retains 34 relevant page markers and 7 structural relationships. All 9 relevant native style groups match.
+- All 50 public-theme browser fixtures passed, covering the six wallpapers, Chat and Work, image previews, home layout, and the composer.
+- Ten suites passed under each of Windows PowerShell 5.1 and 7, including tray-exit recovery, delayed first-page readiness, repeated clicks, shortcuts and simulated download markers.
+- The first desktop shortcut launch succeeded and loaded Winter Lights in Work. All 61 Node.js regressions and a fresh installation passed from the unpacked candidate.
+- Native checks covered one Windows window on first launch. The full two-window lifecycle, mobile, the real browser download chain, and native Mac scenarios were not retested.
+
+## Historical results for 2.10.0
 
 Target: Codex 26.1103.31037 / package 26.1103.3517.0, Windows x64; theme 2.10.0, loader 1.3.1.
 
