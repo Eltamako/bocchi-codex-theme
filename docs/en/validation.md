@@ -1,5 +1,14 @@
 # Windows theme validation
 
+## 2.12.0
+
+- Windows x64, Codex 26.1111.21308 / package 26.1111.2228.0, loader 1.3.1.
+- The new build retains 34 relevant page markers and 7 structural relationships. The browser fixtures cover the updated window corners and composer styling.
+- All 50 public-theme browser fixtures passed, covering the six wallpapers, Chat and Work, image previews, home layout, and the composer.
+- Ten suites passed under each of Windows PowerShell 5.1 and 7, including tray-exit recovery, delayed first-page readiness, repeated clicks, shortcuts and simulated download markers.
+- The unpacked candidate passed all 61 Node.js checks and the read-only installation check. The local upgrade preserved the existing shortcut and wallpaper selection.
+- Cold-start coverage comes from automated tests. Native wallpaper loading from the desktop shortcut has not been recorded for this build.
+
 ## 2.11.0
 
 - Windows x64, Codex 26.1103.60933 / package 26.1103.7773.0, loader 1.3.1.

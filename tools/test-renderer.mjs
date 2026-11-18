@@ -87,15 +87,47 @@ try{
  const removed=await page.evaluate(()=>{window.__BOCCHI_THEME__.remove();return{nodes:document.querySelectorAll('[data-bocchi-owned]').length,style:!!document.querySelector('#bocchi-theme-style-v2'),theme:document.documentElement.dataset.theme,attrs:document.querySelectorAll('[data-bocchi-active],[data-bocchi-reader],[data-bocchi-column]').length};});
  assert.deepEqual(removed,{nodes:0,style:false,theme:'light',attrs:0});results.push({test:'owned nodes/styles/attributes and native palette restore',passed:true});
  await page.setViewportSize({width:1440,height:900});
- const nativeShell = fixture('work')
-  .replace('<header data-app-shell-titlebar="true">','<div class="MainContentTopFade-T6W4RS" style="height:12px"></div><header data-app-shell-titlebar="true">')
-  .replace('data-codex-composer-root data-composer-placement="thread"', 'class="ComposerLayoutRoot-XCKS7O" data-codex-composer-root data-composer-placement="thread"');
- await setFixture(page,nativeShell); await install(page);
- assert.equal(await page.locator('.MainContentTopFade-T6W4RS').getAttribute('data-bocchi-native-fade'),'top');
- assert.equal(await page.locator('.ComposerLayoutRoot-XCKS7O[data-bocchi-composer]').count(),1);
- await page.evaluate(()=>window.__BOCCHI_THEME__.remove());
- assert.equal(await page.locator('[data-bocchi-native-fade],[data-bocchi-composer]').count(),0);
- results.push({test:'26.1029 native top fade and composer decoration attach and restore',passed:true});
+ // The 26.1111 Windows shell gives the top fade its own radii and can
+ // blur the native composer surface. Check the theme against both changes.
+ const nativeShell=fixture('work')
+  .replace('<main data-app-shell-main-surface="default">','<main data-app-shell-main-surface="default" class="MainContentSurface-EnuIYE">')
+  .replace('<header data-app-shell-titlebar="true">','<div class="MainContentTopFade-T6W4RS" style="height:12px;background-image:linear-gradient(black,transparent)"></div><header data-app-shell-titlebar="true">')
+  .replace('<footer data-thread-scroll-footer="true">','<footer data-thread-scroll-footer="true" data-thread-composer-backdrop>')
+  .replace('data-codex-composer-root data-composer-placement="thread"','class="ComposerLayoutRoot-XCKS7O" data-composer-surface-variant="default" data-codex-composer-root data-composer-placement="thread"')
+  .replace('</style>',`
+    :root{--radius-xl-base:16px;--composer-layout-surface-background:#303030}
+    .MainContentSurface-EnuIYE,.MainContentTopFade-T6W4RS{border-start-start-radius:var(--radius-xl-base);border-start-end-radius:var(--radius-xl-base)}
+    [data-app-shell-page-sidebar=true] :is(.MainContentSurface-EnuIYE,.MainContentTopFade-T6W4RS){border-start-start-radius:0}
+    .MainContentTopFade-T6W4RS{position:absolute;inset:0 0 auto;pointer-events:none;z-index:20}
+    .ComposerLayoutRoot-XCKS7O{--composer-layout-surface-fill:var(--composer-layout-surface-background);--composer-layout-surface-backdrop-filter:none;display:flex;flex-direction:column;position:relative}
+    [data-thread-composer-backdrop] .ComposerLayoutRoot-XCKS7O[data-composer-surface-variant=default]{--composer-layout-surface-fill:color-mix(in srgb,var(--composer-layout-surface-background) 95%,transparent);--composer-layout-surface-backdrop-filter:blur(12px)}
+    .ComposerLayoutRoot-XCKS7O{background-color:var(--composer-layout-surface-fill);backdrop-filter:var(--composer-layout-surface-backdrop-filter)}
+  </style>`);
+ for(const sidebar of [false,true]){
+  await setFixture(page,nativeShell.replace('data-app-shell-active-page="true"',`data-app-shell-active-page="true" data-app-shell-page-sidebar="${sidebar}"`));
+  const readNative=()=>page.evaluate(()=>{
+   const top=getComputedStyle(document.querySelector('.MainContentTopFade-T6W4RS'));
+   const composer=getComputedStyle(document.querySelector('.ComposerLayoutRoot-XCKS7O'));
+   const main=getComputedStyle(document.querySelector('main'));
+   const wallpaper=document.querySelector('.bocchi-backdrop');
+   return {topPaint:top.backgroundImage,composerFill:composer.backgroundColor,filter:composer.backdropFilter,
+    corners:[main.borderTopLeftRadius,main.borderTopRightRadius],
+    wallpaperCorners:wallpaper?[getComputedStyle(wallpaper).borderTopLeftRadius,getComputedStyle(wallpaper).borderTopRightRadius]:null};
+  });
+  const before=await readNative();
+  assert.deepEqual(before.corners,[sidebar?'0px':'16px','16px']);
+  assert.notEqual(before.topPaint,'none');assert.equal(before.filter,'blur(12px)');
+  await install(page);
+  const themed=await readNative();
+  assert.equal(await page.locator('.ComposerLayoutRoot-XCKS7O[data-bocchi-composer]').count(),1);
+  assert.equal(themed.topPaint,'none');
+  assert.equal(themed.composerFill,'rgb(41, 36, 46)');
+  assert.deepEqual(themed.wallpaperCorners,before.corners);
+  await page.evaluate(()=>window.__BOCCHI_THEME__.remove());
+  assert.equal(await page.locator('[data-bocchi-native-fade],[data-bocchi-composer]').count(),0);
+  assert.deepEqual(await readNative(),before);
+ }
+ results.push({test:'26.1111 native corners, top fade and composer paint before, during and after theming',passed:true});
  for(const kind of ['composer','request-card','submitting']){await setFixture(page,fixture('work',kind));const s=await install(page);assert(s.installed,s.reason);assert.equal(s.reader,true);assert.equal(s.inputKind,kind);results.push({test:'Work '+kind,passed:true});await page.evaluate(()=>window.__BOCCHI_THEME__.remove());}
  await setFixture(page,fixture());const rejected=await install(page,{appVersion:'26.1021.99999'});assert.equal(rejected.reason,'version-mismatch');assert.equal(await page.locator('[data-bocchi-owned]').count(),0);results.push({test:'unsupported version rejected before mutation',passed:true});
  await setFixture(page,fixture());await page.locator('.reader').evaluate(el=>el.after(el.cloneNode(true)));const ambiguous=await install(page);assert.equal(ambiguous.reason,'ambiguous-conversation-reader');assert.equal(await page.locator('[data-bocchi-owned]').count(),0);results.push({test:'ambiguous reader rejected and cleaned',passed:true});

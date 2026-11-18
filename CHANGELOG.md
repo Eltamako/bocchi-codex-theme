@@ -1,5 +1,13 @@
 # 更新记录 / Changelog
 
+## 2.12.0 · Windows 26.1111
+
+- 适配 Codex 26.1111.21308（Windows x64 安装包 26.1111.2228.0）。
+- 核对新版顶部圆角和输入框材质，保留六款壁纸、原有取景和切换操作。
+- 回归覆盖托盘退出后接续启动、首屏加载慢和重复点击。
+
+Supports Codex 26.1111.21308 (Windows x64 package 26.1111.2228.0). Checks cover the updated window corners and composer styling, as well as first launch after a tray exit, slow page loading, and repeated clicks.
+
 ## 2.11.0 · Windows 26.1103
 
 - 适配 Codex 26.1103.60933／安装包 26.1103.7773.0，Windows x64。
