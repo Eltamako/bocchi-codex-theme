@@ -1,8 +1,8 @@
 {
   "schema": "bocchi-codex-adapter/1",
-  "themeVersion": "2.12.0",
-  "appVersion": "26.1111.21308",
-  "packageVersion": "26.1111.2228.0",
+  "themeVersion": "2.13.0",
+  "appVersion": "26.1111.71704",
+  "packageVersion": "26.1111.9664.0",
   "activePage": "[data-app-shell-active-page=\"true\"]",
   "surface": "[data-app-shell-main-surface]",
   "composer": "[data-composer-markdown][contenteditable=\"true\"]",
@@ -14,7 +14,7 @@
     "Ask ChatGPT",
     "Message ChatGPT"
   ],
-  "status": "windows-2.12.0-released",
+  "status": "windows-2.13.0-released",
   "validationScope": "See docs/验证记录.md and docs/en/validation.md for release checks and limits.",
   "visualDesign": "six-wallpapers-matched-scenes-and-poster-r1",
   "assetPolicy": "Approved native main images preserved; registered winter floor and quiet poster plate; uniform framing and CSS masks",
@@ -41,5 +41,5 @@
   "workReader": "[data-thread-user-message-navigation-content=\"true\"][data-mcp-app-portal-target=\"true\"]",
   "workSubmittingInput": "[data-composer-input] > [role=\"textbox\"][aria-busy=\"true\"][aria-readonly=\"true\"][data-composer-input-layout=\"multiline\"][data-composer-input-variant=\"default\"]",
   "inputStateRevision": "native-shell-20261106",
-  "bundleInspectedOn": "2026-11-18"
+  "bundleInspectedOn": "2026-11-19"
 }
