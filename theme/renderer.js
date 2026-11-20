@@ -1,6 +1,6 @@
 async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpaperId, selectionBridge, sticker, bandSticker, appVersion, leaseUntil, installGeneration, loaderGeneration, previewTopMode = "A+++", messages, language = "auto", systemLanguage = "en"}) {
   // This adapter is deliberately tied to the inspected desktop build.
-  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.13.0' || appVersion !== adapter.appVersion)
+  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.14.0' || appVersion !== adapter.appVersion)
     return {installed:false, reason:'version-mismatch'};
   if (!Number.isFinite(leaseUntil) || leaseUntil <= Date.now()) return {installed:false, reason:'expired-loader-lease'};
   if (typeof css !== 'string' || /@import\b|url\s*\(/i.test(css)) return {installed:false, reason:'nonlocal-stylesheet'};
@@ -1066,10 +1066,11 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     let area=intersection(mainRect,box(focus||scroll||main));
     const panels=[...page.querySelectorAll('[data-app-shell-focus-area="right-panel"]')].filter(el=>visible(el)&&box(el).width>180&&box(el).height>150);
     for(const panel of panels){const p=box(panel);if(p.left>area.left&&p.left<area.right)area=rect(area.left,area.top,p.left-area.left,area.height);}
+    const stickyHeaders=[...main.querySelectorAll('.shell-yWQKe6[data-sticky]')].filter(inMain);
     const headers=[...page.querySelectorAll('[data-app-shell-titlebar]')].filter(visible);
     for(const header of headers){const h=box(header);if(h.bottom>area.top&&h.bottom<area.bottom&&overlap(h,area))area=rect(area.left,h.bottom,area.width,area.bottom-h.bottom);}
     if(area.width<280||area.height<200)throw new Error('main-region-too-small');
-    return {page,main,editor,body,mode,inputKind,reader,columns,composerColumn,readerColumn,homeMode,homeGreeting,mainRect,area,panels,scroll,focus};
+    return {page,main,editor,body,mode,inputKind,reader,columns,composerColumn,readerColumn,homeMode,homeGreeting,mainRect,area,panels,scroll,focus,stickyHeaders};
   }
   function occupied(container,limit) {
     const result=[],clipCache=new Map(),parentVisibility=new Map(),parentBounds=new Map();
@@ -1147,6 +1148,8 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     property(main,'isolation','isolate');
     // Recolor only observed background fades. Native text/scroll masks remain intact.
     for(const el of main.querySelectorAll('.MainContentTopFade-T6W4RS'))if(visible(el))mark(el,'data-bocchi-native-fade','top');
+    // 26.1117 draws the sticky page header fill with ::before.
+    for(const el of ctx.stickyHeaders)mark(el,'data-bocchi-native-sticky-header');
     const footer=body.closest('[data-pip-obstacle="thread-footer"]');
     if(footer){
       const host=footer.parentElement;

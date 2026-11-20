@@ -1,5 +1,14 @@
 # Windows theme validation
 
+## 2.14.0
+
+- Windows x64, Codex 26.1117.31558 / package 26.1117.3838.0, loader 1.3.1.
+- The new build retains 33 relevant page markers and 7 structural relationships. Eight relevant native style groups remain unchanged. The old top fade was replaced by sticky-header paint; its adapted background, native corners and restoration are covered by the new fixture.
+- All 51 public-theme browser fixtures passed, covering the six wallpapers, Chat and Work, image previews, home layout, and the composer.
+- Ten suites passed under each of Windows PowerShell 5.1 and 7, including tray-exit recovery, delayed first-page readiness, repeated clicks, shortcuts and simulated download markers.
+- The unpacked candidate passed 61 Node.js checks, the installation check, and an isolated fresh installation. The local upgrade preserved the desktop entry and wallpaper selection.
+- A native desktop cold start has not yet been verified. Automated regression tests cover the specific delayed first-page, repeated-click, and tray-exit scenarios.
+
 ## 2.13.0
 
 - Windows x64, Codex 26.1111.71704 / package 26.1111.9664.0, loader 1.3.1.

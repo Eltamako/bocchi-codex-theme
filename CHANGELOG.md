@@ -1,5 +1,13 @@
 # 更新记录 / Changelog
 
+## 2.14.0 · Windows 26.1117
+
+- 适配 Codex 26.1117.31558（Windows x64 安装包 26.1117.3838.0）。
+- 适配新版原生粘性页眉背景，保留圆角、正文可读性、六款壁纸、原有取景、切换和多窗口。
+- 延续首次启动就绪等待、托盘退出接续和重复启动处理。
+
+Supports Codex 26.1117.31558 (Windows x64 package 26.1117.3838.0). Adapts the new sticky header background while retaining native corners, the six wallpapers, framing, switching, multiwindow support and first-launch handling.
+
 ## 2.13.0 · Windows 26.1111
 
 - 适配 Codex 26.1111.71704（Windows x64 安装包 26.1111.9664.0）。

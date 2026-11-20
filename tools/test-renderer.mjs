@@ -128,6 +128,41 @@ try{
   assert.deepEqual(await readNative(),before);
  }
  results.push({test:'26.1111 native corners, top fade and composer paint before, during and after theming',passed:true});
+ // The 26.1117 page header has a native sticky ::before fill, rather than a separate top fade.
+ for(const mode of ['chat','work'])for(const sidebar of [false,true]){
+  const stickyShell=fixture(mode)
+   .replace('<div data-app-shell-active-page="true">',`<div data-app-shell-active-page="true" data-app-shell-frame data-app-shell-page-sidebar="${sidebar}" data-app-shell-page-surface="true">`)
+   .replace('<section data-app-shell-focus-area="main">','<section data-app-shell-focus-area="main"><div id="native-sticky-header" class="shell-yWQKe6" data-sticky>Sticky header</div>')
+   .replace('</section></main>','</section><div data-app-shell-focus-area="right-panel" style="position:absolute;top:0;right:0;width:80px;height:32px"><div id="unrelated-sticky" class="shell-yWQKe6" data-sticky>Panel</div></div></main>')
+   .replace('</style>',`
+    :root{--color-surface:#26313a;--radius-xl-base:16px;--spacing:.25rem}
+    [data-app-shell-main-surface=default]{border-start-start-radius:var(--radius-xl-base);border-start-end-radius:var(--radius-xl-base)}
+    [data-app-shell-frame][data-app-shell-page-sidebar=true] [data-app-shell-main-surface=default]{border-start-start-radius:0}
+    .shell-yWQKe6[data-sticky]{position:sticky;top:calc(var(--spacing) * -4);z-index:30;height:32px}
+    .shell-yWQKe6[data-sticky]::before{content:"";pointer-events:none;z-index:-1;inset-inline:0;inset-block:var(--header-background-top-inset,0px) 0;background-color:var(--color-surface);position:absolute}
+    [data-app-shell-frame][data-app-shell-page-surface=true] [data-app-shell-main-surface=default] .shell-yWQKe6[data-sticky]::before{border-start-start-radius:var(--radius-xl-base);border-start-end-radius:var(--radius-xl-base)}
+    [data-app-shell-frame][data-app-shell-page-sidebar=true] [data-app-shell-main-surface=default] .shell-yWQKe6[data-sticky]::before{border-start-start-radius:0}
+   </style>`);
+  await setFixture(page,stickyShell);
+  const readSticky=()=>page.evaluate(()=>{
+   const el=document.querySelector('#native-sticky-header'),header=getComputedStyle(el),paint=getComputedStyle(el,'::before');
+   const main=getComputedStyle(document.querySelector('main')),panel=getComputedStyle(document.querySelector('#unrelated-sticky'),'::before');
+   const backdrop=document.querySelector('.bocchi-backdrop');
+   return {paint:paint.backgroundColor,panel:panel.backgroundColor,main:main.backgroundColor,
+    mainCorners:[main.borderTopLeftRadius,main.borderTopRightRadius],
+    corners:[paint.borderTopLeftRadius,paint.borderTopRightRadius],position:header.position,top:header.top,pointerEvents:paint.pointerEvents,
+    backdropCorners:backdrop?[getComputedStyle(backdrop).borderTopLeftRadius,getComputedStyle(backdrop).borderTopRightRadius]:null};
+  });
+  const before=await readSticky();assert.equal(before.paint,'rgb(38, 49, 58)');assert.deepEqual(before.corners,[sidebar?'0px':'16px','16px']);
+  await install(page);const themed=await readSticky();
+  assert.equal(await page.locator('[data-bocchi-native-sticky-header]').count(),1);
+  assert.notEqual(themed.paint,before.paint);assert.equal(themed.paint,themed.main);assert.equal(themed.panel,before.panel);
+  assert.deepEqual(themed.corners,before.corners);assert.deepEqual(themed.backdropCorners,before.mainCorners);
+  for(const key of ['position','top','pointerEvents'])assert.equal(themed[key],before[key]);
+  await page.evaluate(()=>window.__BOCCHI_THEME__.remove());
+  assert.equal(await page.locator('[data-bocchi-native-sticky-header]').count(),0);assert.deepEqual(await readSticky(),before);
+ }
+ results.push({test:'26.1117 sticky header paint and corners in Chat and Work; panel isolation and cleanup',passed:true});
  for(const kind of ['composer','request-card','submitting']){await setFixture(page,fixture('work',kind));const s=await install(page);assert(s.installed,s.reason);assert.equal(s.reader,true);assert.equal(s.inputKind,kind);results.push({test:'Work '+kind,passed:true});await page.evaluate(()=>window.__BOCCHI_THEME__.remove());}
  await setFixture(page,fixture());const rejected=await install(page,{appVersion:'26.1021.99999'});assert.equal(rejected.reason,'version-mismatch');assert.equal(await page.locator('[data-bocchi-owned]').count(),0);results.push({test:'unsupported version rejected before mutation',passed:true});
  await setFixture(page,fixture());await page.locator('.reader').evaluate(el=>el.after(el.cloneNode(true)));const ambiguous=await install(page);assert.equal(ambiguous.reason,'ambiguous-conversation-reader');assert.equal(await page.locator('[data-bocchi-owned]').count(),0);results.push({test:'ambiguous reader rejected and cleaned',passed:true});
