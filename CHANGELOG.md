@@ -1,5 +1,13 @@
 # 更新记录 / Changelog
 
+## 2.15.0 · Windows 26.1117
+
+- 适配 Codex 26.1117.41037（Windows x64 安装包 26.1117.4957.0）。
+- 重新核对原生页眉、圆角、首页、正文、输入框、侧栏与图片预览；保留已有布局、六款壁纸、切换和多窗口。
+- 延续首次启动就绪等待、托盘退出接续和重复启动处理。
+
+Supports Codex 26.1117.41037 (Windows x64 package 26.1117.4957.0). The update retains the sticky header adaptation, the six wallpapers, framing, switching, multiwindow support and first-launch handling.
+
 ## 2.14.0 · Windows 26.1117
 
 - 适配 Codex 26.1117.31558（Windows x64 安装包 26.1117.3838.0）。
