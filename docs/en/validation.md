@@ -1,5 +1,12 @@
 # Windows theme validation
 
+## 2.15.1
+
+- Same Windows x64 compatibility: Codex 26.1117.41037 / package 26.1117.4957.0, loader 1.3.1.
+- The maintainer confirmed the corrected appearance in the running 2.15.0 hotfix. Native theme status confirmed that the main header fade and both docked-footer pseudo-element backgrounds were handled without restarting the client.
+- All 60 public-theme fixtures (including baseline comparisons) passed, covering the six wallpapers, Chat/Work, image previews, composer growth, edge seams, unrelated panels, and restoration.
+- The final 2.15.1 ZIP passed 61 unpacked-package checks, installation CheckOnly, and an isolated fresh installation. Native hot-reload acceptance is distinct from a new desktop cold start.
+
 ## 2.15.0
 
 - Windows x64, Codex 26.1117.41037 / package 26.1117.4957.0, loader 1.3.1.

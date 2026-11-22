@@ -11,6 +11,7 @@ Keep the fixes that address previously observed problems. Inspect the current cl
 | Shortcut and downloaded scripts | Unicode paths, preserved local icon, exact package verification before removing script download marks | Shortcut, integrity and origin-mark tests |
 | Client updates | Check both app and Windows package versions, architecture and process identity | Discovery and installation CheckOnly |
 | Footer seam and message leakage | Clear only verified native paint layers; clip the reader at the real footer boundary | Chat/Work tall-composer, sibling-paint and restoration fixtures |
+| Native header/footer paint seams | Clear the exact current main-area fade, divider colors, combined footer paint and docked-footer pseudo-elements without changing their geometry | 26.1117 edge-paint and docked-footer fixtures, composer growth and restoration |
 | Home layout | Align title and mode switch with the composer; keep the mascot clear of the toolbar and preserve the native icon | Global/project home, small-window and menu fixtures |
 | Tables | Remove duplicated inner viewport padding without disabling horizontal scrolling | Table fixtures and restoration |
 | Image previews | Handle Work portals, Chat composer replacement and closing transitions without removing the scene | Chat/Work viewer fixtures; native checks recorded separately |

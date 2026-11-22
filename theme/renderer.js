@@ -1,6 +1,6 @@
 async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpaperId, selectionBridge, sticker, bandSticker, appVersion, leaseUntil, installGeneration, loaderGeneration, previewTopMode = "A+++", messages, language = "auto", systemLanguage = "en"}) {
   // This adapter is deliberately tied to the inspected desktop build.
-  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.15.0' || appVersion !== adapter.appVersion)
+  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.15.1' || appVersion !== adapter.appVersion)
     return {installed:false, reason:'version-mismatch'};
   if (!Number.isFinite(leaseUntil) || leaseUntil <= Date.now()) return {installed:false, reason:'expired-loader-lease'};
   if (typeof css !== 'string' || /@import\b|url\s*\(/i.test(css)) return {installed:false, reason:'nonlocal-stylesheet'};
@@ -1148,13 +1148,30 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     property(main,'isolation','isolate');
     // Recolor only observed background fades. Native text/scroll masks remain intact.
     for(const el of main.querySelectorAll('.MainContentTopFade-T6W4RS'))if(visible(el))mark(el,'data-bocchi-native-fade','top');
+    const edgePaint={revision:'20261122-seams-2',topFades:0,topDividers:0,combinedFooters:0,footerShells:0,footerPseudoClear:false};
+    const isMainPaint=el=>visible(el)&&!el.childElementCount&&!el.textContent.trim()&&
+      !el.closest('[data-bocchi-owned],[data-app-shell-focus-area="right-panel"],[data-app-shell-focus-area="bottom-panel"],[role="dialog"],[role="alertdialog"]');
+    // 26.1117 moved the old top fade to an aria-hidden utility-class node.
+    const topPaint='div[aria-hidden="true"].pointer-events-none.absolute.inset-x-0.top-0.z-20.text-surface[class~="bg-[image:var(--app-shell-content-fade,linear-gradient(to_bottom,currentColor,transparent))]"]';
+    for(const el of main.querySelectorAll(topPaint)){
+      if(!isMainPaint(el))continue;
+      const r=box(el);
+      if(r.width>=area.width*.75&&r.top<=area.top+64){mark(el,'data-bocchi-native-fade','top');edgePaint.topFades++;}
+    }
+    // These native main-shell separators are paint-only: retain their geometry.
+    for(const el of main.querySelectorAll(':scope>div[aria-hidden="true"].pointer-events-none.absolute.inset-x-0.top-toolbar[class~="-z-10"][class~="-mt-px"].border-t.border-default')){
+      if(isMainPaint(el)){mark(el,'data-bocchi-native-top-divider');edgePaint.topDividers++;}
+    }
+    const divider=body.closest('[class~="@container/app-shell-main-content"][class~="border-t-[0.5px]"].border-strong');
+    if(divider&&main.contains(divider)){mark(divider,'data-bocchi-native-top-divider');edgePaint.topDividers++;}
     // 26.1117 draws the sticky page header fill with ::before.
     for(const el of ctx.stickyHeaders)mark(el,'data-bocchi-native-sticky-header');
     const footer=body.closest('[data-pip-obstacle="thread-footer"]');
     if(footer){
       const host=footer.parentElement;
+      const combinedPaint='div[aria-hidden="true"].background-uNUrfY.combined-vZM0uN.pointer-events-none.absolute.z-0';
       for(const el of [host,...host.children]){
-        if(el===body||el.closest('[data-bocchi-owned]')||!visible(el))continue;
+        if(el===body||el.closest('[data-bocchi-owned]')||!visible(el)||el.matches(combinedPaint))continue;
         const s=getComputedStyle(el),r=box(el);
         if((s.backgroundImage.includes('linear-gradient')||el.hasAttribute('data-bocchi-native-fade'))&&r.height<=64&&r.width>=width*.8){
           mark(el,'data-bocchi-native-fade',ctx.reader?'bottom':'bottom-home');
@@ -1168,10 +1185,31 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
       // Native footer paint may live in the transcript's sticky spacer, beside
       // the composer host. Only expand the exact native paint selector there.
       const scroll=footer.closest('.thread-scroll-container')||host;
+      const footerRoot=footer.closest('[data-thread-scroll-footer="true"]'),footerShell=footerRoot?.parentElement;
+      const backdropHost=body.closest('[data-thread-composer-backdrop]');
+      // The docked 26.1117 transcript uses two anchored pseudo-elements instead
+      // of the legacy child paint nodes. Only the current composer's shell owns
+      // them; neighboring panels and the composer itself keep native styling.
+      if(footerShell?.matches('.footer-A8ZvKV.pointer-events-none.absolute.inset-x-0.z-20')&&
+        backdropHost&&footer.contains(backdropHost)&&main.contains(footerShell)&&footerShell.closest('.thread-scroll-container')===scroll){
+        mark(footerShell,'data-bocchi-native-footer-pseudo');edgePaint.footerShells++;
+        const clear=pseudo=>{const s=getComputedStyle(footerShell,pseudo);return s.backgroundImage==='none'&&s.backgroundColor==='rgba(0, 0, 0, 0)';};
+        edgePaint.footerPseudoClear=clear('::before')&&clear('::after');
+      }
+      const footerTop=Math.min(box(footerRoot||host).top,box(body).top);
       const paints=new Set([...host.querySelectorAll('div.pointer-events-none.absolute.inset-x-0.z-0'),...scroll.querySelectorAll('div.background-uNUrfY.pointer-events-none.absolute.z-0')]);
       for(const el of paints){
         if(!visible(el)||el.childElementCount||el.textContent.trim()||el.closest('[data-bocchi-owned]'))continue;
         const s=getComputedStyle(el),r=box(el),b=box(body);
+        // The combined native footer is deliberately taller than 64px: it
+        // paints the fade and the opaque floor together. Clear paint, not size.
+        if(el.matches(combinedPaint)){
+          const sameScroll=scroll===host?host.contains(el):el.closest('.thread-scroll-container')===scroll;
+          if(sameScroll&&isMainPaint(el)&&r.width>=width*.8&&r.top>=footerTop-96&&r.bottom>=footerTop-48&&r.top<area.bottom){
+            mark(el,'data-bocchi-native-fade','bottom');edgePaint.combinedFooters++;
+          }
+          continue;
+        }
         if(r.width<width*.8||r.top<b.top-160||r.bottom< b.top-48||r.bottom>area.bottom+2)continue;
         if((s.backgroundImage.includes('linear-gradient')||el.hasAttribute('data-bocchi-native-fade'))&&r.height<=64){
           mark(el,'data-bocchi-native-fade',ctx.reader?'bottom':'bottom-home');
@@ -1180,6 +1218,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
         if(s.backgroundColor==='rgb(24, 24, 24)'||el.hasAttribute('data-bocchi-native-fill'))mark(el,'data-bocchi-native-fill');
       }
     }
+    state.edgePaint=edgePaint;
     Object.assign(state,{framing:bounds.framing,backgroundPlane:true,artBounds:{left:artLeft,top:artTop,width:artWidth,height:artHeight},backgroundRegion:{width:region.width,height:region.height,readingRight:region.readingRight},readerVeil:Number(backdrop.style.getPropertyValue('--bocchi-veil-alpha'))});
   }
 

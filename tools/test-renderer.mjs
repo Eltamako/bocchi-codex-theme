@@ -399,6 +399,108 @@ try{
   assert.equal(await page.locator('#sibling-fade').getAttribute('data-bocchi-native-fade'),null);
   results.push({test:mode+' sibling transcript footer paint cleared, unrelated gradient preserved and pause restores native paint',passed:true});
  }
+ // Native 26.1117 paints the header fade with a utility class and can use a
+ // single tall footer gradient. Neither is part of the wallpaper raster.
+ for(const mode of ['chat','work']){
+  const topClass='pointer-events-none absolute inset-x-0 top-0 z-20 bg-[image:var(--app-shell-content-fade,linear-gradient(to_bottom,currentColor,transparent))] text-surface browser:hidden';
+  const footerClass='background-uNUrfY combined-vZM0uN pointer-events-none absolute z-0 inset-x-0 bottom-0';
+  const html=fixture(mode)
+   .replace('<main data-app-shell-main-surface="default">','<main data-app-shell-main-surface="default"><div id="native-top-line" aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-toolbar -z-10 -mt-px border-t border-default"></div>')
+   .replace('<section data-app-shell-focus-area="main">','<section id="native-content-frame" data-app-shell-focus-area="main" class="@container/app-shell-main-content border-t-[0.5px] border-strong"><div id="native-content-fade" aria-hidden="true" class="'+topClass+'"></div>')
+   .replace('<footer data-thread-scroll-footer="true">','<div id="native-combined-footer" aria-hidden="true" class="'+footerClass+'"></div><div id="unrelated-gradient"></div><footer data-thread-scroll-footer="true">')
+   .replace('</section></main>','</section><div id="edge-unrelated-panel" data-app-shell-focus-area="right-panel"><div id="panel-top-fade" aria-hidden="true" class="'+topClass+'"></div><div class="thread-scroll-container"><div id="panel-combined-footer" aria-hidden="true" class="'+footerClass+'"></div></div></div></main>')
+   .replace('</style>',`
+    #native-top-line{position:absolute;left:0;right:0;top:55px;z-index:-10;border-top:1px solid #171717;pointer-events:none}
+    #native-content-frame{border-top:.5px solid #171717}
+    #native-content-fade,#panel-top-fade{position:absolute;inset:0 0 auto;height:28px;z-index:20;background-image:linear-gradient(to bottom,#181818,transparent);pointer-events:none}
+    #native-combined-footer,#panel-combined-footer{position:absolute;left:0;right:14px;bottom:0;height:196px;background-image:linear-gradient(to top,#181818 78%,transparent);pointer-events:none;z-index:0}
+    #edge-unrelated-panel{position:absolute;top:80px;right:0;width:80px;height:32px}
+    #panel-combined-footer{height:24px}
+    #unrelated-gradient{position:absolute;left:30px;right:30px;top:100px;height:30px;background-image:linear-gradient(to top,#181818,transparent)}
+   </style>`);
+  const readEdge=()=>page.evaluate(()=>{
+   const paint=id=>getComputedStyle(document.getElementById(id)),r=document.querySelector('#native-combined-footer').getBoundingClientRect();
+   return {top:paint('native-content-fade').backgroundImage,bottom:paint('native-combined-footer').backgroundImage,line:paint('native-top-line').borderTopColor,frame:paint('native-content-frame').borderTopColor,
+    unrelated:[paint('panel-top-fade').backgroundImage,paint('panel-combined-footer').backgroundImage,paint('unrelated-gradient').backgroundImage],
+    combinedRect:[r.x,r.y,r.width,r.height],composer:getComputedStyle(document.querySelector('[data-composer-body]')).backgroundColor};
+  });
+  await setFixture(page,html);const native=await readEdge();assert.notEqual(native.top,'none');assert.notEqual(native.bottom,'none');
+  let oldState=null,oldPaint=null;
+  if(baseline){
+   oldState=await install(page,{initialWallpaperId:'winter-night'},baseline);oldPaint=await readEdge();
+   assert.notEqual(oldPaint.top,'none','Old renderer should reproduce the top paint');assert.notEqual(oldPaint.bottom,'none','Old renderer should reproduce the tall bottom paint');
+   await page.screenshot({path:path.join(out,'edge-seams-before-'+mode+'.png')});
+   await page.evaluate(()=>window.__BOCCHI_THEME__.remove());await setFixture(page,html);
+  }
+  const themed=await install(page,{initialWallpaperId:'winter-night'}),after=await readEdge();
+  assert.deepEqual(themed.edgePaint,{revision:'20261122-seams-2',topFades:1,topDividers:2,combinedFooters:1,footerShells:0,footerPseudoClear:false});
+  assert.equal(after.top,'none');assert.equal(after.bottom,'none');assert.equal(after.line,'rgba(0, 0, 0, 0)');assert.equal(after.frame,'rgba(0, 0, 0, 0)');
+  assert.deepEqual(after.unrelated,native.unrelated);assert.equal(after.composer,'rgb(41, 36, 46)');
+  if(oldState){
+   assert.deepEqual(themed.artBounds,oldState.artBounds);assert.deepEqual(themed.backgroundRegion,oldState.backgroundRegion);
+   assert.deepEqual(after.combinedRect,oldPaint.combinedRect);
+  }
+  await page.screenshot({path:path.join(out,'edge-seams-after-'+mode+'.png')});
+  await page.evaluate(()=>{document.querySelector('[data-composer-body]').style.height='220px';document.querySelector('#native-combined-footer').style.height='300px';window.__BOCCHI_THEME__.refresh();});
+  const grown=await settle(page,'winter-night');assert.equal(grown.edgePaint.combinedFooters,1);assert.equal((await readEdge()).bottom,'none');
+  assert(grown.readerClip.boundary<=await page.locator('footer').evaluate(e=>e.getBoundingClientRect().top)+1);
+  await page.evaluate(()=>window.__BOCCHI_THEME__.remove());
+  const restored=await readEdge();
+  for(const key of ['top','bottom','line','frame','unrelated'])assert.deepEqual(restored[key],native[key]);
+  assert.equal(await page.locator('[data-bocchi-native-fade],[data-bocchi-native-top-divider]').count(),0);
+  results.push({test:mode+' 26.1117 native top divider/fade and tall combined footer seam; geometry, unrelated panes and restore',passed:true});
+ }
+ // The actual docked Work/Chat footer uses anchored ::before/::after;
+ // do not remove the host or the pseudo boxes themselves.
+ for(const mode of ['chat','work']){
+  const shellClass='footer-A8ZvKV shiftWithTranscript-HwFV6s pointer-events-none absolute inset-x-0 z-20 bottom-0';
+  const html=fixture(mode)
+   .replace('<footer data-thread-scroll-footer="true">','<div id="native-docked-shell" class="'+shellClass+'"><footer data-thread-scroll-footer="true">')
+   .replace('data-pip-obstacle="thread-footer"','data-pip-obstacle="thread-footer" data-thread-composer-backdrop="true"')
+   .replace('</footer></div></section>','</footer></div></div></section>')
+   .replace('</section></main>','</section><div id="other-panel" data-app-shell-focus-area="right-panel"><div id="other-docked-shell" class="'+shellClass+'"></div></div></main>')
+   .replace('</style>',`
+     #native-docked-shell{position:absolute;left:0;right:0;bottom:0;height:148px;pointer-events:none;z-index:20}
+     #native-docked-shell>footer{position:relative;bottom:auto;height:132px;z-index:10;pointer-events:auto}
+     #native-docked-shell:has([data-thread-composer-backdrop] [data-composer-body])::before,
+     #native-docked-shell:has([data-thread-composer-backdrop] [data-composer-body])::after,
+     #other-docked-shell::before,#other-docked-shell::after{content:"";position:absolute;left:0;right:14px;pointer-events:none}
+     #native-docked-shell::before,#other-docked-shell::before{top:40px;bottom:16px;background:linear-gradient(to bottom,transparent,#181818 calc(100% - 24px))}
+     #native-docked-shell::after,#other-docked-shell::after{top:calc(100% - 16px);bottom:0;background:oklab(.209035 .00001 .000004)}
+     #other-panel{position:absolute;top:200px;right:0;width:80px;height:50px}
+     #other-docked-shell{position:absolute;inset:0}
+   </style>`);
+  const readPseudo=()=>page.evaluate(()=>{
+   const el=document.getElementById('native-docked-shell'),r=el.getBoundingClientRect();
+   const item=(node,pseudo)=>{const s=getComputedStyle(node,pseudo);return {paint:[s.backgroundImage,s.backgroundColor],geometry:[s.top,s.bottom,s.left,s.right,s.position,s.pointerEvents,s.content]};};
+   return {before:item(el,'::before'),after:item(el,'::after'),
+    unrelated:[item(document.getElementById('other-docked-shell'),'::before'),item(document.getElementById('other-docked-shell'),'::after')],rect:[r.x,r.y,r.width,r.height],
+    composer:getComputedStyle(document.querySelector('[data-composer-body]')).backgroundColor};
+  });
+  await setFixture(page,html);const native=await readPseudo();
+  assert.notEqual(native.before.paint[0],'none');assert.notEqual(native.after.paint[1],'rgba(0, 0, 0, 0)');
+  let oldState=null,oldPaint=null;
+  if(baseline){
+   oldState=await install(page,{initialWallpaperId:'winter-night'},baseline);oldPaint=await readPseudo();
+   assert.notEqual(oldPaint.before.paint[0],'none');assert.notEqual(oldPaint.after.paint[1],'rgba(0, 0, 0, 0)');
+   await page.screenshot({path:path.join(out,'docked-footer-before-'+mode+'.png')});
+   await page.evaluate(()=>window.__BOCCHI_THEME__.remove());await setFixture(page,html);
+  }
+  const themed=await install(page,{initialWallpaperId:'winter-night'}),after=await readPseudo();
+  assert.equal(themed.edgePaint.footerShells,1);assert.equal(themed.edgePaint.footerPseudoClear,true);
+  assert.deepEqual(after.before.paint,['none','rgba(0, 0, 0, 0)']);assert.deepEqual(after.after.paint,['none','rgba(0, 0, 0, 0)']);
+  for(const key of ['before','after'])assert.deepEqual(after[key].geometry,native[key].geometry);
+  assert.deepEqual(after.unrelated,native.unrelated);assert.equal(after.composer,'rgb(41, 36, 46)');
+  if(oldState){assert.deepEqual(themed.artBounds,oldState.artBounds);assert.deepEqual(themed.backgroundRegion,oldState.backgroundRegion);assert.deepEqual(after.rect,oldPaint.rect);}
+  await page.screenshot({path:path.join(out,'docked-footer-after-'+mode+'.png')});
+  await page.evaluate(()=>{document.querySelector('[data-composer-body]').style.height='220px';document.querySelector('#native-docked-shell').style.height='268px';window.__BOCCHI_THEME__.refresh();});
+  const grown=await settle(page,'winter-night');assert.equal(grown.edgePaint.footerPseudoClear,true);
+  assert(grown.readerClip.boundary<=await page.locator('footer').evaluate(e=>e.getBoundingClientRect().top)+1);
+  await page.evaluate(()=>window.__BOCCHI_THEME__.remove());
+  const restored=await readPseudo();assert.deepEqual(restored.before.paint,native.before.paint);assert.deepEqual(restored.after.paint,native.after.paint);
+  assert.equal(await page.locator('[data-bocchi-native-footer-pseudo]').count(),0);
+  results.push({test:mode+' actual 26.1117 docked footer pseudo paint, anchored geometry, composer growth and native restore',passed:true});
+ }
  if(baseline){
   const chat=fixture('chat').replace('fixture-conversation-id','true');
   const cases=[['Chat reader',chat],['Work reader',fixture('work')],['Chat fallback reader',chat.replace('data-chatgpt-conversation-selection-target="true" data-thread-find-target="conversation"','data-thread-user-message-navigation-content="true"')],['Chat without reader',chat.replace('data-chatgpt-conversation-selection-target="true" data-thread-find-target="conversation"','')],['Chat duplicate legacy readers',chat.replace('<footer','<div class="reader mx-auto max-w-chat" data-chatgpt-conversation-selection-target="true">Second reader</div><footer')]];

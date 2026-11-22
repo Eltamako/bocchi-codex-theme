@@ -1,5 +1,13 @@
 # 更新记录 / Changelog
 
+## 2.15.1 · Windows 26.1117 外观修复
+
+- 修复页眉下沿黑线、底栏遮挡与滚动条旁接缝，保留原壁纸明暗渐变、人物取景、原生圆角和输入框布局。
+- 同时覆盖旧式合并底栏和新版定位伪元素；补充 Chat／Work、输入框增高与恢复回归。
+- 兼容范围、运行时、启动器和六款壁纸不变。
+
+Fixes native top and bottom paint seams without changing wallpaper framing, palette, composer layout, launcher, or supported client build.
+
 ## 2.15.0 · Windows 26.1117
 
 - 适配 Codex 26.1117.41037（Windows x64 安装包 26.1117.4957.0）。

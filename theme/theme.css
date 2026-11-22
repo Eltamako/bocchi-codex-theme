@@ -11,11 +11,16 @@ html[data-bocchi-mode="work"] .bocchi-reading-veil{background:linear-gradient(90
 html[data-bocchi-active="true"] [data-bocchi-reader]{background:transparent!important;box-shadow:none!important;border-radius:0}
 html[data-bocchi-active="true"] [data-bocchi-native-fill]{background-color:transparent!important}
 html[data-bocchi-active="true"] [data-bocchi-native-fade="top"]{background-image:none!important;background-color:transparent!important;box-shadow:none!important}
+/* 26.1117: blend the main-shell separators into the wallpaper without moving controls. */
+html[data-bocchi-active="true"] [data-bocchi-native-top-divider]{border-top-color:transparent!important}
 /* 26.1117: match the native sticky header paint to the scene. */
 html[data-bocchi-active="true"] [data-bocchi-native-sticky-header]::before{background-color:var(--bocchi-scene-base,#17171e)!important}
 /* R15: remove the separate footer fade; keep the native composer geometry. */
 html[data-bocchi-active="true"] [data-bocchi-native-fade="bottom"]{background:transparent!important;mask-image:none!important;box-shadow:none!important;filter:none!important;backdrop-filter:none!important}
 html[data-bocchi-active="true"] [data-bocchi-native-fade="bottom-home"]{background-image:none!important}
+/* Docked transcript paints its fade and floor in anchored pseudo-elements. */
+html[data-bocchi-active="true"] [data-bocchi-native-footer-pseudo]::before,
+html[data-bocchi-active="true"] [data-bocchi-native-footer-pseudo]::after{background:transparent!important}
 html[data-bocchi-active="true"] [data-app-shell-active-page="true"] [data-app-shell-titlebar]{background:var(--bocchi-scene-base,#17171e)!important}
 html[data-bocchi-active="true"] [data-bocchi-column="left"]{
   box-sizing:border-box!important;width:var(--bocchi-column-width)!important;max-width:var(--bocchi-column-width)!important;
