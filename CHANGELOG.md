@@ -1,5 +1,13 @@
 # 更新记录 / Changelog
 
+## 2.16.0 · Windows 26.1120
+
+- 适配 Codex 26.1120.50957（Windows x64 安装包 26.1120.6357.0）。
+- 延续顶部和底栏接缝修复、输入框布局及图片预览；保留六款壁纸、STARRY、选择记忆和多窗口。
+- 回归首次启动的页面等待、托盘退出接续、重复双击和暂停恢复。
+
+Supports Codex 26.1120.50957 (Windows x64 package 26.1120.6357.0). Retains the six wallpapers, seam fixes, image preview, multiwindow support and first-launch handling.
+
 ## 2.15.1 · Windows 26.1117 外观修复
 
 - 修复页眉下沿黑线、底栏遮挡与滚动条旁接缝，保留原壁纸明暗渐变、人物取景、原生圆角和输入框布局。

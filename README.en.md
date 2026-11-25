@@ -4,13 +4,13 @@
 
 Bring a little of Kessoku Band’s backstage world into your everyday chats and work. This unofficial **Bocchi the Rock! anime theme for OpenAI Codex Desktop on Windows** includes six wallpapers, a STARRY wallpaper picker and character stickers, with space to keep your conversations readable.
 
-**[Download the Windows x64 package](https://github.com/Eltamako/bocchi-codex-theme/releases/download/v2.15.1/Bocchi-Codex-Theme-2.15.1-windows-x64.zip)** · [2.15.1 release notes](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.15.1) · [Installation](docs/en/install.md) · [Upgrade and restore](docs/en/upgrade-restore.md)
+**[Download the Windows x64 package](https://github.com/Eltamako/bocchi-codex-theme/releases/download/v2.16.0/Bocchi-Codex-Theme-2.16.0-windows-x64.zip)** · [2.16.0 release notes](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.16.0) · [Installation](docs/en/install.md) · [Upgrade and restore](docs/en/upgrade-restore.md)
 
-Version 2.15.1 fixes the header and footer paint seams and supports the Codex build below. The theme waits for a Chat or Work page to load on first launch.
+Version 2.16.0 supports the new Codex build and carries forward the header and footer seam fixes. The theme waits for a Chat or Work page to load on first launch.
 
-**Supported client** · Codex **26.1117.41037** / Windows package **26.1117.4957.0**. For Codex 26.1023.51421, use [2.8.1](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.8.1).
+**Supported client** · Codex **26.1120.50957** / Windows package **26.1120.6357.0**. For Codex 26.1023.51421, use [2.8.1](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.8.1).
 
-This build retains the 2.9.0 startup fixes and all six wallpapers. See the [update regression checklist](docs/en/update-regressions.md). Use [2.14.0](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.14.0) for Codex 26.1117.31558, [2.13.0](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.13.0) for Codex 26.1111.71704, [2.12.0](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.12.0) for Codex 26.1111.21308, [2.11.0](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.11.0) for Codex 26.1103.60933 or [2.10.0](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.10.0) for 26.1103.31037. Use [2.9.0](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.9.0) for Codex 26.1029.61003.
+This build retains the 2.9.0 startup fixes and all six wallpapers. See the [update regression checklist](docs/en/update-regressions.md). Use [2.15.1](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.15.1) for Codex 26.1117.41037, [2.14.0](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.14.0) for Codex 26.1117.31558, [2.13.0](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.13.0) for Codex 26.1111.71704, [2.12.0](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.12.0) for Codex 26.1111.21308, [2.11.0](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.11.0) for Codex 26.1103.60933 or [2.10.0](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.10.0) for 26.1103.31037. Use [2.9.0](https://github.com/Eltamako/bocchi-codex-theme/releases/tag/v2.9.0) for Codex 26.1029.61003.
 
 ## See it in the app
 
@@ -24,7 +24,7 @@ This build retains the 2.9.0 startup fixes and all six wallpapers. See the [upda
 
 ## Get started in three steps
 
-1. Extract **Bocchi-Codex-Theme-2.15.1-windows-x64.zip** into a writable folder you will keep.
+1. Extract **Bocchi-Codex-Theme-2.16.0-windows-x64.zip** into a writable folder you will keep.
 2. Run **Install.cmd**. Setup checks the files and creates a **Bocchi Codex Theme** desktop shortcut.
 3. Save your drafts, let active work finish and choose Exit from the tray to close the ordinary Codex client. Open the desktop shortcut or **Start.cmd**, sign in if needed, and enter Chat or Work. Dark appearance is applied automatically while the theme is active. Choose a wallpaper from **STARRY** in the top-right corner.
 

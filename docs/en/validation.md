@@ -1,5 +1,12 @@
 # Windows theme validation
 
+## 2.16.0
+
+- Windows x64, Codex 26.1120.50957 / package 26.1120.6357.0, loader 1.3.1.
+- Checked the installed build’s main area, Chat reader, Work footer, native top fade and image viewer.
+- Page fixtures cover all six wallpapers, header and footer seams, composer growth, image previews and restoration. Startup regression tests cover delayed page readiness, tray exit and repeat clicks. The final ZIP also passed its installation check and an isolated installation.
+- The completed checks cover the package, browser fixtures and isolated installation. A native cold start remains a separate check.
+
 ## 2.15.1
 
 - Same Windows x64 compatibility: Codex 26.1117.41037 / package 26.1117.4957.0, loader 1.3.1.
