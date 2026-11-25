@@ -1,6 +1,6 @@
 async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpaperId, selectionBridge, sticker, bandSticker, appVersion, leaseUntil, installGeneration, loaderGeneration, previewTopMode = "A+++", messages, language = "auto", systemLanguage = "en"}) {
   // This adapter is deliberately tied to the inspected desktop build.
-  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.16.0' || appVersion !== adapter.appVersion)
+  if (!adapter || adapter.schema !== 'bocchi-codex-adapter/1' || adapter.themeVersion !== '2.16.1' || appVersion !== adapter.appVersion)
     return {installed:false, reason:'version-mismatch'};
   if (!Number.isFinite(leaseUntil) || leaseUntil <= Date.now()) return {installed:false, reason:'expired-loader-lease'};
   if (typeof css !== 'string' || /@import\b|url\s*\(/i.test(css)) return {installed:false, reason:'nonlocal-stylesheet'};
@@ -985,6 +985,24 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     }
     return null;
   }
+  const homeToggleHost='[class~="@container/home-mode-toggle"]';
+  function inspectHomeControls(page,main,inMain) {
+    const hosts=[...page.querySelectorAll(homeToggleHost)].filter(inMain);
+    if(hosts.length!==1)return null;
+    const host=hosts[0];
+    const groups=[...host.querySelectorAll('[role="group"]')].filter(inMain).map(control=>({
+      control,buttons:[...control.querySelectorAll('button[aria-pressed]')].filter(inMain)
+    })).filter(({buttons})=>buttons.length===2);
+    if(groups.length!==1)return {control:main.contains(host)?host:null,mode:null};
+    const {control,buttons}=groups[0];
+    // The native home switch assigns fixed grid columns to Chat and Work.
+    const chat=buttons.find(button=>button.classList.contains('col-start-1'));
+    const work=buttons.find(button=>button.classList.contains('col-start-2'));
+    if(!chat||!work||chat===work)return {control,mode:null};
+    const chatPressed=chat.getAttribute('aria-pressed'),workPressed=work.getAttribute('aria-pressed');
+    const mode=chatPressed==='true'&&workPressed==='false'?'chat':workPressed==='true'&&chatPressed==='false'?'work':null;
+    return {control,mode};
+  }
   function inspect(allowLight=false) {
     const pages=[...document.querySelectorAll(adapter.activePage)];
     if(pages.length!==1||!(root.dataset.theme==='dark'||allowLight&&root.dataset.theme==='light')||root.dir==='rtl')throw new Error('unknown-active-page-or-layout');
@@ -996,7 +1014,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     const editors=[...main.querySelectorAll(adapter.composer)].filter(inMain);
     const requests=[...main.querySelectorAll(adapter.requestCard)].filter(inMain);
     const submitting=adapter.workSubmittingInput?[...main.querySelectorAll(adapter.workSubmittingInput)].filter(inMain):[];
-    let editor=null,body=null,reader=null,scroll=null,mode=null,inputKind='composer';
+    let editor=null,body=null,reader=null,scroll=null,mode=null,inputKind='composer',modeSource=null,homeControls=null;
     if(submitting.length){
       // Attachment submission replaces the editable div with a native busy,
       // read-only textbox. This is a validated input state, not a timed gap.
@@ -1010,7 +1028,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
       if(!inputBody||!surface||!host||!footer||!footerHost||!threadScroll||!main.contains(threadScroll)||
         !host.contains(inputBody)||!surface.contains(input)||readers.length!==1||readers[0].contains(input)||
         input.closest('[role="dialog"],[role="alertdialog"]'))throw new Error('unsupported-submitting-shell');
-      body=inputBody;reader=readers[0];scroll=threadScroll;mode='work';inputKind='submitting';
+      body=inputBody;reader=readers[0];scroll=threadScroll;mode='work';inputKind='submitting';modeSource='work-submitting';
     }else if(requests.length){
       // A supported native Work request card replaces the editor. Never infer this from labels or old page state.
       if(requests.length!==1)throw new Error('ambiguous-request-card');
@@ -1025,7 +1043,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
         !footer.contains(host)||readers.length!==1||readers[0].contains(card)||editors.filter(el=>!card.contains(el)).length>1||
         editors.some(el=>!host.contains(el)||(!card.contains(el)&&!el.matches(adapter.localWorkComposer)))||
         card.closest('[data-app-shell-focus-area="right-panel"],[role="dialog"],[role="alertdialog"]'))throw new Error('unsupported-request-card-shell');
-      body=card;reader=readers[0];scroll=threadScroll;mode='work';inputKind='request-card';
+      body=card;reader=readers[0];scroll=threadScroll;mode='work';inputKind='request-card';modeSource='work-request-card';
     }else{
       if(editors.length!==1)throw new Error('required-markers-missing');
       editor=editors[0];body=editor.closest(adapter.composerBody);
@@ -1037,20 +1055,30 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
         .filter(el=>!el.matches(adapter.chatReader)&&!el.closest(adapter.chatReader)&&!chatReaders.some(chat=>el.contains(chat)));
       if(chatReaders.length>1||workReaders.length>1||chatReaders.length&&workReaders.length)
         throw new Error('ambiguous-conversation-reader');
-      mode=chatReaders.length?'chat':editor.matches(adapter.localWorkComposer)?'work':adapter.chatLabels.includes(editor.getAttribute('aria-label'))?'chat':null;
+      const noReader=!chatReaders.length&&!workReaders.length;
+      if(noReader)homeControls=inspectHomeControls(page,main,inMain);
+      const workHome=noReader&&body.closest('[data-codex-composer-root][data-composer-placement="home"]');
+      scroll=editor.closest('.thread-scroll-container');
+      const workThread=workReaders.length&&scroll?.matches(adapter.workThreadScroll)&&
+        workReaders[0].closest(adapter.workThreadScroll)===scroll&&!!body.closest(adapter.workComposerRoot);
+      if(chatReaders.length){mode='chat';modeSource='chat-reader';}
+      else if(editor.matches(adapter.localWorkComposer)){mode='work';modeSource='work-editor';}
+      else if(workHome&&main.contains(workHome)){mode='work';modeSource='work-home-composer';}
+      else if(workThread){mode='work';modeSource='work-thread-composer';}
+      else if(homeControls?.mode){mode=homeControls.mode;modeSource='home-toggle';}
+      else if(adapter.chatLabels.includes(editor.getAttribute('aria-label'))){mode='chat';modeSource='chat-editor';}
       if(!mode)throw new Error('unknown-mode');
       reader=mode==='chat'?chatReaders[0]||null:workReaders[0]||null;
-      scroll=editor.closest('.thread-scroll-container');
     }
-    const composerColumn=columnFor(body,main,true),readerColumn=reader?columnFor(reader,main):null;
+    // The home composer can have its own width wrapper instead of a thread footer.
+    const homeWidth=!reader&&(homeControls?.mode||modeSource==='work-home-composer')?
+      body.closest('[class~="mx-auto"][class~="w-[min(100%,var(--thread-content-max-width))]"]'):null;
+    const nativeHomeColumn=homeWidth&&homeWidth!==main&&main.contains(homeWidth)&&box(homeWidth).width>220?homeWidth:null;
+    const composerColumn=columnFor(body,main,true)||nativeHomeColumn,readerColumn=reader?columnFor(reader,main):null;
     if(!composerColumn||(reader&&!readerColumn))throw new Error('unknown-column-owner');
     // 26.1023 portals the home mode control into the active page titlebar,
     // outside main. Move only its control group, never the rest of the header.
-    const homeModes=!reader?[...page.querySelectorAll('[class*="@container/home-mode-toggle"]')].filter(inMain):[];
-    const modeHost=homeModes.length===1?homeModes[0]:null;
-    const modeGroups=modeHost?[...modeHost.querySelectorAll('[role="group"]')].filter(el=>
-      visible(el)&&el.querySelectorAll('button[aria-pressed]').length===2):[];
-    const homeMode=modeGroups.length===1?modeGroups[0]:modeHost&&main.contains(modeHost)?modeHost:null;
+    const homeMode=homeControls?.control||null;
     // A project home and a new Chat can have a greeting without a mode toggle.
     const greetings=!reader?[...main.querySelectorAll('[class*="thread-content-max-width"]')].filter(el=>
       inMain(el)&&typeof el.className==='string'&&el.className.includes('mx-auto')&&
@@ -1070,7 +1098,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     const headers=[...page.querySelectorAll('[data-app-shell-titlebar]')].filter(visible);
     for(const header of headers){const h=box(header);if(h.bottom>area.top&&h.bottom<area.bottom&&overlap(h,area))area=rect(area.left,h.bottom,area.width,area.bottom-h.bottom);}
     if(area.width<280||area.height<200)throw new Error('main-region-too-small');
-    return {page,main,editor,body,mode,inputKind,reader,columns,composerColumn,readerColumn,homeMode,homeGreeting,mainRect,area,panels,scroll,focus,stickyHeaders};
+    return {page,main,editor,body,mode,modeSource,inputKind,reader,columns,composerColumn,readerColumn,homeMode,homeGreeting,mainRect,area,panels,scroll,focus,stickyHeaders};
   }
   function occupied(container,limit) {
     const result=[],clipCache=new Map(),parentVisibility=new Map(),parentBounds=new Map();
@@ -1385,7 +1413,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
       Object.assign(state,{installed:true,reason:'active',mode,inputKind:ctx.inputKind,width:Math.round(mainRect.width),height:Math.round(mainRect.height),
         composerTransition:false,
         contentWidth:Math.round(area.width),readingWidth:Math.round(area.width),columnLeft:left,columnWidth:width,hasPanel,reader:!!reader,
-        activePages:1,homeGreetingAligned:!!ctx.homeGreeting,homeModeAligned:!!ctx.homeMode,columnCount:columns.size,
+        activePages:1,modeSource:ctx.modeSource,homeGreetingAligned:!!ctx.homeGreeting,homeModeAligned:!!ctx.homeMode,columnCount:columns.size,
         columns:[...columns].map(el=>{const r=box(el);return{left:Math.round(r.left-area.left),width:Math.round(r.width)};})});
     } catch(error) {
       // Work replaces its editor briefly on a follow-up send. Keep only the already
@@ -1450,6 +1478,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
     assertCurrent();window.__BOCCHI_THEME__=api;
     observer=new MutationObserver(records=>{
       if(records.some(record=>!record.target?.closest?.('[data-bocchi-owned]')&&
+        (record.attributeName!=='aria-pressed'||record.target.closest(homeToggleHost))&&
         (record.type!=='childList'||[...record.addedNodes,...record.removedNodes].some(node=>node.nodeType!==1||!node.hasAttribute('data-bocchi-owned'))))){
         // A verified new page must receive its already-decoded background before
         // the next paint. Message streaming still uses the ordinary debounce.
@@ -1470,7 +1499,7 @@ async function installBocchiTheme({adapter, css, wallpaperCatalog, initialWallpa
         }
       }
     });
-    observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['data-app-shell-active-page','data-chatgpt-conversation-selection-target','aria-label','aria-busy','aria-readonly','data-composer-input-layout','data-composer-input-variant','data-composer-surface-variant','data-codex-composer','data-state','hidden','aria-hidden','contenteditable','inert','data-codex-composer-request-navigation','data-codex-composer-request','data-codex-character-input-boundary','data-codex-composer-root','data-composer-placement','data-pip-anchor-host']});
+    observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['data-app-shell-active-page','data-chatgpt-conversation-selection-target','aria-label','aria-busy','aria-readonly','aria-pressed','data-composer-input-layout','data-composer-input-variant','data-composer-surface-variant','data-codex-composer','data-state','hidden','aria-hidden','contenteditable','inert','data-codex-composer-request-navigation','data-codex-composer-request','data-codex-character-input-boundary','data-codex-composer-root','data-composer-placement','data-pip-anchor-host']});
     observer.observe(root,{attributes:true,attributeFilter:['data-theme','dir','lang','class']});
     resize=new ResizeObserver(entries=>{
       scheduleClip();

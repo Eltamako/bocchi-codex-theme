@@ -1,5 +1,13 @@
 # 更新记录 / Changelog
 
+## 2.16.1 · Work 首页修复
+
+- 修复使用共享输入框的 Work 首页无法识别模式、无法加载壁纸及 STARRY 的问题。
+- 识别新版首页的输入列和工作区输入框，覆盖仅切换模式按钮及任务编辑器重新挂载的情况。
+- 适配 Codex 26.1120.50957（Windows x64 安装包 26.1120.6357.0），保留原有六款壁纸、上下边缘修复和启动器 1.3.1。
+
+Fixes Work home rendering with the updated mode switch and composer layout on the same supported Windows build.
+
 ## 2.16.0 · Windows 26.1120
 
 - 适配 Codex 26.1120.50957（Windows x64 安装包 26.1120.6357.0）。

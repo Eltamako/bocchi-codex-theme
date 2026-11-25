@@ -1,5 +1,11 @@
 # Windows theme validation
 
+## 2.16.1
+
+- The maintainer confirmed Work home in the running desktop client with the renderer fix. A Work conversation also reported a ready wallpaper and picker.
+- All 60 public page fixtures passed, including Work home, project home, task composer remounts, Chat/Work mode switching, image previews, and edge seams.
+- The final ZIP passed 61 runtime regressions, the installation self-check, and an isolated installation. A fresh desktop shortcut cold start remains a separate check.
+
 ## 2.16.0
 
 - Windows x64, Codex 26.1120.50957 / package 26.1120.6357.0, loader 1.3.1.

@@ -12,6 +12,7 @@ await fs.mkdir(out,{recursive:true});
 const adapter=JSON.parse(await fs.readFile(path.join(root,'theme/adapter.json'),'utf8'));
 const source=await fs.readFile(path.join(root,'theme/renderer.js'),'utf8');
 const baseline=process.env.BOCCHI_BASELINE_RENDERER?await fs.readFile(process.env.BOCCHI_BASELINE_RENDERER,'utf8'):null;
+const homeBaseline=process.env.BOCCHI_HOME_BASELINE?await fs.readFile(process.env.BOCCHI_HOME_BASELINE,'utf8'):null;
 const payload={adapter,appVersion:adapter.appVersion,css:await fs.readFile(path.join(root,'theme/theme.css'),'utf8'),messages:JSON.parse(await fs.readFile(path.join(root,'theme/messages.json'),'utf8')),wallpaperCatalog:(await new WallpaperCatalog(path.join(root,'theme')).load()).catalog,initialWallpaperId:'night-stage',selectionBridge:{binding:'__BOCCHI_SELECT_WALLPAPER__',token:'a'.repeat(32)},installGeneration:'b'.repeat(32),loaderGeneration:'fixture',sticker:'data:image/png;base64,'+(await fs.readFile(path.join(root,'theme/sticker.png'))).toString('base64'),bandSticker:'data:image/png;base64,'+(await fs.readFile(path.join(root,'theme/band-sticker.png'))).toString('base64')};
 const browser=await chromium.launch({headless:true,...(process.env.BOCCHI_CHROME_EXECUTABLE?{executablePath:process.env.BOCCHI_CHROME_EXECUTABLE}:{})});
 const results=[];
@@ -72,8 +73,59 @@ function homeLayout(mode,project=false){
   .replace(/<div class="reader mx-auto max-w-chat"[^>]*>[\s\S]*?<\/div>/,'<div class="home-hero"><div class="mx-auto min-w-0 px-panel w-[min(100%,var(--thread-content-max-width))] home-greeting"><h1>'+heading+'</h1></div></div>')
   .replace('</style>',`.mode-host{position:absolute;top:56px;left:240px;right:0;height:48px;display:flex;align-items:center;justify-content:center}.mode-group{display:flex;width:224px;justify-content:center}.mode-group button{width:112px;height:36px}#unrelated-header{position:absolute;right:8px}.home-hero{position:absolute;top:240px;left:0;right:0;display:flex;justify-content:center}.home-greeting{width:min(100%,672px);text-align:center;padding:0 20px}footer{top:400px;bottom:auto} [data-pip-obstacle]{padding:0 16px}</style>`);
 }
+function currentHomeLayout(mode,{project=false,workRoot=false}={}){
+ const composerRoot=workRoot?'data-codex-composer-root data-composer-placement="home"':'';
+ return homeLayout(mode,project)
+  .replace(/<button aria-pressed="(true|false)">Chat<\/button>/,'<button class="col-start-1" aria-pressed="$1">聊天</button>')
+  .replace(/<button aria-pressed="(true|false)">Work<\/button>/,'<button class="col-start-2" aria-pressed="$1">工作</button>')
+  .replace(' data-codex-composer="true"','')
+  .replace('aria-label="Ask ChatGPT"','aria-label="编辑内容"')
+  .replace(' data-pip-anchor-host="codex-main-thread"','')
+  .replace('<footer data-thread-scroll-footer="true"><div class="mx-auto max-w-chat" data-pip-obstacle="thread-footer"><div data-codex-composer-root data-composer-placement="thread">',
+   '<footer><div id="native-home-column" class="mx-auto w-[min(100%,var(--thread-content-max-width))]"><div '+composerRoot+'>')
+  .replace('</style>','#native-home-column{width:min(100%,672px)}</style>');
+}
 try{
  const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFactor:1});
+ const freshHome=currentHomeLayout('work');
+ if(homeBaseline){
+  await setFixture(page,freshHome);
+  assert.equal((await install(page,{},homeBaseline)).reason,'unknown-mode');
+  await setFixture(page,freshHome);
+  await page.locator('[data-composer-markdown]').evaluate(el=>el.setAttribute('data-codex-composer','true'));
+  assert.equal((await install(page,{},homeBaseline)).reason,'unknown-column-owner');
+ }
+ await setFixture(page,freshHome);
+ const home=await install(page,{initialWallpaperId:'winter-night'});
+ assert(home.ready&&home.starryVisible&&home.homeGreetingAligned&&home.homeModeAligned);
+ assert.deepEqual([home.mode,home.modeSource,home.reader],['work','home-toggle',false]);
+ assert.equal(await page.locator('#native-home-column[data-bocchi-column]').count(),1);
+ assert.equal(await page.locator('#unrelated-header[data-bocchi-home-mode]').count(),0);
+ results.push({test:'26.1120 Work home loads on a shared editor with a native toggle and a home width wrapper',passed:true});
+ const modeSwitch=()=>page.evaluate(()=>{
+  const chat=document.querySelector('.mode-group .col-start-1'),work=document.querySelector('.mode-group .col-start-2');
+  chat.setAttribute('aria-pressed',String(chat.getAttribute('aria-pressed')==='false'));
+  work.setAttribute('aria-pressed',String(work.getAttribute('aria-pressed')==='false'));
+ });
+ for(const next of ['chat','work']){
+  await modeSwitch();
+  await page.waitForFunction(value=>window.__BOCCHI_THEME__?.state.mode===value,next,{timeout:4000});
+  assert.equal((await settle(page,'winter-night')).modeSource,'home-toggle');
+ }
+ await page.evaluate(()=>window.__BOCCHI_THEME__.remove());
+ assert.equal(await page.locator('#native-home-column[data-bocchi-column]').count(),0);
+ results.push({test:'26.1120 shared home editor follows Chat and Work toggles in place and restores native layout',passed:true});
+ await setFixture(page,currentHomeLayout('work',{project:true,workRoot:true}));
+ assert.deepEqual([(await install(page)).modeSource,await page.locator('#native-home-column[data-bocchi-column]').count()],['work-home-composer',1]);
+ results.push({test:'26.1120 Work project home recognizes its explicit composer without a header toggle',passed:true});
+ await setFixture(page,fixture('work').replace(' data-codex-composer="true"','').replace('aria-label="Ask ChatGPT"','aria-label="编辑内容"'));
+ const workThread=await install(page);
+ assert.deepEqual([workThread.mode,workThread.modeSource,workThread.reader],['work','work-thread-composer',true]);
+ results.push({test:'26.1120 Work thread uses its verified local reader and composer shell during editor remount',passed:true});
+ await setFixture(page,freshHome);
+ await page.locator('.mode-group .col-start-1').evaluate(el=>el.setAttribute('aria-pressed','true'));
+ assert.equal((await install(page)).reason,'unknown-mode');
+ results.push({test:'26.1120 ambiguous native home mode leaves the page untouched',passed:true});
  await setFixture(page,fixture());
  const initial=await install(page);assert.equal(initial.installed,true,initial.reason);assert.equal(initial.reader,true);assert.equal(initial.mode,'chat');assert.equal(initial.starryVisible,true);
  results.push({test:'conversation ID reader, native light palette acquisition and STARRY',passed:true});
